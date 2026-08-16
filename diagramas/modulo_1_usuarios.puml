@@ -1,0 +1,204 @@
+@startuml Modulo_1_Administracion_Usuarios
+!theme plain
+skinparam defaultFontSize 12
+skinparam ActivityBackgroundColor #E3F2FD
+skinparam ActivityBorderColor #1565C0
+skinparam ActivityDiamondBackgroundColor #FFF9C4
+skinparam ActivityDiamondBorderColor #F57F17
+skinparam ArrowColor #333333
+skinparam PartitionBorderColor #5C6BC0
+skinparam PartitionBackgroundColor #F3F4FF
+
+title **Módulo 1: Administración de Usuarios — Diagrama de Actividades**
+
+|#DCEEFB| Administrador |
+|#E8F5E9| Sistema |
+
+start
+
+|Administrador|
+:Accede al Módulo de\nAdministración de Usuarios;
+
+' ═══════════════════════════════════════
+' 1.1 GESTIONAR USUARIO
+' ═══════════════════════════════════════
+partition "1.1 Gestionar Usuario" {
+    |Administrador|
+    :Visualiza listado de usuarios\n(nombre, correo, rol, estado);
+    fork
+        :Selecciona "Nuevo Usuario":\n· Nombre completo\n· Correo electrónico\n· Contraseña\n· Rol asignado;
+        |Sistema|
+        :Valida campos obligatorios;
+        if (¿Correo duplicado?) then (Sí)
+            :Retorna error:\n"Correo ya registrado";
+        else (No)
+            :Crea registro en tabla users;
+            :Asigna rol y permisos\n(rol_permiso_usuario);
+        endif
+    fork again
+        |Administrador|
+        :Selecciona usuario → "Editar":\n· Modifica nombre, correo\n· Cambia rol asignado;
+        |Sistema|
+        :Actualiza datos en BD;
+        :Recalcula permisos si\ncambió el rol;
+    fork again
+        |Administrador|
+        :Selecciona "Cambiar Contraseña":\n· Ingresa nueva contraseña\n· Confirma contraseña;
+        |Sistema|
+        if (¿Contraseñas coinciden?) then (No)
+            :Retorna error de validación;
+        else (Sí)
+            :Hashea y guarda\nnueva contraseña;
+        endif
+    fork again
+        |Administrador|
+        :Cambia estado del usuario;
+        |Sistema|
+        if (¿Estado actual?) then (Activo)
+            :Desactiva usuario;
+            :Revoca tokens Sanctum\nactivos;
+        else (Inactivo)
+            :Activa usuario;
+        endif
+    end fork
+}
+
+' ═══════════════════════════════════════
+' 1.2 GESTIONAR PERMISO
+' ═══════════════════════════════════════
+partition "1.2 Gestionar Permiso" {
+    |Administrador|
+    :Visualiza listado de permisos\n(nombre, descripción, estado);
+    fork
+        :Selecciona "Nuevo Permiso":\n· Nombre único (ej: ver_ventas)\n· Descripción;
+        |Sistema|
+        :Valida nombre único;
+        if (¿Nombre duplicado?) then (Sí)
+            :Retorna error;
+        else (No)
+            :Crea registro en tabla permisos;
+        endif
+    fork again
+        |Administrador|
+        :Selecciona permiso → "Editar":\n· Modifica nombre o descripción;
+        |Sistema|
+        :Actualiza registro en BD;
+    fork again
+        |Administrador|
+        :Activa o desactiva permiso;
+        |Sistema|
+        :Actualiza campo estado;
+        :Acceso afecta a todos\nlos roles que lo tienen;
+    fork again
+        |Administrador|
+        :Asigna permiso a un Rol;
+        |Sistema|
+        :Actualiza tabla rol_permiso;
+        :Usuarios con ese rol\nreciben el nuevo acceso;
+    end fork
+}
+
+' ═══════════════════════════════════════
+' 1.3 GESTIONAR ROL
+' ═══════════════════════════════════════
+partition "1.3 Gestionar Rol" {
+    |Administrador|
+    :Visualiza listado de roles\n(nombre, descripción, estado);
+    fork
+        :Selecciona "Nuevo Rol":\n· Nombre del rol\n· Descripción;
+        |Sistema|
+        :Crea registro en tabla roles;
+        |Administrador|
+        :Selecciona permisos\na asignar al rol;
+        |Sistema|
+        :Registra asignaciones\nen tabla rol_permiso;
+    fork again
+        |Administrador|
+        :Selecciona rol → "Editar":\n· Nombre, descripción\n· Agrega o quita permisos;
+        |Sistema|
+        :Actualiza roles y\ntabla rol_permiso;
+    fork again
+        |Administrador|
+        :Activa o desactiva rol;
+        |Sistema|
+        :Actualiza estado del rol;
+    fork again
+        |Administrador|
+        :Ver usuarios asignados al rol;
+        |Sistema|
+        :Consulta rol_permiso_usuario\ncon usuarios vinculados;
+        |Administrador|
+        :Visualiza listado de usuarios;
+    end fork
+}
+
+' ═══════════════════════════════════════
+' 1.4 GESTIONAR ASESOR
+' ═══════════════════════════════════════
+partition "1.4 Gestionar Asesor" {
+    |Administrador|
+    :Visualiza listado de asesores\n(nombre, teléfono, comisión %, estado);
+    fork
+        :Selecciona "Nuevo Asesor":\n· Selecciona o crea usuario base\n· Nombre completo\n· Teléfono, correo, dirección\n· Porcentaje de comisión;
+        |Sistema|
+        :Vincula asesor al user\n(asesores.user_id);
+        :Crea registro en tabla asesores;
+    fork again
+        |Administrador|
+        :Selecciona asesor → "Editar":\n· Datos personales\n· Porcentaje de comisión\n· Sube foto de perfil;
+        |Sistema|
+        :Guarda foto en storage;
+        :Actualiza registro en BD;
+    fork again
+        |Administrador|
+        :Activa o desactiva asesor;
+        |Sistema|
+        :Actualiza campo estado;
+    fork again
+        |Administrador|
+        :Ver historial de ventas\ny comisiones del asesor;
+        |Sistema|
+        :Consulta notas_ventas\ny egresos (COMISION_ASESOR);
+        |Administrador|
+        :Visualiza ventas cerradas\ny montos de comisión;
+    end fork
+}
+
+' ═══════════════════════════════════════
+' 1.5 GESTIONAR CLIENTE
+' ═══════════════════════════════════════
+partition "1.5 Gestionar Cliente" {
+    |Administrador|
+    :Visualiza listado de clientes\n(nombre, CI, teléfono, estado);
+    fork
+        :Selecciona "Nuevo Cliente":\n· CI único + lugar expedición\n· Nombre completo\n· Teléfono, correo, dirección;
+        |Sistema|
+        :Valida CI único;
+        if (¿CI duplicado?) then (Sí)
+            :Retorna error:\n"CI ya registrado";
+        else (No)
+            :Crea registro en tabla users;
+            :Crea registro en tabla clientes\nvinculado al user_id;
+        endif
+    fork again
+        |Administrador|
+        :Selecciona cliente → "Editar":\n· Datos personales;
+        |Sistema|
+        :Actualiza registro en BD;
+    fork again
+        |Administrador|
+        :Activa o desactiva cliente;
+        |Sistema|
+        :Actualiza campo estado;
+    fork again
+        |Administrador|
+        :Ver historial de compras\ndel cliente;
+        |Sistema|
+        :Consulta notas_ventas,\ncontratos y pagos del cliente;
+        |Administrador|
+        :Visualiza ventas y\nestado de sus cobros;
+    end fork
+}
+
+stop
+@enduml

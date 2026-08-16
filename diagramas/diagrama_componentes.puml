@@ -1,0 +1,220 @@
+@startuml Diagrama_Componentes_Multilider
+!theme plain
+skinparam componentStyle rectangle
+skinparam defaultFontSize 13
+skinparam ArrowColor #555555
+skinparam ComponentBorderColor #333366
+skinparam ComponentBackgroundColor #E8EAF6
+skinparam PackageBorderColor #7986CB
+skinparam PackageBackgroundColor #F5F5FF
+skinparam DatabaseBorderColor #2E7D32
+skinparam DatabaseBackgroundColor #E8F5E9
+skinparam CloudBorderColor #795548
+skinparam CloudBackgroundColor #EFEBE9
+skinparam NodeBorderColor #0277BD
+skinparam NodeBackgroundColor #E1F5FE
+
+title **Sistema Multilider — Diagrama de Componentes**\n(Gestión Inmobiliaria)
+
+' =====================================================
+' ACTOR
+' =====================================================
+actor "Usuario\nAdmin / Asesor" as admin
+actor "Cliente\nPúblico" as client
+
+' =====================================================
+' CAPA: FRONTEND (Vue 3 + Vite)
+' =====================================================
+package "Frontend — Vue 3 SPA" as FE {
+
+    package "Landing Pública" as landing {
+        [LandingHeader] <<Vue Component>>
+        [LandingHero / Slider] <<Vue Component>>
+        [Catálogo de Propiedades] <<Vue Component>>
+        [Detalle de Propiedad] <<Vue Component>>
+        [Sección Nosotros / Contacto] <<Vue Component>>
+    }
+
+    package "Portal de Pagos Público" as portalPago {
+        [PagoPublicoView] <<Vue View>>
+    }
+
+    package "Panel Administrativo" as admin_panel {
+
+        package "Gestión" as gestion {
+            [Propiedades] <<Vue View>>
+            [Propietarios] <<Vue View>>
+            [Asesores] <<Vue View>>
+            [Clientes] <<Vue View>>
+        }
+
+        package "Ventas" as ventas_fe {
+            [Nueva Venta] <<Vue View>>
+            [Historial de Ventas] <<Vue View>>
+            [Contratos] <<Vue View>>
+        }
+
+        package "Cobros / Pagos" as cobros_fe {
+            [Pagos Contado] <<Vue View>>
+            [Pagos Crédito / Cuotas] <<Vue View>>
+        }
+
+        package "Finanzas" as finanzas_fe {
+            [Ingresos] <<Vue View>>
+            [Egresos] <<Vue View>>
+            [Comisiones Asesores] <<Vue View>>
+        }
+
+        package "Reportes" as reportes_fe {
+            [Reporte Ventas y Cobros] <<Vue View>>
+            [Reporte Cartera Mora] <<Vue View>>
+            [Reporte Comisiones] <<Vue View>>
+            [Reporte Desempeño Asesores] <<Vue View>>
+            [Reporte Inventario] <<Vue View>>
+        }
+
+        package "Configuración" as config_fe {
+            [Dashboard / KPIs] <<Vue View>>
+            [Mi Empresa] <<Vue View>>
+            [Usuarios / Roles] <<Vue View>>
+            [Correo Masivo] <<Vue View>>
+        }
+    }
+
+    package "Estado Global" as store {
+        [auth.js] <<Pinia Store>>
+        [company.js] <<Pinia Store>>
+    }
+
+    [axios.js] <<HTTP Client>>
+}
+
+' =====================================================
+' CAPA: BACKEND (Laravel 10)
+' =====================================================
+package "Backend — Laravel 10 API" as BE {
+
+    package "Autenticación" as auth_be {
+        [AuthController] <<Controller>>
+        [Sanctum Middleware] <<Middleware>>
+        [CheckPermission] <<Middleware>>
+    }
+
+    package "API Controllers" as controllers {
+        [PropiedadController] <<Controller>>
+        [PropietarioController] <<Controller>>
+        [AsesorController] <<Controller>>
+        [ClienteController] <<Controller>>
+        [NotaVentaController] <<Controller>>
+        [PagoController] <<Controller>>
+        [PlanPagoController] <<Controller>>
+        [CuotaController] <<Controller>>
+        [ContratoController] <<Controller>>
+        [IngresoController] <<Controller>>
+        [EgresoController] <<Controller>>
+        [DashboardController] <<Controller>>
+        [ReporteController] <<Controller>>
+        [CorreoMasivoController] <<Controller>>
+        [CuentaBancariaController] <<Controller>>
+        [UbicacionController] <<Controller>>
+        [RolController / PermisoController] <<Controller>>
+    }
+
+    package "Servicios de Negocio" as services {
+        [AmortizacionService] <<Service>>
+        [PagoService] <<Service>>
+        [ReprogramacionService] <<Service>>
+        [MoraService] <<Service>>
+    }
+
+    package "Modelos Eloquent" as models {
+        [User / Rol / Permiso] <<Model>>
+        [Propiedad / Propietario] <<Model>>
+        [Asesor / Cliente] <<Model>>
+        [NotaVenta / Contrato] <<Model>>
+        [PlanPago / Cuota / Pago] <<Model>>
+        [Ingreso / Egreso] <<Model>>
+        [Reprogramacion] <<Model>>
+        [MiEmpresa] <<Model>>
+    }
+
+    package "Jobs / Cola" as jobs {
+        [EnviarCorreoMasivoJob] <<Job>>
+    }
+
+    package "Exportaciones" as exports {
+        [ReporteVentasCobrosExport] <<Export>>
+        [ReporteCarteraMoraExport] <<Export>>
+        [ReporteComisionesExport] <<Export>>
+        [ReporteInventarioExport] <<Export>>
+    }
+}
+
+' =====================================================
+' CAPA: BASE DE DATOS (MySQL)
+' =====================================================
+database "Base de Datos\nMySQL 8" as DB {
+    [users / roles / permisos]
+    [ciudades / distritos / sectores_urbanos]
+    [propiedades / propietarios / ubicaciones]
+    [asesores / clientes]
+    [notas_ventas / contratos]
+    [planes_pagos / cuotas / pagos]
+    [ingresos / egresos]
+    [cuentas_bancarias / metodos_pago]
+    [reprogramaciones]
+    [campanas_correo / jobs]
+    [mi_empresa]
+}
+
+' =====================================================
+' SERVICIOS EXTERNOS
+' =====================================================
+cloud "Servicios Externos" as externos {
+    [Libelula\nPasarela de Pago] <<External>>
+    [Google Maps API] <<External>>
+    [Servidor SMTP\n(Correo)] <<External>>
+}
+
+' =====================================================
+' RELACIONES
+' =====================================================
+
+' Actores → Frontend
+admin --> admin_panel : usa
+client --> landing : navega
+client --> portalPago : paga
+
+' Frontend → Backend (HTTP REST)
+[axios.js] --> BE : "REST API\n/api/v1/*"
+landing --> [axios.js]
+portalPago --> [axios.js]
+admin_panel --> [axios.js]
+
+' Auth flow
+[axios.js] --> [AuthController] : POST /login
+[Sanctum Middleware] --> [CheckPermission]
+
+' Controllers → Services
+[PagoController] --> [PagoService]
+[PlanPagoController] --> [AmortizacionService]
+[CuotaController] --> [MoraService]
+[PagoController] --> [ReprogramacionService]
+
+' Controllers → Models
+controllers --> models : Eloquent ORM
+
+' Jobs
+[CorreoMasivoController] --> [EnviarCorreoMasivoJob] : dispatch()
+[ReporteController] --> exports : genera Excel/PDF
+
+' Models → DB
+models --> DB : SQL / ORM
+
+' Servicios externos
+[PagoService] --> [Libelula\nPasarela de Pago] : API REST
+landing --> [Google Maps API] : mapa / coords
+[Detalle de Propiedad] --> [Google Maps API]
+[EnviarCorreoMasivoJob] --> [Servidor SMTP\n(Correo)] : SMTP
+
+@enduml

@@ -1,0 +1,55 @@
+@startuml Proceso_Venta
+!theme plain
+skinparam defaultFontSize 13
+skinparam ActivityBackgroundColor #E3F2FD
+skinparam ActivityBorderColor #1565C0
+skinparam ActivityDiamondBackgroundColor #FFF9C4
+skinparam ActivityDiamondBorderColor #E65100
+skinparam ArrowColor #333333
+
+title **Proceso 1: Venta de Propiedad**
+
+|#DCEEFB| Asesor |
+|#E8F5E9| Sistema |
+
+start
+
+|Asesor|
+:Selecciona propiedad\nDisponible;
+
+:Selecciona o registra\nCliente y Asesor;
+
+if (¿Tipo de venta?) then (CONTADO)
+
+    :Ingresa monto, descuento\ny método de pago;
+    |Sistema|
+    :Crea Nota de Venta CONTADO;
+    :Registra Ingreso automático\n(VENTA_CONTADO);
+
+else (CRÉDITO)
+
+    :Ingresa cuota inicial,\nplazo, tasa interés y mora;
+    |Sistema|
+    :Calcula tabla de amortización;
+    |Asesor|
+    :Revisa y confirma\ntabla de cuotas;
+    |Sistema|
+    :Crea Nota de Venta CRÉDITO;
+    :Genera Plan de Pago + Cuotas;
+    :Registra Ingreso de\ncuota inicial (si aplica);
+
+endif
+
+|Sistema|
+:Cambia estado propiedad\n→ Vendido;
+:Calcula y registra\nComisión del Asesor;
+:Genera Contrato\n(estado: Pendiente);
+
+|Asesor|
+:Sube contrato firmado;
+
+|Sistema|
+:Actualiza Contrato\n→ Firmado;
+
+stop
+@enduml

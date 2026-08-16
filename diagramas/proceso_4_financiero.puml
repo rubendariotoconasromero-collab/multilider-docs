@@ -1,0 +1,52 @@
+@startuml Proceso_Gestion_Financiera
+!theme plain
+skinparam defaultFontSize 13
+skinparam ActivityBackgroundColor #FFF3E0
+skinparam ActivityBorderColor #E65100
+skinparam ActivityDiamondBackgroundColor #E8F5E9
+skinparam ActivityDiamondBorderColor #2E7D32
+skinparam ArrowColor #333333
+
+title **Proceso 4: Gestión Financiera (Ingresos, Egresos y Comisiones)**
+
+|#FFE0B2| Admin / Asesor |
+|#E8F5E9| Sistema |
+
+start
+
+|Sistema|
+:Registra Ingreso automático\nal confirmar un pago\n(VENTA_CONTADO / CUOTA /\nCUOTA_INICIAL / MORA);
+
+|Sistema|
+:Registra Egreso automático\nal cerrar una venta\n(COMISION_ASESOR);
+
+|Admin / Asesor|
+if (¿Movimiento manual?) then (Ingreso)
+
+    :Registra Ingreso manual:\n- Concepto y categoría\n- Monto y moneda (Bs / $)\n- Cuenta bancaria\n- Comprobante;
+    |Sistema|
+    :Crea Ingreso\n(origen: MANUAL,\nestado: CONFIRMADO);
+
+else (Egreso)
+
+    :Registra Egreso manual:\n- Concepto y categoría\n- Beneficiario, monto\n- Cuenta bancaria\n- Comprobante;
+    |Sistema|
+    :Crea Egreso\n(origen: MANUAL,\nestado: PENDIENTE);
+    |Admin / Asesor|
+    :Marca egreso como Pagado;
+    |Sistema|
+    :Actualiza estado → PAGADO;
+
+endif
+
+|Admin / Asesor|
+:Consulta Reportes financieros:\n- Ventas y Cobros\n- Comisiones por asesor\n- Cartera en mora\n- Inventario;
+
+|Sistema|
+:Genera reporte en\nExcel (maatwebsite)\no PDF (mPDF);
+
+|Admin / Asesor|
+:Descarga y analiza\nel reporte;
+
+stop
+@enduml

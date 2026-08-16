@@ -1,0 +1,234 @@
+@startuml Modulo_2_Gestion_Propiedades
+!theme plain
+skinparam defaultFontSize 12
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityBorderColor #2E7D32
+skinparam ActivityDiamondBackgroundColor #FFF9C4
+skinparam ActivityDiamondBorderColor #F57F17
+skinparam ArrowColor #333333
+skinparam PartitionBorderColor #388E3C
+skinparam PartitionBackgroundColor #F1FBF2
+
+title **Módulo 2: Gestión de Propiedades — Diagrama de Actividades**
+
+|#D7F0DA| Administrador / Asesor |
+|#E8F5E9| Sistema |
+
+start
+
+|Administrador / Asesor|
+:Accede al Módulo de\nGestión de Propiedades;
+
+' ═══════════════════════════════════════
+' 2.1 GESTIONAR PROPIETARIO
+' ═══════════════════════════════════════
+partition "2.1 Gestionar Propietario" {
+    |Administrador / Asesor|
+    :Visualiza listado de propietarios\n(nombre, CI, tipo, estado);
+    fork
+        :Selecciona "Nuevo Propietario":\n· CI único + lugar expedición\n· Nombre completo\n· Teléfono, correo, dirección\n· Tipo (individual / empresa);
+        |Sistema|
+        :Valida CI único;
+        if (¿CI duplicado?) then (Sí)
+            :Retorna error;
+        else (No)
+            :Crea registro en tabla propietarios;
+        endif
+    fork again
+        |Administrador / Asesor|
+        :Selecciona propietario → "Editar":\n· Modifica datos personales;
+        |Sistema|
+        :Actualiza registro en BD;
+    fork again
+        |Administrador / Asesor|
+        :Activa o desactiva propietario;
+        |Sistema|
+        :Actualiza campo estado;
+    fork again
+        |Administrador / Asesor|
+        :Ver propiedades del propietario;
+        |Sistema|
+        :Consulta tabla\npropiedad_propietario;
+        |Administrador / Asesor|
+        :Vincula o desvincula\nuna propiedad al propietario;
+        |Sistema|
+        :Actualiza tabla\npropiedad_propietario;
+    end fork
+}
+
+' ═══════════════════════════════════════
+' 2.2 GESTIONAR PROPIEDAD
+' ═══════════════════════════════════════
+partition "2.2 Gestionar Propiedad" {
+    |Administrador / Asesor|
+    :Visualiza listado de propiedades\n(filtros: tipo, estado, ciudad, precio);
+    fork
+        :Selecciona "Nueva Propiedad":\n· Tipo (casa/lote/tienda…)\n· Precio venta + moneda\n· Superficie m², frente, fondo\n· Habitaciones, baños\n· Dirección, nro. lote\n· Es esquina, es destacada\n· Selecciona sector urbano;
+        |Sistema|
+        :Genera código único (ej: 0001);
+        :Crea registro en tabla propiedades\n(estado: Disponible);
+        |Administrador / Asesor|
+        :Vincula propietario(s)\na la propiedad;
+        |Sistema|
+        :Registra en propiedad_propietario;
+    fork again
+        |Administrador / Asesor|
+        :Selecciona propiedad → "Editar":\n· Datos físicos, precio, sector\n· Colindancias norte/sur/este/oeste;
+        |Sistema|
+        :Actualiza registro en BD;
+    fork again
+        |Administrador / Asesor|
+        :Cambia estado de la propiedad;
+        |Sistema|
+        if (¿Nuevo estado?) then (Reservada)
+            :Estado = Reservado;
+        elseif (¿Nuevo estado?) then (Disponible)
+            :Estado = Disponible;
+        else (Vendida)
+            :Estado = Vendido\n(solo desde venta confirmada);
+        endif
+    fork again
+        |Administrador / Asesor|
+        :Marca/desmarca como destacada\n(es_destacado);
+        |Sistema|
+        :Actualiza flag en BD;
+        :Propiedad aparece destacada\nen Landing Page;
+    end fork
+}
+
+' ═══════════════════════════════════════
+' 2.3 GESTIONAR IMAGEN
+' ═══════════════════════════════════════
+partition "2.3 Gestionar Imagen" {
+    |Administrador / Asesor|
+    :Accede a galería de\nuna propiedad seleccionada;
+    :Visualiza imágenes actuales\n(miniatura + indicador principal);
+    fork
+        :Sube nueva imagen:\n· Selecciona archivo de imagen;
+        |Sistema|
+        :Guarda archivo en storage;
+        :Crea registro en\nimagenes_propiedades;
+        if (¿Es primera imagen?) then (Sí)
+            :Marca como principal\n(es_principal = true);
+        endif
+    fork again
+        |Administrador / Asesor|
+        :Selecciona imagen → "Establecer principal";
+        |Sistema|
+        :Quita flag es_principal\nde imagen anterior;
+        :Asigna es_principal = true\na imagen seleccionada;
+    fork again
+        |Administrador / Asesor|
+        :Selecciona imagen → "Eliminar";
+        |Sistema|
+        if (¿Era imagen principal?) then (Sí)
+            :Asigna principal a\nsiguiente imagen disponible;
+        endif
+        :Elimina archivo del storage;
+        :Elimina registro de BD;
+    end fork
+}
+
+' ═══════════════════════════════════════
+' 2.4 GESTIONAR CARACTERÍSTICA
+' ═══════════════════════════════════════
+partition "2.4 Gestionar Característica" {
+    |Administrador / Asesor|
+    :Visualiza catálogo de características\n(tipo: Interior, Exterior, Servicio);
+    fork
+        :Selecciona "Nueva Característica":\n· Nombre (ej: "Piscina")\n· Tipo de característica;
+        |Sistema|
+        :Crea registro en tabla caracteristicas;
+    fork again
+        |Administrador / Asesor|
+        :Selecciona característica → "Editar";
+        |Sistema|
+        :Actualiza nombre y tipo en BD;
+    fork again
+        |Administrador / Asesor|
+        :Asigna características a propiedad:\n· Selecciona propiedad\n· Marca características aplicables;
+        |Sistema|
+        :Actualiza tabla\ncaracteristica_propiedad;
+    end fork
+}
+
+' ═══════════════════════════════════════
+' 2.5 GESTIONAR UBICACIÓN
+' ═══════════════════════════════════════
+partition "2.5 Gestionar Ubicación" {
+    |Administrador / Asesor|
+    :Accede a sección de ubicaciones;
+    fork
+        :Crea nueva ubicación:\n· Referencia descriptiva\n· Latitud y longitud\n· URL Google Maps;
+        |Sistema|
+        :Crea registro en tabla ubicaciones;
+        |Administrador / Asesor|
+        :Vincula ubicación a propiedad;
+        |Sistema|
+        :Actualiza ubicacion_id\nen tabla propiedades;
+    fork again
+        |Administrador / Asesor|
+        :Selecciona ubicación → "Editar":\n· Corrige coordenadas\n· Actualiza referencia o URL;
+        |Sistema|
+        :Actualiza registro en BD;
+    fork again
+        |Administrador / Asesor|
+        :Visualiza ubicación en mapa\n(Google Maps embed);
+    end fork
+}
+
+' ═══════════════════════════════════════
+' 2.6 GESTIONAR CIUDAD
+' ═══════════════════════════════════════
+partition "2.6 Gestionar Ciudad" {
+    |Administrador / Asesor|
+    :Visualiza listado de ciudades\n(nombre, departamento);
+    fork
+        :Selecciona "Nueva Ciudad":\n· Nombre\n· Departamento (Santa Cruz, La Paz…);
+        |Sistema|
+        :Crea registro en tabla ciudades;
+    fork again
+        |Administrador / Asesor|
+        :Selecciona ciudad → "Editar";
+        |Sistema|
+        :Actualiza nombre y\ndepartamento en BD;
+    fork again
+        |Administrador / Asesor|
+        :Ver distritos de la ciudad;
+        |Sistema|
+        :Lista distritos vinculados\n(distritos.ciudad_id);
+    end fork
+}
+
+' ═══════════════════════════════════════
+' 2.7 GESTIONAR SECTOR URBANO
+' ═══════════════════════════════════════
+partition "2.7 Gestionar Sector Urbano" {
+    |Administrador / Asesor|
+    :Visualiza sectores urbanos\n(filtro por distrito / ciudad);
+    fork
+        :Selecciona "Nuevo Sector":\n· Nombre del sector\n· Tipo (Barrio/Urbanización/Condominio)\n· Selecciona Distrito\n· UV y Manzano (opcionales);
+        |Sistema|
+        :Crea registro en tabla sectores_urbanos;
+    fork again
+        |Administrador / Asesor|
+        :Selecciona sector → "Editar":\n· Nombre, tipo, UV, Manzano;
+        |Sistema|
+        :Actualiza registro en BD;
+    fork again
+        |Administrador / Asesor|
+        :Activa o desactiva sector;
+        |Sistema|
+        :Actualiza campo estado;
+    fork again
+        |Administrador / Asesor|
+        :Ver propiedades del sector;
+        |Sistema|
+        :Consulta propiedades con\nsector_urbano_id del sector;
+        |Administrador / Asesor|
+        :Visualiza listado de propiedades;
+    end fork
+}
+
+stop
+@enduml

@@ -1,0 +1,59 @@
+@startuml Proceso_Cobros_Pagos
+!theme plain
+skinparam defaultFontSize 13
+skinparam ActivityBackgroundColor #F3E5F5
+skinparam ActivityBorderColor #6A1B9A
+skinparam ActivityDiamondBackgroundColor #FFF9C4
+skinparam ActivityDiamondBorderColor #E65100
+skinparam ArrowColor #333333
+
+title **Proceso 2: Cobro y Gestión de Pagos**
+
+|#EDE7F6| Asesor / Admin |
+|#E8F5E9| Sistema |
+|#FCE4EC| Libelula (Pasarela) |
+
+start
+
+|Sistema|
+:Verifica cuotas vencidas\n(tarea programada diaria);
+
+if (¿Cuotas con fecha pasada\ny sin pago?) then (Sí)
+    :Marca cuotas como Vencidas;
+    :Calcula interés moratorio\n(MoraService);
+endif
+
+|Asesor / Admin|
+:Selecciona cuota o pago\na registrar;
+
+if (¿Canal de pago?) then (Manual)
+
+    :Ingresa monto, método\nde pago y cuenta bancaria;
+    :Ingresa datos del pagador;
+    |Sistema|
+    :Registra Pago;
+
+else (Portal Público - Libelula)
+
+    |Libelula (Pasarela)|
+    :Cliente selecciona cuota\ny paga en línea;
+    :Libelula confirma\ntransacción;
+    |Sistema|
+    :Recibe confirmación\ny registra Pago automático;
+
+endif
+
+|Sistema|
+:Actualiza estado de Cuota\n→ Pagada;
+:Registra Ingreso automático\n(CUOTA / MORA / AMORTIZACION);
+:Actualiza saldo del\nPlan de Pago;
+
+if (¿Todas las cuotas pagadas?) then (Sí)
+    :Marca Plan de Pago\ncomo completado;
+endif
+
+|Asesor / Admin|
+:Descarga comprobante\nde pago;
+
+stop
+@enduml

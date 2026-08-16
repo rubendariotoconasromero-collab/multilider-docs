@@ -1,0 +1,221 @@
+@startuml Diagrama_Actividades_Multilider
+!theme plain
+skinparam defaultFontSize 12
+skinparam ActivityBackgroundColor #E8EAF6
+skinparam ActivityBorderColor #3949AB
+skinparam ActivityDiamondBackgroundColor #FFF9C4
+skinparam ActivityDiamondBorderColor #F57F17
+skinparam ArrowColor #444444
+skinparam StartColor #1B5E20
+skinparam EndColor #B71C1C
+skinparam PartitionBorderColor #546E7A
+skinparam PartitionBackgroundColor #FAFAFA
+
+title **Sistema Multilider — Diagrama de Actividades General**\n(Flujo Principal del Negocio Inmobiliario)
+
+|#E3F2FD| Cliente / Público |
+|#E8F5E9| Asesor / Admin |
+|#FFF3E0| Sistema (Backend) |
+|#FCE4EC| Servicios Externos |
+
+' =====================================================
+' 1. INICIO / ACCESO
+' =====================================================
+start
+
+|Cliente / Público|
+:Visita Landing Page;
+note right: Catálogo público de propiedades
+
+fork
+    :Navega propiedades disponibles;
+    :Ver detalle de propiedad\n(fotos, mapa, características);
+fork again
+    :Navega a Panel Admin;
+    |Asesor / Admin|
+    :Ingresa credenciales\n(correo + contraseña);
+    |Sistema (Backend)|
+    :Valida credenciales\nvía Sanctum;
+    if (¿Credenciales válidas?) then (Sí)
+        :Genera token de sesión;
+        :Carga permisos del rol;
+        |Asesor / Admin|
+        :Accede al Dashboard\n(KPIs: ventas, cobros, mora);
+    else (No)
+        :Retorna error 401;
+        stop
+    endif
+end fork
+
+' =====================================================
+' 2. GESTIÓN DE PROPIEDADES
+' =====================================================
+|Asesor / Admin|
+:Gestiona Propiedades;
+
+fork
+    :Registra nueva propiedad\n(tipo, precio, superficie, sector);
+    |Sistema (Backend)|
+    :Asigna código único;
+    :Vincula propietario(s);
+    :Sube imágenes;
+    :Registra características;
+    :Geocodifica ubicación;
+fork again
+    :Edita / actualiza propiedad;
+fork again
+    :Cambia estado\n(Disponible → Reservado → Vendido);
+end fork
+
+' =====================================================
+' 3. PROCESO DE VENTA
+' =====================================================
+|Asesor / Admin|
+:Inicia Nueva Venta;
+:Selecciona Asesor, Cliente\ny Propiedad disponible;
+
+if (¿Cliente existe?) then (No)
+    :Registra nuevo cliente\n(CI, nombre, contacto);
+endif
+
+:Define tipo de venta;
+
+if (¿Tipo de venta?) then (CONTADO)
+    :Ingresa monto total;
+    :Aplica descuento (opcional);
+    :Calcula monto líquido;
+    |Sistema (Backend)|
+    :Crea Nota de Venta\n(tipo: CONTADO);
+    :Cambia estado propiedad\na "Vendido";
+    :Registra Ingreso\nautomático (VENTA_CONTADO);
+    :Calcula comisión del asesor;
+    :Registra Egreso automático\n(COMISION_ASESOR);
+
+else (CRÉDITO)
+    :Ingresa cuota inicial\ny condiciones del crédito;
+    |Sistema (Backend)|
+    :Crea Nota de Venta\n(tipo: CRÉDITO);
+    :Cambia estado propiedad\na "Vendido";
+    :AmortizacionService:\ncalcula tabla de cuotas;
+    :Crea Plan de Pago\n(plazo, tasa interés, tasa mora);
+    :Genera Cuotas\n(capital + interés por cuota);
+    :Registra Ingreso automático\n(CUOTA_INICIAL) si aplica;
+    :Calcula y registra\ncomisión del asesor;
+endif
+
+' =====================================================
+' 4. CONTRATO
+' =====================================================
+|Sistema (Backend)|
+:Genera borrador de Contrato\n(código único, tipo venta);
+|Asesor / Admin|
+:Revisa y adjunta\ndocumento firmado;
+|Sistema (Backend)|
+:Actualiza estado contrato\na "Firmado";
+
+' =====================================================
+' 5. PROCESO DE COBROS / PAGOS
+' =====================================================
+|Cliente / Público|
+:Recibe cuotas pendientes;
+
+fork
+    ' Pago por portal público
+    :Accede al Portal\nde Pago Público;
+    :Selecciona cuota a pagar;
+    :Elige método de pago;
+    |Servicios Externos|
+    :Libelula procesa\nel pago en línea;
+    |Sistema (Backend)|
+    :Recibe confirmación\nde transacción;
+
+fork again
+    ' Pago registrado por admin
+    |Asesor / Admin|
+    :Registra pago manualmente\n(monto, método, cuenta bancaria);
+end fork
+
+|Sistema (Backend)|
+:Valida y registra Pago;
+:Actualiza estado de Cuota\n(Pendiente → Pagada);
+:Registra Ingreso automático\n(categoría: CUOTA o MORA);
+:Actualiza saldo del\nPlan de Pago;
+
+if (¿Cuotas con mora?) then (Sí)
+    :MoraService:\ncalcula interés moratorio;
+    :Actualiza estado cuota\na "Vencida";
+endif
+
+' =====================================================
+' 6. REPROGRAMACIÓN DE CRÉDITO (opcional)
+' =====================================================
+|Asesor / Admin|
+if (¿Solicitud de reprogramación?) then (Sí)
+    :Registra motivo\ny nuevas condiciones;
+    |Sistema (Backend)|
+    :ReprogramacionService:\nrecalcula cuotas restantes;
+    :Crea registro Reprogramacion;
+    :Actualiza cuotas desde\nla fecha indicada;
+    :Vincula cuotas a\nreprogramación;
+endif
+
+' =====================================================
+' 7. FINANZAS MANUALES
+' =====================================================
+|Asesor / Admin|
+fork
+    :Registra Ingreso manual\n(categoría, monto, cuenta);
+fork again
+    :Registra Egreso manual\n(gasto administrativo,\noperativo, marketing, etc.);
+    if (¿Egreso pagado?) then (Sí)
+        |Sistema (Backend)|
+        :Actualiza estado Egreso\na "Pagado";
+    endif
+end fork
+
+' =====================================================
+' 8. CAMPAÑAS DE CORREO
+' =====================================================
+|Asesor / Admin|
+:Crea campaña de correo\n(asunto, mensaje, filtro de destinatarios);
+|Sistema (Backend)|
+:Encola Job\n(EnviarCorreoMasivoJob);
+|Servicios Externos|
+:Servidor SMTP\nenvía correos masivos;
+|Sistema (Backend)|
+:Actualiza contadores\n(enviados / fallidos);
+
+' =====================================================
+' 9. REPORTES Y EXPORTACIONES
+' =====================================================
+|Asesor / Admin|
+:Accede a módulo de Reportes;
+
+fork
+    :Reporte Ventas y Cobros;
+fork again
+    :Reporte Cartera en Mora;
+fork again
+    :Reporte Comisiones;
+fork again
+    :Reporte Inventario;
+fork again
+    :Reporte Desempeño Asesores;
+end fork
+
+|Sistema (Backend)|
+:Genera archivo Excel\n(maatwebsite/excel)\no PDF (mPDF);
+|Asesor / Admin|
+:Descarga y analiza\nel reporte;
+
+' =====================================================
+' 10. CONFIGURACIÓN DE LA EMPRESA
+' =====================================================
+|Asesor / Admin|
+:Actualiza configuración\nde Mi Empresa\n(logo, colores, redes, branding);
+|Sistema (Backend)|
+:Persiste configuración;
+:Actualiza Landing Page\npúblicamente;
+
+stop
+@enduml

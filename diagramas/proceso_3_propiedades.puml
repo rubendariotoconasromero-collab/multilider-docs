@@ -1,0 +1,66 @@
+@startuml Proceso_Gestion_Propiedades
+!theme plain
+skinparam defaultFontSize 13
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityBorderColor #2E7D32
+skinparam ActivityDiamondBackgroundColor #FFF9C4
+skinparam ActivityDiamondBorderColor #E65100
+skinparam ArrowColor #333333
+
+title **Proceso 3: Registro y Gestión de Propiedades**
+
+|#D7F0DA| Asesor / Admin |
+|#E8F5E9| Sistema |
+
+start
+
+|Asesor / Admin|
+:Registra nueva Propiedad:\n- Tipo, precio, moneda\n- Superficie, habitaciones\n- Dirección, sector urbano;
+
+|Sistema|
+:Genera código único\nde propiedad;
+:Crea propiedad con\nestado: Disponible;
+
+|Asesor / Admin|
+:Vincula Propietario(s)\na la propiedad;
+
+|Sistema|
+:Registra en\npropiedad_propietario;
+
+|Asesor / Admin|
+:Sube imágenes\nde la propiedad;
+
+|Sistema|
+:Guarda imágenes;\nestablece imagen principal;
+
+|Asesor / Admin|
+:Asigna Características\n(interior, exterior, servicios);
+
+|Sistema|
+:Registra en\ncaracteristica_propiedad;
+
+|Asesor / Admin|
+:Registra Ubicación\n(coordenadas + URL Maps);
+
+|Sistema|
+:Vincula ubicación\na la propiedad;
+
+|Asesor / Admin|
+if (¿Destacar propiedad?) then (Sí)
+    :Marca como Destacada;
+    |Sistema|
+    :Publica en sección\ndestacada del catálogo;
+endif
+
+|Sistema|
+:Propiedad visible\nen Landing y catálogo;
+
+|Asesor / Admin|
+if (¿Cambio de estado?) then (Sí)
+    :Cambia estado:\nReservado / Vendido;
+    |Sistema|
+    :Actualiza estado\nen BD;
+endif
+
+stop
+@enduml

@@ -1,0 +1,93 @@
+@startuml Gestionar_Usuario
+!theme plain
+skinparam defaultFontSize 12
+skinparam ActivityBackgroundColor #E3F2FD
+skinparam ActivityBorderColor #1565C0
+skinparam ActivityDiamondBackgroundColor #FFF9C4
+skinparam ActivityDiamondBorderColor #F57F17
+skinparam ArrowColor #333333
+skinparam PartitionBorderColor #546E7A
+skinparam PartitionBackgroundColor #FAFAFA
+
+title **Módulo Administración de Usuarios\nDiagrama de Actividad: Gestionar Usuario**
+
+|#DCEEFB| Administrador |
+|#E8F5E9| Sistema |
+
+start
+
+|Administrador|
+:Accede al módulo\nde Usuarios;
+
+:Visualiza listado de usuarios\n(nombre, correo, estado, rol);
+
+fork
+    ' === CREAR ===
+    :Selecciona "Nuevo Usuario";
+    :Ingresa datos:\n- Nombre completo\n- Correo electrónico\n- Contraseña\n- Rol asignado;
+    |Sistema|
+    :Valida campos obligatorios;
+    if (¿Correo ya registrado?) then (Sí)
+        :Retorna error:\n"Correo ya existe";
+        |Administrador|
+        :Corrige correo;
+    else (No)
+        :Crea registro en tabla users;
+        :Asigna rol y permisos\n(rol_permiso_usuario);
+        :Envía correo de bienvenida\n(opcional);
+        |Administrador|
+        :Ve confirmación\n"Usuario creado";
+    endif
+
+fork again
+    ' === EDITAR ===
+    :Selecciona usuario\ny elige "Editar";
+    :Modifica datos:\n- Nombre\n- Correo\n- Rol;
+    |Sistema|
+    :Valida cambios;
+    :Actualiza registro en BD;
+    :Actualiza permisos\nsi cambió el rol;
+    |Administrador|
+    :Ve confirmación\n"Usuario actualizado";
+
+fork again
+    ' === CAMBIAR CONTRASEÑA ===
+    :Selecciona "Cambiar Contraseña";
+    :Ingresa nueva contraseña\ny confirmación;
+    |Sistema|
+    :Valida que coincidan\ny cumplan longitud mínima;
+    if (¿Contraseña válida?) then (No)
+        :Retorna error de validación;
+    else (Sí)
+        :Hashea y guarda\nnueva contraseña;
+        |Administrador|
+        :Ve confirmación;
+    endif
+
+fork again
+    ' === ACTIVAR / DESACTIVAR ===
+    :Selecciona usuario\ny cambia estado;
+    |Sistema|
+    if (¿Estado actual?) then (Activo)
+        :Desactiva usuario\n(estado = false);
+        :Revoca tokens activos\n(Sanctum);
+    else (Inactivo)
+        :Activa usuario\n(estado = true);
+    endif
+    |Administrador|
+    :Ve nuevo estado\nen el listado;
+
+fork again
+    ' === ASIGNAR PERMISOS ADICIONALES ===
+    :Selecciona "Gestionar Permisos";
+    :Ve permisos actuales\ndel usuario por rol;
+    :Agrega / quita permisos\nespecíficos sobre el rol;
+    |Sistema|
+    :Actualiza tabla\nrol_permiso_usuario;
+    |Administrador|
+    :Ve permisos actualizados;
+
+end fork
+
+stop
+@enduml
