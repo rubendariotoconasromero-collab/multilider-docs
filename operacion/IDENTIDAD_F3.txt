@@ -1,0 +1,136 @@
+OPERACIÓN Y RECUPERACIÓN DE IDENTIDAD F3
+Fecha: 4 de noviembre de 2026, America/La_Paz
+Raíz local: C:\laragon\www\MultiliderNew
+Entrega local en ramas de trabajo, sin migración/activación en el VPS.
+Contrato: ../contratos/IDENTIDAD_V1.txt. Evidencia: ../pruebas/RESULTADOS_F3.txt.
+
+CONFIGURACIÓN POR INSTANCIA
+Local: APP_ARCHITECTURE=local, su MySQL de Laravel y Sanctum existentes.
+No requiere clave JWT, URLs ni procesos .NET. MICROSERVICE_SYNC_ENABLED no puede
+activar integraciones en local. usuarios:sync/propiedades:sync siguen bloqueados.
+
+Remoto F3, únicamente entorno separado hasta paridad de F4–F8:
+Laravel .env privado:
+ APP_ARCHITECTURE=microservices
+ IDENTITY_ISSUER=MSMultilider.Seguridad
+ IDENTITY_AUDIENCE=MSMultilider.Frontend
+ IDENTITY_SIGNING_KEY=<secreto aleatorio privado, al menos 32 bytes>
+ IDENTITY_LEGACY_UNTIL=<vacío normalmente; fecha UTC de corte si se acuerda ventana>
+ SEGURIDAD_SERVICE_URL=<origen configurado de Seguridad>
+ PROPIEDADES_SERVICE_URL=<origen configurado de Propiedades>
+Conservar APP_KEY estable para descifrar revocaciones pendientes y buzones.
+No usar claves débiles de appsettings o valores de fixtures. No escribir secretos
+reales en repositorios, logs, comandos de demostración ni documentación pública.
+Los cuatro .NET: Jwt:Key/Issuer/Audience coherentes; Services:Seguridad apunta
+a la autoridad desde cada consumidor. Configuración por variables de entorno
+(Jwt__Key, Services__Seguridad, etc.) o User Secrets en desarrollo.
+Seguridad ConnectionStrings:MySQL y cada dominio su SqlServer propio.
+Conexiones, usuarios de BD y contraseñas se administran fuera de Git.
+No se generaron credenciales reales de despliegue durante F3.
+
+ESQUEMA Y ACTIVACIÓN FUTURA, POR OPERADOR
+1. Respaldar código/configuración privada, APP_KEY, clave JWT y bases separadas,
+   con ACL privadas. Guardar manifiesto de revisiones/mode y verificar restauración.
+2. Inspeccionar esquema de Seguridad: vacío o baseline completo users/roles/
+   permisos/rol_permiso/rol_permiso_usuario, con columnas compatibles con modelos.
+   No aplicar ciegamente sobre esquema parcial o una migración DDL interrumpida.
+3. Aplicar migración aditiva explícita: desde Seguridad con configuración privada
+   correcta, dotnet run --project MSMultilider.Seguridad.csproj -- --migrate-identity
+   (o dotnet <DLL publicada> --migrate-identity con runtime compatible).
+   No migra/siembra automáticamente al iniciar HTTP. No ejecutar EnsureCreated
+   contra una BD con datos. Mantiene usuarios, IDs, hashes y asignaciones.
+4. Laravel: php artisan migrate --path=database/migrations/2026_11_04_000001_create_identity_infrastructure.php
+   contra su BD revisada. Esta migración no copia usuarios ni datos de dominio.
+5. Levantar Seguridad, luego consumidores, luego Laravel remoto separado y clientes.
+   Calentar un GET autorizado del catálogo tras arrancar EF/SQL Server antes de
+   aceptar tráfico. Arranque frío puede superar el presupuesto HTTP de 5 s y
+   producir 503; mantener diagnóstico y readiness sin ampliar esperas a ciegas.
+6. Regenerar php artisan config:cache, recargar procesos persistentes y ejecutar
+   php artisan queue:restart después de cualquier cambio de código/modo/config.
+   Probar /login,/me, permisos, perfil, logout y piloto; no convertir sitio híbrido
+   activo a remoto F3 parcial, ni cambiar a otra BD ante indisponibilidad.
+7. Fijar CORS solo a orígenes reales. Revisar límite de login por IP (20/min por
+   defecto en Seguridad) y proxy de confianza antes de un corte público. No confiar
+   indiscriminadamente en X-Forwarded-For; backend/proxy pueden compartir IP.
+
+TABLAS Y PROCESOS
+Seguridad: users.auth_version, auth_sessions, auth_mutex, historial EF.
+Laravel: external_identities y identity_revocations. Estado pendiente es durable.
+Los cuatro MS comprueban la autoridad en cada operación; no hay caché de permisos
+que deba vaciarse manualmente para aplicar una revocación.
+No se añadieron jobs de negocio ni credenciales técnicas. ServiceIdentityProvider
+rechaza hasta existir un caso de uso autorizado en fases posteriores.
+Laravel programa identity:retry-revocations cada minuto SOLO en modo remoto.
+En una activación preparada, conservar cron schedule:run cada minuto con usuario
+y rutas del despliegue. Ejecutar identity:retry-revocations para intervención manual.
+Conservar las colas/tareas Laravel existentes; los espejos antiguos siguen apagados.
+Supervisar cantidad de identity_revocations con confirmed_at NULL y expires_at
+futura. Un retorno CLI 0 no significa que un registro con backoff futuro ya se haya
+confirmado. Credencial se borra al confirmar y registro se purga al vencer.
+No borrar pendientes para ocultar una caída. Dar alarma si crecen o se retrasan.
+
+DIAGNÓSTICO SIN SECRETOS
+Laravel identity.request: servicio, método/ruta sin ID, estado, duration_ms y UUID
+correlation_id; omite cuerpos y Authorization. Consumidores registran solo tipo
+de fallo de la comprobación; no incorporan mensaje/cuerpo HTTP remoto al log.
+401: autenticar nuevamente; 403: revisar permisos activos; 503: comprobar autoridad
+antes de volver a operar. Logout pendiente NO confirma cierre global.
+No repetir automáticamente password/perfil tras timeout; consultar estado primero.
+Mantener APP_DEBUG=false en despliegues. Revisar retención/ACL de logs/trazas.
+
+RECUPERACIÓN POR MODO
+Preferir rollback del par código/configuración COMPATIBLE conservando las tablas
+aditivas. No reactivar el JwtGuard anterior ni espejos como método de recuperación.
+No alternar remote->local sobre la misma instancia para aparentar continuidad.
+Local y remoto tienen datos distintos; no existe réplica automática de negocio.
+Down de Seguridad se ensayó solo en copia sintética: conserva identidades pero
+quita sesiones/versiones; no usarlo como recuperación ordinaria de producción.
+Down de Laravel quitaría mapas/denegaciones; conservarlos hasta un retiro planificado.
+MySQL DDL puede quedar parcialmente aplicado si se interrumpe: inspeccionar columnas,
+índices e historial EF antes de reintentar; recuperar sobre copia y respaldo probado.
+
+Si se restaura un snapshot antiguo, puede contener sesiones antes revocadas.
+Antes de exponerlo, ROTAR la clave de firma compartida en autoridad, consumidores
+y Laravel, cerrar la ventana legacy y exigir nuevo login. No restaurar la clave
+antigua como solución. Verificación ensayada: token del snapshot falla con clave nueva.
+Para recuperación Sanctum, revocar personal_access_tokens de la copia restaurada
+antes de abrirla; conservar hashes de usuarios. Probar aislamiento de otros dominios.
+Rotar APP_KEY exige tratar credenciales cifradas pendientes: confirmar previamente,
+o rotar primero la clave JWT de forma coordinada para invalidar accesos anteriores.
+No descartar silenciosamente el cifrado y anunciar cierres correctos.
+
+REPETIR LAS PRUEBAS (POWERSHELL)
+Desde backend: .\scripts\test-isolated.ps1
+Integral: .\scripts\test-isolated.ps1 -Integration -BrowserTests
+Requisitos integral: SQL Server localhost/integrated disponible, .NET SDK10,
+runtime privado ASP.NET8 y Chromium Playwright. El runner arranca MySQL en puerto
+aleatorio, usa nombres exclusivos y detiene solo procesos propios.
+En cada carpeta .NET: dotnet test tests/<Proyecto.Tests>/<Proyecto.Tests>.csproj
+Comercial/Finanzas: MULTILIDER_SQLSERVER_TESTS=1 para no omitir pruebas SQLServer.
+Frontend y worktree: npm run test:session; npm run build.
+Preparar navegador: PLAYWRIGHT_BROWSERS_PATH=<frontend>/.phase3/browsers;
+node node_modules/@playwright/test/cli.js install chromium.
+El worktree necesita dependencias npm compatibles propias o una unión local node_modules;
+esta unión no se publica ni forma parte del repositorio.
+
+Runtime8 de pruebas: descargar metadatos oficiales
+https://builds.dotnet.microsoft.com/dotnet/release-metadata/8.0/releases.json
+Elegir aspnetcore-runtime-win-x64.zip de la versión 8.0.33, descargar por su URL,
+comparar Get-FileHash -Algorithm SHA512 con hash del mismo elemento y extraer en
+multilider-ms-seguridad/.artifacts/runtime8. Ejecutar allí dotnet --list-runtimes.
+No sustituye ni actualiza la instalación global. Revisar soporte/parches y la
+migración de versiones principales antes del despliegue F9.
+
+ARTEFACTOS PRIVADOS DE PRUEBAS, IGNORADOS
+backend/.env.testing; backend/storage/framework/testing/ (MySQL privado, JUnit,
+logs, métricas, estados de integración y tokens efímeros ficticios).
+Seguridad .artifacts/runtime8 y tests/FixtureSetup/bin/.../recovery-snapshot.json.
+frontend/.phase3 (Chromium/métricas) y test-results (trazas de fallos).
+Estos artefactos pueden contener credenciales FICTICIAS y deben permanecer privados.
+No subirlos ni reutilizarlos como cuentas/respaldos de producción.
+
+ALCANCE CONSERVADO
+Dashboard/reportes, empresa, correo masivo/gestor, perfil y portal siguen en Laravel.
+F4–F8 completarán proveedores remotos de negocio sin extraer esos módulos.
+En local permanecen sus rutas actuales; en remoto las capacidades incompletas
+conservan su bloqueo explícito. F9 exige un corte y validación de producción propios.

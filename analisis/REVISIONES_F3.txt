@@ -1,0 +1,41 @@
+REVISIONES DE CÓDIGO F3 — 4 de noviembre de 2026
+Commits locales; sin push, merge a main ni despliegue.
+
+backend
+Rama: feature/fase-3-identidad-dual
+Commit: 27793370339cbbe1ce27553bccce9f4ede573406
+Main conservado: 1f30b8c7781458473be63b367fed956107ea7a81
+
+multilider-ms-seguridad
+Rama: feature/fase-3-sesiones-autorizacion
+Commit: 3e7ab44e40b4ca89192d3dd0a5dd12f82a673ddf
+Main conservado: a29dd6bbf0ba0dba8e899c3ebfa738b858443929
+
+multilider-ms-propiedades
+Rama: feature/fase-3-autorizacion
+Commit: 1b8c6da0d79a66c352ed25b75df4cbdf240624a0
+Main conservado: 0f598c47e01b4718404ed7b4b3f5ecd7d2800f82
+
+multilider-ms-comercial
+Rama: feature/fase-3-autorizacion
+Commit: ce0c296ca870d4a0067fa2a12c1ddc25e7eb1235
+Main conservado: bdfb91e487d7906cbca6acdcba2f8ff6fcdcb67c
+
+multilider-ms-finanzas
+Rama: feature/fase-3-autorizacion
+Commit: 642ebabd7dd5bcabc8dff9da1259f1b83a55417f
+Main conservado: fa12bc46cb720363a7572ee4d445c081dd69cd92
+
+frontend
+Rama: feature/fase-3-sesion-local
+Commit: b373471a7bb66d85f93d814d9eeaa1cafb69eb53
+Main conservado: dd17e955c1dfe186a1ba9eca4b2f944647870611
+
+frontend/.worktrees/fase3-microservices
+Rama: feature/fase-3-sesion-microservices
+Commit: 245e7a52bb74c1bf8c3d8018f54ba1fa582d329a
+Main conservado: dd17e955c1dfe186a1ba9eca4b2f944647870611
+
+Documentación: rama docs/implementacion-fase-3; consultar git log para su commit.
+Entorno de pruebas, dependencias y baseline: BASELINE_F3.txt.
+Evidencia: ../pruebas/RESULTADOS_F3.txt.

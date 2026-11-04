@@ -1,0 +1,118 @@
+CONTRATO DE IDENTIDAD V1 — FASE 3
+MultiliderNew | 4 de noviembre de 2026 | America/La_Paz
+Estado: implementado en ramas feature de F3; sin activación en producción.
+
+ORIGEN Y MODOS
+APP_ARCHITECTURE=local: Laravel/Sanctum y MySQL propia son la autoridad.
+APP_ARCHITECTURE=microservices: Seguridad/MySQL es la autoridad; Laravel actúa
+como adaptador, sin copiar usuarios, hashes ni tokens Sanctum.
+El servidor selecciona el modo. Fallar Seguridad nunca selecciona datos locales.
+La identidad remota es (issuer, sub), comparada exactamente; correo es mutable.
+external_identities solo acepta vínculos explícitos aprobados y con procedencia.
+Sin vínculo requerido: 409 IDENTITY_MAPPING_REQUIRED, nunca asociar por ID/correo.
+
+API PÚBLICA LARAVEL, AMBOS MODOS
+POST /api/login: correo,password -> message,access_token,token_type,user.
+GET /api/me y GET /api/perfil -> user, con roles_permisos anidados.
+PUT /api/perfil: nombre,correo -> message,data; sin id,estado,roles,password remotos.
+PUT /api/perfil/cambiar-password: password_actual,password_nuevo,
+ password_nuevo_confirmation -> message,reauth_required:true. Exigir nuevo login.
+POST /api/logout: revoca sesión actual y limpia su conexión de correo.
+Nunca devuelve password/hash, JWT de otro usuario ni credencial de buzón.
+El Bearer local es Sanctum; el remoto es el JWT REAL del usuario de Seguridad.
+Un token de un modo no autentica en el otro, aun coincidiendo correo e ID.
+La API devuelve 401 JSON también sin Accept:application/json.
+
+AUTORIDAD .NET, COMPATIBILIDAD DIRECTA
+POST /api/auth/login: correo,password -> message,accessToken,tokenType,user.
+GET /api/auth/me y GET /api/auth/profile -> user con rolesPermisos planos:
+ rolPermisoId,rolId,nombreRol,permisoId,nombrePermiso.
+PUT /api/auth/profile: nombre,correo -> message,data; rechaza campos desconocidos.
+PUT /api/auth/password: campos de Laravel anteriores -> message,reauth_required.
+POST /api/auth/logout: revoca solo el jti firmado; repetición es idempotente.
+Laravel conserva su DTO anidado; la rama directa conserva el DTO camelCase.
+El perfil opera sobre sub, nunca sobre un id que manda el navegador.
+Los hashes BCrypt previos se verifican sin reescribirlos durante la migración.
+El cambio propio de contraseña exige ocho caracteres, mayúscula, minúscula,
+número, símbolo, confirmación y contraseña actual correcta.
+
+VALIDACIÓN CRIPTOGRÁFICA Y ESTADO
+HS256 fijo, clave de al menos 32 bytes; iss y aud exactos configurados.
+Claims obligatorios: sub entero positivo como string, jti UUID, exp.
+Tokens nuevos: ver entero >=0, iat y nbf; duración inicial ocho horas.
+Tolerancia de reloj: 30 segundos. Sin refresh ni credencial administrativa suplente.
+MapInboundClaims=false en los cuatro MS; identidad leída desde sub.
+Solo logout acepta una credencial expirada cuya firma/issuer/aud/claims sean válidos;
+esto no concede acceso a ningún recurso y no admite nbf futuro.
+Tokens anteriores sin ver: DESHABILITADOS por defecto. Compatibilidad opcional
+hasta una fecha UTC explícita LegacyUntil/IDENTITY_LEGACY_UNTIL; exp no puede
+sobrepasarla y el usuario debe conservar auth_version=0. Fijar al corte una ventana
+máxima de ocho horas, cerrarla y exigir relogin; no desplazarla automáticamente.
+
+Seguridad conserva auth_sessions(jti,user_id,version,expires_at,revoked_at),
+y users.auth_version. Comprueba ambos en cada acceso autenticado.
+Laravel y Propiedades/Comercial/Finanzas validan firma y consultan /api/auth/me
+con el JWT del usuario. Permisos proceden de las asignaciones VIGENTES devueltas
+por la autoridad, no de la instantánea permission del JWT. Sin caché positiva.
+401/403 de estado rechazan la sesión. Timeout/5xx/redirección/JSON inválido: 503.
+HTTP sin redirecciones, conexión 2 s, solicitud 5 s y TLS con validación normal.
+Laravel no reintenta login/perfil/password/administración automáticamente.
+El token delegado está ligado al Request y principal verificado; no a caché global.
+
+REVOCACIÓN Y CONCURRENCIA
+Logout online afecta un dispositivo; otros jti continúan válidos.
+Contraseña o desactivación revocan todas las sesiones del usuario afectado.
+Cambios de asignaciones o nombre/estado de rol/permiso compartido aumentan
+la versión de los usuarios afectados, dentro de la transacción de la mutación.
+Sincronizar el mismo conjunto de permisos no elimina asignaciones conservadas.
+En MySQL, auth_mutex serializa mutaciones/emisión; login también bloquea el usuario.
+No se entrega respuesta de éxito de una mutación antes de confirmar la transacción.
+En local, contraseña/estado eliminan tokens Sanctum afectados; permisos/roles
+activos se vuelven a comprobar en servidor, sin consultas a .NET.
+
+Logout mediante Laravel con Seguridad inaccesible:
+1. Persistir denegación por hash(issuer,jti), ligada a la expiración.
+2. Cifrar temporalmente el JWT con APP_KEY, solo para reintentar ese logout.
+3. Responder 503 REVOCATION_PENDING; cliente limpia la sesión e informa pendiente.
+4. identity:retry-revocations confirma por lotes de hasta 100, con backoff hasta
+   30 minutos, vacía el secreto tras confirmación y purga registros vencidos.
+La denegación local persiste tras reiniciar. No afirmar revocación global inmediata
+durante una partición; consumidores directos fallan con 503 si no verifican estado.
+Un logout confirmado repetido devuelve 200; el JWT sigue sin autorizar recursos.
+
+AUTORIZACIÓN DE RUTAS
+Laravel /usuarios -> acceso_usuarios; /roles -> acceso_roles;
+/permisos -> acceso_permisos. Lectura /asignar-permisos admite acceso_roles O
+acceso_usuarios; mutaciones exigen acceso_roles.
+Seguridad aplica las mismas policies directamente a /usuario,/rol,/permiso y
+/rolpermiso. Asignaciones exigen lista presente de IDs existentes; {} no vacía roles.
+En remoto PUT/PATCH de una combinación rolpermiso no está implementado:
+INTEGRATION_NOT_READY; usar sincronización de permisos del rol cuando corresponda.
+Propiedades protege propiedades/imágenes/ubicaciones con acceso_propiedades;
+propietarios con acceso_propietarios; ciudades con acceso_ciudades;
+distritos/sectores con acceso_zonas; características con acceso_caracteristicas.
+Comercial y Finanzas conservan sus policies y restricciones previas de dominio.
+ServiceIdentityProvider existe por separado y RECHAZA emitir credenciales:
+no hay caso de uso técnico habilitado ni admin universal para trabajos.
+
+CAPACIDADES Y MÓDULOS LARAVEL
+Modo local conserva las operaciones existentes. Modo remoto F3 habilita identidad,
+administración descrita, correo de perfil y GET /api/propiedades piloto.
+Correo de perfil exige buzón activo @tecnoweb.space y credencial distinta que se
+introduce explícitamente; caché cifrada de 20 minutos por origen/issuer/sub/token/correo.
+No crea buzones ni modifica DNS/SMTP/IMAP/certificados. Ensayo de correo con dobles,
+sin certificación IMAP real en este PHP CLI.
+Escrituras de catálogo, ventas, pagos, cartera, reportes y otras capacidades remotas
+incompletas siguen con 503 INTEGRATION_NOT_READY; no leen tablas locales de respaldo.
+Dashboard/reportes, configuración empresarial, correo masivo, gestor de correo,
+perfil y portal del cliente PERMANECEN EN LARAVEL. Sus adaptadores/aggregaciones
+remotas de negocio se completan en F4–F8; no se crean otros microservicios.
+
+CLIENTES Y ERRORES
+main: Laravel; release/microservices: clientes directos originales conservados.
+Al restaurar pestaña verifican /me antes de continuar, actualizan DTO y menús.
+401 limpia token/usuario/cabeceras de todos los clientes y redirige a login.
+403 conserva sesión; 503 conserva credencial/formulario y ofrece reintento.
+Logout se propaga entre pestañas; éxito de password solicita relogin.
+422: validación por campos; 429: límite de intentos; 409: conflicto/vínculo pendiente.
+No reenviar cuerpos de errores remotos ni volcar AxiosError con Authorization/password.

@@ -46,3 +46,15 @@ R13 IMAP/PTR/DKIM/TLS del correo/VPS no se probaron ni alteraron en F0–F2. La 
 de envío intercepta Mail con datos ficticios. No se enviaron mensajes reales.
 R14 No existe aún una suite E2E de navegador completa. PHPUnit valida HTTP Laravel
 y documentos locales; npm run build valida compilación. Consolidación UI y E2E F8.
+
+ACTUALIZACIÓN F3 (04-11-2026)
+R01–R04 de identidad abordados en ramas F3; ver IDENTIDAD_V1 y RESULTADOS_F3.
+R12: se añadieron parches compatibles de JWT/EF/Pomelo/MySqlConnector en .NET y
+la biblioteca Firebase JWT mantenida en Laravel, sin actualización mayor de app.
+Permanecen soporte/dependencias históricas y la actualización de framework pendiente.
+R14: ahora existen9 E2E de identidad y5 tests de sesión por variante. La paridad
+UI completa sigue F8. Mail real/topología multirréplica/corte productivo siguen F9.
+R15: primera consulta SQL/EF tras arranque puede superar5s; readiness/calentar
+catálogo antes de aceptar tráfico. No ampliar timeouts ni usar datos locales de respaldo.
+R16: restaurar sesiones antiguas puede revivir credenciales. Ensayada rotación
+de clave compartida después de restaurar snapshot sintético; guía exige relogin.

@@ -1,0 +1,49 @@
+LÍNEA BASE F3 — 4 de noviembre de 2026
+Alcance: PLAN_FASE_3.txt; implementación de identidad/sesiones/autorización.
+No se accedió al VPS ni se importaron datos o credenciales de producción.
+
+Ramas de trabajo y revisiones de partida:
+backend: feature/fase-3-identidad-dual, desde e2ecb21 (F0–F2).
+Seguridad: feature/fase-3-sesiones-autorizacion, desde a29dd6b.
+Propiedades: feature/fase-3-autorizacion, desde 0f598c4.
+Comercial: feature/fase-3-autorizacion, desde bdfb91e.
+Finanzas: feature/fase-3-autorizacion, desde fa12bc4.
+frontend: feature/fase-3-sesion-local, desde main dd17e95.
+frontend adicional: feature/fase-3-sesion-microservices, desde release/microservices
+ 44c6cda, en frontend/.worktrees/fase3-microservices.
+documentación: docs/implementacion-fase-3, desde e9cbf62.
+Los servicios nuevos ya tenían Git; se conservó su historial independiente.
+No se fusiona a main, no se hace push ni despliegue en esta entrega.
+Ver REVISIONES_F3.txt para hashes finales de código.
+
+Entorno: Windows/PowerShell 7; PHP CLI 8.2.29; Composer 2.8.11;
+Node 22.19.0/npm 10.9.3; SDK .NET 10.0.400; ASP.NET 10.0.11.
+MySQL 8.0.46 en proceso privado, puerto aleatorio; SQL Server localhost integrado,
+solo bases GUID con prefijo de pruebas. Ninguna base de trabajo se modifica.
+Seguridad sigue net8.0: Kestrel real probado con runtime ASP.NET 8.0.33 privado,
+verificado contra SHA512 de metadatos oficiales Microsoft, bajo .artifacts/runtime8.
+Sus tests WebApplicationFactory usan harness net10; no confundirlo con cambiar
+el runtime del servicio. Propiedades/Comercial/Finanzas conservan net10.
+
+Dependencias F3:
+- firebase/php-jwt ~7.2.0, fijado 7.2.1 en composer.lock; sustituye JWT manual.
+- Seguridad: JwtBearer/EF 8.0.33, Pomelo 8.0.3, MySqlConnector 2.6.2,
+  IdentityModel.Tokens.Jwt 7.7.3. Propiedades: JwtBearer/EF 8.0.33, JWT 7.7.3.
+- packages.lock.json versionado para los dos servicios antiguos.
+- Playwright 1.64.1 solo para tests frontend; Chromium privado .phase3/browsers.
+- Dependencias Laravel/Vue restantes conservadas. Sus avisos de vulnerabilidades
+  previos requieren actualización independiente; no se certifica producción segura
+  solo por pasar estas pruebas. Revisar soporte de frameworks antes de F9.
+
+Base de pruebas original F0–F2: 56 tests/308 aserciones. Las regresiones locales
+de negocio permanecen. Cambios deliberados de expectativas F2:
+- IdentityGateway deja de usar LocalDomainGateway/PendingDomainGateway.
+- /login remoto ya está implementado, no devuelve INTEGRATION_NOT_READY.
+- config:cache espera validación 422 del formulario vacío en ambos modos.
+- El piloto remoto usa principal/delegado ficticios controlados en tests de DTO;
+  JWT real, revocación y HTTP real se verifican en suites separadas.
+- Sanctum presentado al remoto devuelve 401, sin enviarlo al servicio.
+Las pruebas PDF/Excel/cobros/importes/ventas/anulación locales no se debilitaron.
+
+No se alteró .env privado de trabajo. El runner crea .env.testing ignorado y
+configuración efímera de fixtures; nunca copiarla a un despliegue.

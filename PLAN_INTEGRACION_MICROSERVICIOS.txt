@@ -1,9 +1,9 @@
 PLAN DE DESARROLLO: BACKEND DUAL Y FRONTEND UNIFICADO
 Proyecto: MultiliderNew
 Fecha: 4 de noviembre de 2026, America/La_Paz
-Versión del plan: 1.1
-Estado: F0–F2 IMPLEMENTADAS y verificadas en ramas de trabajo. F3–F9 PENDIENTES.
-Evidencias: pruebas/RESULTADOS_F0_F2.txt y PLAN_FASES_0_2.txt versión 1.1.
+Versión del plan: 1.2
+Estado: F0–F3 IMPLEMENTADAS y verificadas en ramas de trabajo. F4–F9 PENDIENTES.
+Evidencias: pruebas/RESULTADOS_F0_F2.txt, pruebas/RESULTADOS_F3.txt y PLAN_FASE_3.txt.
 No se ha desplegado ni habilitado el modo remoto completo.
 Alcance de este documento: diseño, secuencia y criterios de verificación.
 

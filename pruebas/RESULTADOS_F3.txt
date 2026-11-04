@@ -1,0 +1,101 @@
+RESULTADOS DE IMPLEMENTACIÓN F3 — 4 de noviembre de 2026
+Estado: IMPLEMENTADA Y VERIFICADA en ramas de trabajo; sin despliegue al VPS.
+Contrato: contratos/IDENTIDAD_V1.txt. Operación: operacion/IDENTIDAD_F3.txt.
+Revisiones exactas: analisis/REVISIONES_F3.txt.
+
+RESULTADO REPRODUCIBLE
+Laravel: 89 tests / 442 aserciones, todos pasan (PHP 8.2.29, MySQL 8.0.46 aislado).
+Incluye regresiones locales F0–F2 y pruebas nuevas de JWT, origen, perfil, permisos,
+revocación durable/cifrado, sesión persistente y gestor de correo con dobles.
+Seguridad: 18 pruebas, sin omisiones; harness net10 y SQLite8; servicio sigue net8.
+Propiedades: 6 pruebas, sin omisiones; contrato de estado y policies de catálogo.
+Comercial: 15 pruebas, sin omisiones, incluida migración/concurrencia SQL Server real.
+Finanzas: 20 pruebas, sin omisiones, incluida migración/concurrencia SQL Server real.
+Frontend: 5 pruebas Node en CADA variante; ambas compilaciones Vite satisfactorias.
+Navegador Chromium: 9/9, sin fallos ni omisiones (informe 04-11-2026 21:47 UTC).
+Tres variantes: main+Laravel local; main+Laravel remoto; rama MS+APIs directas.
+Login/perfil/recarga/logout, propagación a segunda pestaña, credencial inválida
+restaurada y aviso503 con conservación de sesión probados.
+
+INTEGRACIÓN REAL, SIN DOBLES PARA LAS APIs
+Runner: backend/scripts/test-isolated.ps1 -Integration [-BrowserTests].
+MySQL privado de Seguridad con esquema previo copiado sintéticamente; SQL Server
+GUID de Propiedades con registro REMOTE-ONLY distinto al LOCAL-ONLY de Laravel.
+Kestrel Seguridad ASP.NET8.0.33, Propiedades net10, dos instancias HTTP Laravel.
+Última ejecución integral: 79 checks online + 6 caída + 3 recuperación = 88.
+El total online varía: cada login concurrente que precede al cambio de contraseña
+emite un JWT adicional que debe comprobarse revocado; tanto200 antes como401
+después son resultados válidos y la prueba verifica el efecto después del commit.
+Resultados durables privados: integration-online/outage/recovered-result.json,
+última recuperación 04-11-2026 22:05:54 UTC. No contienen tokens ni contraseñas.
+
+Casos reales principales:
+- Laravel remoto usa el JWT del usuario; local Sanctum y orígenes no se mezclan.
+- BCrypt PHP existente se conserva y autentica desde Seguridad real.
+- Piloto listado usa datos SQL Server, filtros/paginación y contrato adaptado.
+- Perfil cambia correo conservando sujeto; rechaza campos privilegiados.
+- Usuario sin permisos recibe403 también llamando directamente a .NET.
+- Retirar/grantar permisos invalida la versión; nuevo login recupera estado vigente.
+- Contraseña/desactivación revocan; logout de un dispositivo no cierra los demás.
+- Carrera real de seis logins con contraseña anterior y cambio de password:
+  ninguna sesión anterior autentica después de confirmar la mutación.
+- Escrituras/cartera remotas pendientes siguen rechazadas antes de negocio.
+- Seguridad detenida: /me remoto y consumidor directo503; local continúa200.
+- Logout durante caída: REVOCATION_PENDING, denegación Laravel durable401.
+- Reinicio sobre la misma BD y reintento CLI confirman revocación: directo401.
+
+MIGRACIÓN Y RECUPERACIÓN
+Seguridad: esquema nuevo, rollback aditivo y reaplicación conservando ID/hash.
+Baseline previo con ocho asignaciones: migración conserva usuarios/grants.
+Snapshot sintético de identidad/sesiones restaurado solo en base privada; token
+restaurado rechazado tras rotación de clave. No se restauraron datos reales.
+Laravel: migración de mapas/revocaciones aplicada en BD MySQL exclusiva.
+No hay EnsureCreated/seed automático al iniciar servicios HTTP.
+Cache de configuración HTTP/CLI comprobada en ambos modos; local no necesita .NET.
+Trabajos/espejos incompatibles siguen bloqueados; no se emite identidad técnica.
+
+LATENCIA OBSERVADA, MUESTRA PEQUEÑA AISLADA
+Cinco listados Laravel remoto, p95 observado (máximo de la muestra): 300.29 ms.
+Doce listados directos, concurrencia4, p95 observado: 15.45 ms.
+No es benchmark de producción ni promesa de capacidad/SLO. Transporte mantiene
+2s conexión/5s solicitud; sin reintentos de mutaciones. Se calentó EF/SQL antes de
+las mediciones: su arranque frío puede superar5s y producir503 controlado.
+
+CAMBIOS DE EXPECTATIVA F2
+Solo cambia lo que F3 termina: login remoto, proveedor identidad/delegado real,
+DTO autenticado y config:cache de formulario vacío. Esas expectativas se explican
+en BASELINE_F3.txt. No se alteraron reglas ni aserciones de cobros/ventas/reportes
+locales para hacer pasar la suite. El frontend conserva los endpoints de su rama.
+
+CORRECCIONES ADICIONALES ENCONTRADAS EN LA VALIDACIÓN
+- Revalidar Sanctum y reiniciar principal por petición; no reutilizar identidad
+  en una petición siguiente sin cabecera o con credencial diferente.
+- API no redirige una sesión inválida a una ruta login inexistente (antes500).
+- Login/logout no resuelven la autoridad desde el limitador antes de su controlador,
+  para permitir cierre idempotente o pendiente en procesos persistentes.
+- Conjuntos de asignaciones requieren presencia; {} no elimina grants.
+- Cache de buzón se elimina por referencia de sesión aunque cambie el correo y
+  el claim email antiguo del JWT permanezca. Contraseña del sistema nunca se usa
+  como credencial IMAP/SMTP; el valor introducido para buzón se cifra aparte.
+
+LÍMITES DE ESTA EVIDENCIA
+Sin IMAP/SMTP real ni correo externo enviado; PHP CLI no tiene extensión IMAP.
+Correo de perfil probado con dobles que interceptan apertura/listado/envío/cierre,
+en local y remoto, con JWT cuyo correo ya cambió y cache cifrada/limpieza comprobadas.
+Políticas de Comercial/Finanzas usan dobles de estado y bases propias en sus suites;
+la venta/pago distribuidos completos NO se declaran integrados: corresponden F4–F6.
+No se ensayó topología productiva de múltiples réplicas ni backup de todo el negocio;
+se verificó persistencia con reinicio y recuperación sintética de identidad.
+E2E es de identidad; la suite completa de pantallas y paridad es F8.
+Vulnerabilidades previas de dependencias Laravel/Vue y soporte de frameworks
+se mantienen registrados para actualización aparte antes de F9.
+No se modificaron main, sitios/correo del VPS, DNS ni credenciales de producción.
+
+CIERRE
+E3-A: regresión local y separación de modos verificadas.
+E3-B: autoridad, migración, sesiones/versiones y contratos directos verificados.
+E3-C: integración real de identidad y piloto; consumidores rechazan estado obsoleto.
+E3-D: clientes de ambas ramas, recuperación y documentación dentro del alcance F3.
+Dashboard/reportes, empresa, correo, perfil y portal permanecen en Laravel.
+F4–F9 continúan pendientes. Siguiente paso: plan detallado de F4, catálogo y reservas
+atómicas de Propiedades coordinadas con Comercial, conservando el modo local.

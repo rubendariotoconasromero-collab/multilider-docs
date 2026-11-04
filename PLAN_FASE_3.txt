@@ -1,8 +1,10 @@
 PLAN DETALLADO — FASE 3: IDENTIDAD, SESIONES Y AUTORIZACIÓN
 Proyecto: MultiliderNew
 Fecha: 4 de noviembre de 2026, America/La_Paz
-Versión: 1.0
-Estado: PLANIFICADO. Este documento no implementa ni activa la fase 3.
+Versión: 1.1
+Estado: IMPLEMENTADA Y VERIFICADA en ramas de trabajo. Sin activación en el VPS.
+Evidencias: pruebas/RESULTADOS_F3.txt, contratos/IDENTIDAD_V1.txt, operacion/IDENTIDAD_F3.txt.
+Las tareas siguientes conservan la redacción del plan original para trazabilidad.
 Base: backend e2ecb21, documentación F0–F2 67e7022.
 Referencias: PLAN_INTEGRACION_MICROSERVICIOS.txt y PLAN_FASES_0_2.txt.
 
@@ -26,7 +28,7 @@ su revisión y configuración hasta verificar su reemplazo completo: no se conve
 en una instancia remota nueva parcialmente funcional durante esta fase.
 No se modifica el VPS ni se cambia un despliegue activo por elaborar/ejecutar el plan.
 
-2. ESTADO REAL INSPECCIONADO
+2. ESTADO ORIGINAL INSPECCIONADO ANTES DE F3
 ============================================================
 Backend:
 - AuthController autentica usuarios locales y emite tokens Sanctum.
@@ -452,5 +454,6 @@ https://www.rfc-editor.org/rfc/rfc8725
 Consultadas el 04-11-2026. Las decisiones concretas de sesión/compatibilidad de este
 documento son propuestas del proyecto, no garantías de una librería o del estándar.
 
-Estado de F3-01 a F3-10: PENDIENTE. No se han modificado código, claves, cuentas,
-sesiones, esquemas, configuración privada ni VPS al redactar este plan.
+Estado de F3-01 a F3-10: IMPLEMENTADAS en el alcance local y aislado descrito.
+Resultados y límites explícitos en pruebas/RESULTADOS_F3.txt. Solo se crearon
+fixtures ficticios y configuración privada de pruebas; no se modificó el VPS.

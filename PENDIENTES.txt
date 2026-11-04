@@ -21,10 +21,24 @@ pruebas/MATRIZ_PRUEBAS_F0_F2.csv
 operacion/ARQUITECTURA_DUAL_F0_F2.txt
 
 Pendientes siguientes, ya definidos en el plan general
-F3: autenticación delegada real, identidad estable, JWT/permisos, logout/perfil.
-Desglose F3: PLAN_FASE_3.txt y pruebas/MATRIZ_PRUEBAS_F3.csv; estado PLANIFICADO.
+F3: COMPLETADA en ramas de trabajo; contrato y sesiones locales/remotas verificados.
+Desglose y límites: PLAN_FASE_3.txt, pruebas/RESULTADOS_F3.txt y matriz F3.
 F4: paridad completa Propiedades, mapeos/proyecciones y reserva atómica.
 F5/F6: Comercial/Finanzas, coordinación durable y paridad financiera/documental.
 F7/F8: agregaciones, correo/infraestructura y unificación del frontend con E2E.
 F9: migración/corte/despliegue y recuperación de producción autorizados.
 No activar modo remoto completo ni espejos antiguos para saltar estas fases.
+
+PEND-002 | Identidad, sesiones y autorización F3
+Estado: COMPLETADO en ramas feature/fase-3-*. No fusionado/publicado/desplegado.
+Laravel local/Sanctum conservado; remoto delega a Seguridad y consulta estado vigente.
+Sin copias de usuarios ni vinculación automática por ID/correo. Sesiones y permisos
+revocados en servidor; logout pendiente durable y reintento probado tras caída.
+Ambas variantes frontend conservan sus contratos y tienen restauración/logout real.
+Guía: operacion/IDENTIDAD_F3.txt. Revisiones: analisis/REVISIONES_F3.txt.
+
+Siguiente entrega propuesta: elaborar el plan detallado F4 (Propiedades).
+Catálogo completo e imágenes; reserva/confirmación/liberación idempotentes y
+atómicas, coordinadas con Comercial. No iniciar F5/Finanzas antes de esa base.
+Los módulos transversales acordados permanecen en Laravel. No activar el modo
+remoto completo ni modificar el VPS con esta entrega parcial de integración.
