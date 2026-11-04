@@ -1,0 +1,399 @@
+PLAN DETALLADO — FASE 4: CATÁLOGO Y DISPONIBILIDAD DE PROPIEDADES
+Proyecto: MultiliderNew
+Fecha: 4 de noviembre de 2026, America/La_Paz
+Versión: 1.0
+Estado: PLANIFICADO. No implementa ni activa F4.
+Base: revisiones F3 verificadas; ver analisis/REVISIONES_F3.txt.
+Anexos: contratos/CATALOGO_RESERVAS_F4_PROPUESTA.txt,
+analisis/PARIDAD_CATALOGO_F4.csv y pruebas/MATRIZ_PRUEBAS_F4.csv.
+
+1. OBJETIVO Y COMPROMISO DE COMPATIBILIDAD
+============================================================
+Completar Propiedades detrás de Laravel y preparar su disponibilidad para Comercial:
+- LOCAL: Laravel/Sanctum, MySQL y almacenamiento propios; autónomo de los cuatro MS.
+- MICROSERVICES: Laravel adapta Seguridad/Propiedades; el catálogo y sus archivos
+  pertenecen a Propiedades y a su SQL Server independiente.
+APP_ARCHITECTURE se selecciona por instancia. Una caída nunca cambia a local.
+Una misma base no tendrá escritores Laravel y Propiedades durante la transición.
+
+Conservar funcionamiento significa mantener casos válidos, cálculos, permisos y
+contratos vigentes. Las correcciones de carreras, pérdida de datos o bypass de
+autorización se identificarán y probarán; no se cambiarán reglas financieras.
+El despliegue híbrido actual conserva su revisión/configuración hasta un corte
+posterior validado. La instancia remota parcial F3 no lo reemplaza automáticamente.
+
+Esta entrega es SOLO planificación. No cambia código funcional, configuración
+privada, bases, cuentas, correo, DNS, certificados, servicios ni VPS. La futura
+implementación tendrá ramas propias, sin fusión/publicación/despliegue implícitos.
+
+2. MÓDULOS QUE PERMANECEN EN LARAVEL
+============================================================
+Dashboard/reportes: indicadores y PDF/Excel en Laravel, con lectores por origen.
+Configuración de empresa: Laravel y su MySQL; integración financiera en su fase.
+Correo masivo: campañas/historial/colas e integración SMTP en Laravel.
+Gestor de correo: Laravel conserva IMAP/SMTP y credencial de buzón separada.
+Perfil: pantalla/orquestación Laravel; identidad local o Seguridad según F3.
+Portal del cliente: Laravel consultará los dominios y vínculos ya terminados.
+No crear microservicios nuevos para estos módulos. MySQL de Laravel sigue
+existiendo en remoto para configuración/infraestructura/mapas, sin convertirse
+en una segunda autoridad escribible del catálogo.
+
+F4 solo habilita capacidades de catálogo terminadas. /landing agregado con
+empresa/asesores, dashboard, reportes, cartera y portal remoto siguen bloqueados
+si aún necesitan proveedores pendientes. Las pantallas permanecen en Laravel;
+su ubicación no implica que sus consultas remotas ya estén integradas.
+
+Numeración canónica: F4 catálogo/reservas; F5 coordinación Comercial/Finanzas;
+F6 consultas/agregaciones y unificación frontend; F7 migración/conciliación;
+F8 validación integral/recuperación; F9 corte del VPS. Las referencias históricas
+que agrupan F5–F8 no adelantan esas funciones a F4.
+
+3. ESTADO INSPECCIONADO Y BRECHAS
+============================================================
+Backend 2779337; Seguridad 3e7ab44; Propiedades 1b8c6da; Comercial ce0c296;
+Finanzas 642ebab; frontend Laravel b373471; frontend directo 245e7a5;
+documentación previa c82b62f. Revalidar hashes antes de implementar.
+Partir de ramas F3 verificadas, no de main anterior a F0–F3.
+
+Hechos comprobados en código:
+- CatalogGateway solo expone properties(Request); GET /api/propiedades es el
+  único catálogo habilitado en remoto. El resto usa Eloquent o está bloqueado.
+- Laravel serializa DECIMAL como string y booleanos frecuentemente 0/1; .NET
+  devuelve decimal/bool. Se necesitan DTO/adaptadores para el contrato público.
+- Pivotes Propiedad/Propietario/Caracteristica tienen nombres de columnas distintos.
+  Igualdad numérica de IDs entre bases no significa equivalencia de entidades.
+- Propiedades no tiene migraciones EF de catálogo observadas; el fixture F3 usa
+  EnsureCreated solo en SQL Server GUID NUEVO. No es migración de una BD existente.
+- Propiedades está en net10 con EF/JwtBearer 8.0.33. No actualizar versiones mayores
+  ni proveedor sin una entrega y pruebas específicas.
+- El estado .NET predeterminado es 'disponible'; Vue/Comercial comparan 'Disponible'.
+  No hay operación dedicada de reserva, confirmación, expiración o liberación.
+- SiguienteCodigoAsync calcula max+1; dos altas concurrentes pueden competir.
+- Servicios .NET filtran listas de IDs de relaciones sin toda la validación Laravel;
+  un ID inválido puede descartarse en vez de producir422 sin efectos parciales.
+- DELETE de propiedad/propietario/geografía alterna activo/estado. Repetirlo puede
+  volver a activar; no se debe reintentar como si fuera un borrado idempotente.
+- Ubicación Laravel tiene lectura y borrado físico; .NET solo POST/PUT.
+- Vue guarda ubicación y después propiedad en solicitudes distintas: la segunda
+  puede fallar dejando una modificación parcial de la primera.
+- El formulario carga propietarios/distritos/características por separado; hace
+  falta una política de lectura mínima que no conceda administración de esos módulos.
+- Upload Laravel: JPEG/PNG/GIF, máximo 2048 KiB por archivo, 201 e imagenes.
+  .NET: 200 y data, wwwroot/uploads, sin esa misma validación ni primera principal.
+  El fixture F3 registró wwwroot ausente. Vue concatena baseUrl+imagen.url.
+- Comercial consulta GET propiedad, exige Disponible y crea venta Activa/contrato
+  en su SQL con SolicitudId/hash; no reserva ni cambia la autoridad Propiedades.
+- LegacyPropertyStateBridge usa GET+PUT completo con credencial sync al invocarlo
+  habilitado. Local retorna antes de HTTP; venta remota Laravel sigue bloqueada.
+  No reutilizarlo para reservas ni reactivar los sincronizadores antiguos.
+
+Base F3 registrada, no reejecutada para redactar este plan:
+Laravel 89 tests/442 aserciones; Seguridad 18; Propiedades 6; Comercial 15; Finanzas 20;
+5 tests Node por variante; 9 E2E identidad; ambos builds; 88 checks de integración real.
+Conservar esa regresión y ampliarla, sin debilitar aserciones financieras/documentales.
+
+4. DECISIONES DE DISEÑO PROPUESTAS
+============================================================
+D01. Contratos separados para administración, referencias, público y archivos.
+Extender CatalogGateway o crear PropertyCatalogGateway, CatalogReferenceGateway,
+CatalogMediaGateway y PublicCatalogGateway con proveedores Local/Remote.
+No recibir URLs arbitrarias ni añadir condiciones de modo en cada controlador.
+exists/unique remoto se valida en su autoridad, nunca en MySQL local.
+
+D02. Conservar rutas/campos/envolturas Laravel y los contratos .NET directos.
+Añadir metadatos de versión/capacidad cuando corresponda, sin inventar pivotes,
+timestamps o datos ausentes. Separar DTO de lectura, escritura y publicación.
+
+D03. Local reutiliza las reglas actuales y no necesita certificados/reservas .NET.
+Cuando la caracterización detecte carreras locales, proteger sus filas dentro
+de su transacción; no cambiar importes, comisiones ni condiciones de anulación.
+
+D04. Disponibilidad remota administrada por protocolo: Disponible->Reservado->Vendido.
+Publicación activo es independiente. PUT de catálogo no libera ni revierte ventas:
+estado idéntico al vigente se acepta por compatibilidad; cambio que eluda protocolo
+se rechaza. UI respeta capacidades del servidor. Estados heredados desconocidos
+van a revisión, nunca se convierten automáticamente en Disponible.
+
+D05. Reserva ligada a operación UUID estable, origen Comercial y actor (issuer,sub).
+Cada comando tiene command_id/huella persistidos atómicamente con la transición.
+Reintento conserva identificadores/payload; misma clave con otros datos409.
+Correo, cliente_id y números iguales entre bases no autorizan esa pertenencia.
+
+D06. SQL Server garantiza exclusión mediante transacción corta, bloqueo/actualización
+condicional de la propiedad, versión y restricciones únicas. Prueba con dos
+conexiones/procesos reales; un lock en memoria o SQLite no demuestra la garantía.
+Rowversion/ETag protege edición; fencing_token monotónico por propiedad invalida
+comandos atrasados. Reserva vigente incluye Retenida y Confirmada hasta la reversión
+autorizada futura. No mantener una transacción SQL abierta durante llamadas HTTP.
+
+D07. Retenida tiene expiración UTC (propuesta 15 minutos configurable/acotada),
+renovación explícita y limpieza condicional solo si sigue Retenida vencida.
+Confirmada no caduca. Expirar/renovar/confirmar compiten sobre la misma fila.
+Timeout HTTP no significa rollback: consultar resultado antes de compensar.
+Liberar no deshace Vendido; la reversión comercial/financiera corresponde F5.
+
+D08. El JWT de usuario más operation_id no acredita que el llamador sea Comercial.
+Propuesta concreta: HTTPS interno con certificado cliente mTLS de Comercial,
+además del JWT delegado F3 para comandos interactivos. Exigir AMBAS identidades
+y permiso de venta vigente, sin fusionar claims de modo que una supla a la otra.
+No exponer comandos de reserva a Vue/vhosts públicos ni confiar en X-Service.
+No introducir una cuenta administradora o un JWT compartido en el navegador.
+Validar canal y policies en F4-01. Si falta identidad técnica confiable, capacidad
+deshabilitada, no reemplazarla por Bearer solo. Jobs sin usuario siguen pendientes
+de scopes F5; el expirador propio usa únicamente su BD. Certificados de prueba
+efímeros; renovación y provisión productiva posteriores documentadas.
+
+D09. Capturar precio/moneda/versiones desde Propiedades al reservar. No aceptar
+como autoridad el precio de Vue. Bloquear precio/moneda/disponibilidad mientras
+exista reserva vigente; cambios descriptivos solo con versión actual. Conservar
+snapshot exacto, sin introducir fórmulas financieras ni conversiones en F4.
+
+D10. Archivos pertenecen a Propiedades en remoto y Laravel en local, en directorio
+persistente independiente del código. Fotos promocionales publicadas accesibles
+por endpoint de bytes público; fotos no públicas mediante endpoint autorizado y
+preview Blob con Bearer, nunca JWT en URL. Laravel adapta URLs, sin host interno
+.NET. Mantener URLs locales válidas; contratos/actas no migran a este storage.
+
+D11. Cliente: cambios limitados de guardado agregado, versión, reintento e imágenes.
+main sigue Laravel y la variante directa mantiene .NET; sin fusión global de ramas.
+La unificación general corresponde F6 y su validación integral F8.
+
+D12. Comercial prepara el consumidor de reservas y persiste sus intentos; F4 no
+declara terminada la venta distribuida ni habilita ventas/pagos por Laravel remoto.
+En instancias con catálogo F4, ninguna ruta antigua puede crear Activa sin protocolo:
+el camino incompleto rechaza explícitamente. Lecturas existentes se conservan.
+Saga/outbox comercial/financiera, cobros y reversión tras Confirmada son F5.
+La revisión híbrida anterior se conserva hasta un reemplazo coordinado; no conectar
+escritores incompatibles contra la misma autoridad actualizada.
+
+5. RESPONSABILIDADES POR REPOSITORIO
+============================================================
+backend: contratos/proveedores, validación por origen, capacidades, media, errores,
+guardado agregado y regresión local. Los módulos transversales siguen aquí.
+Propiedades: baseline/migraciones, CRUD/códigos, archivos/público, concurrencia,
+reservas/historial/expiración y pruebas SQL Server reales.
+Comercial: cliente de disponibilidad, identidad técnica, IDs/snapshot, seguimiento
+durable de comandos, reconciliación y barrera contra el camino de venta inseguro.
+frontend DOS checkouts: ajustes acotados de formulario/media/reintentos/versiones.
+Seguridad: regresión F3 de permisos/sesiones; cambios solo si la matriz lo requiere.
+Finanzas: sin cambios funcionales previstos; regresión si se afecta su contrato.
+multilider-docs: contratos, matrices, operación, evidencias y revisiones.
+
+6. TAREAS Y CRITERIOS DE ACEPTACIÓN
+============================================================
+F4-01 | Caracterización y cierre del contrato (1–2 días)
+- Inventariar métodos/rutas/consumidores de ambos clientes y registrar revisiones.
+- Fijar ejemplos ficticios de campos/nulos/DECIMAL/paginación/toggles/códigos/archivos.
+- Cerrar reserva, permisos, privacidad y mTLS+JWT; selectores con lectura mínima.
+- Catalogar estados heredados y conflictos de ID/código, sin resolver por intuición.
+Salida: contratos/CATALOGO_V2.txt, contratos/RESERVAS_V1.txt e inventario completo.
+Aceptación: cada operación tiene proveedor, autorización y prueba; no hay semántica
+de cancelación, expiración o autenticación implícita.
+
+F4-02 | Baseline SQL Server y migraciones seguras (2–3 días)
+- Capturar esquema sintético compatible con ContextDatabase y DDL anterior.
+- Baseline EF con snapshot; distinguir BD vacía, anterior verificada y parcial.
+  Adoptar historial explícitamente sin crear tablas sobre datos ya existentes.
+- Añadir reservas/comandos/auditoría/rowversion/fencing y código protegido; aplicar
+  índices únicos/checks solo tras diagnóstico/backfill de conflictos revisado.
+- Conservar IDs, código, estados, relaciones e imágenes; probar Up/adopción/replay.
+- Revisar EF8/net10. Actualización mayor/proveedor, si necesaria, entrega separada.
+Salida: migraciones, preflight y scripts aislados de copia/recuperación.
+Aceptación: contenido conservado; cero EnsureCreated/migrate:fresh sobre BD previa,
+cero seed automático al iniciar HTTP; guard rechaza conexiones de negocio.
+
+F4-03 | Contratos y proveedores locales Laravel (1–2 días)
+- Extraer Propiedad/Propietario/Ciudad/Distrito/Sector/Caracteristica/Ubicacion/Imagen
+  preservando reglas/respuestas, sin construir HTTP/token remotos en local.
+- Validación específica por origen detrás del contrato; no checks Eloquent remotos.
+- Guardado agregado opcional ubicación+propiedad en una transacción local; conservar
+  endpoints independientes para otros consumidores.
+- Caracterizar carreras locales de venta/anulación/catálogo; corregir bloqueo de
+  filas cuando sea necesario sin cambiar cálculos ni reglas financieras válidas.
+Aceptación: suite F3 y nuevos casos pasan con los cuatro MS apagados/URLs vacías
+y sync antiguo true, sin construir clientes ni realizar HTTP a esos servicios.
+
+F4-04 | CRUD .NET y adaptación remota (2–3 días)
+- Igualar validación Laravel: persona_natural/empresa, CI nullable único, nombre de
+  empresa condicional, nulos/importes/longitudes y todos los IDs relacionados.
+- Completar lectura/borrado de ubicaciones y contratos de desactivación; relación
+  exclusiva ubicación-propiedad y borrado sin referencias huérfanas.
+- Guardado agregado transaccional; propietarios/características completos; distinguir
+  omitir una lista de vaciarla. Ningún ID inválido se descarta silenciosamente.
+- Código mediante secuencia/contador protegido e índice único; preservar códigos
+  históricos y alfanuméricos. No prometer correlativos sin huecos.
+- Versión y control de precio/estado/publicación; adaptación de 400->422 Laravel,
+  401/403/404/409/412/503 y envolturas, sin SQL/stack ni pérdida decimal por float.
+Aceptación: casos aprobados producen el mismo contrato Laravel en ambos modos;
+escritura remota no muta negocio local y nunca usa fallback.
+
+F4-05 | Almacenamiento y gestor de imágenes (2–3 días)
+- Raíz persistente propia, creada explícitamente y sin depender de wwwroot.
+  Nombres generados, contenido/extensión/tamaño verificados y rutas confinadas.
+- Conservar JPEG/PNG/GIF y 2048 KiB por archivo. Cerrar límite de lote/transporte
+  tras caracterización: propuesta 10 archivos/20 MiB y multipart 15 s configurable;
+  JSON mantiene conexión 2 s/solicitud 5 s. Registrar cambios de límite, no imponerlos
+  inadvertidamente a clientes previos. Procesar mediante streaming/staging.
+- Validar lote antes de publicar; compensación de fallo SQL/I/O y limpieza durable
+  de temporales/huérfanos; nunca borrar archivos válidos por resultado incierto.
+- Primera imagen principal y sustitución determinista al borrarla; evitar dos
+  principales concurrentes con restricción/transacción por propiedad.
+- Adaptar imagenes[],201/imagenes Laravel vs200/data .NET, borrar/principal y
+  contenido público/autorizado; comprobar parent_id real y publicación.
+- Idempotencia: upload no duplica y delete/principal no alternan por replay.
+Aceptación: fotos visibles en ambos clientes/modos; sobreviven reinicio/redeploy;
+archivo inválido no se publica y contenido privado no se sirve anónimamente.
+
+F4-06 | Reserva atómica en Propiedades (3–4 días)
+- Reservar/consultar/renovar/confirmar/liberar y consultar command_id según anexo.
+- Persistir actor/origen/operación/fencing/snapshot/moneda/resultado con transición.
+- Exclusión SQL, índices y traducción de carreras sin 500 ni falsa disponibilidad.
+- Expirar solo Retenida vencida, nunca Confirmada; usar mismo reloj servidor.
+- Rechazar operación ajena/antigua/expirada, precio/versión desactualizados y
+  cambios de estado que evadan protocolo. Renovar requiere command_id nuevo.
+Aceptación: una reserva vigente/confirmación por propiedad como máximo; dos
+conexiones/procesos reales lo demuestran; replay no repite efectos.
+
+F4-07 | Consumidor seguro de Comercial (2–3 días)
+- PropertyAvailabilityClient con DTO, certificado de servicio, JWT delegado,
+  timeout/correlación/consulta de resultado y errores normalizados.
+- Persistir intención ANTES de HTTP, IDs/snapshot/estado/siguiente acción; nunca
+  guardar Bearer en claro ni reutilizar JWT del último usuario en jobs.
+- Validar intención antes de reservar; aceptar SU reserva Retenida vigente,
+  sin exigir Disponible después de que su operación la reservó.
+- Timeout de reserva/confirmación/liberación: consultar resultado; si no se puede,
+  dejar pendiente. No anunciar Activa ni liberar por intuición.
+- Preparar referencia de reserva/fencing para F5 y caracterización financiera.
+- Aislar creación/anulación antigua contra catálogo F4: sin salto del protocolo
+  ni reversión de Confirmada. Camino pendiente rechaza; lecturas siguen válidas.
+- No habilitar venta/pago Laravel remoto ni cobro/firma/entrega de pendientes.
+Aceptación: integración real de disponibilidad recupera respuestas perdidas y
+reconoce su reserva, sin declarar terminada la saga financiera de F5.
+
+F4-08 | IDs, datos y fotografías de prueba (1–2 días)
+- Ledger de equivalencias por origen/dataset/entidad/id, con unicidad y revisión.
+  No asociar por correo, código o cifras iguales de tablas distintas.
+- Fixtures MySQL/SQL Server con IDs y precios deliberadamente diferentes.
+- Ensayo de importación de catálogo: geografía/propietarios/ubicaciones/propiedades/
+  pivotes/imágenes, manifiesto/checksum, lotes reejecutables y diagnóstico.
+- No importar ventas/deudas, recalcular planes ni copiar datos reales. Migración
+  productiva/delta definitivo siguen F7 y corte F9.
+Aceptación: relaciones conservadas, replay no duplica ni afecta filas ajenas;
+property_id remoto no se usa para crear venta local por igualdad numérica.
+
+F4-09 | Ajustes mínimos en las dos variantes frontend (1–2 días)
+- Basar cada checkout en F3, sin sustituir ramas ni modificar main estable.
+- Guardar propiedad+ubicación en agregado; preservar borrador ante 422/409/412/503.
+- Conservar UUID/Idempotency-Key después de timeout; consultar resultado antes de
+  reenviar y generar otro solo para acción nueva.
+- Metadatos de versión/capacidad y avisos de conflicto; no seleccionar modo desde Vue.
+- URLs públicas y preview Blob privada con Bearer; sin JWT en query ni host interno;
+  liberar ObjectURLs al cambiar identidad/cerrar sesión/desmontar componente.
+- Selectores mínimos sin conceder edición de propietarios/zonas.
+Aceptación: crear/editar/desactivar, ubicación/características/imágenes funcionan
+en main local/remoto y cliente directo conservando sus contratos.
+
+F4-10 | Capacidades, permisos y retirada del puente (1–2 días)
+- Lista exacta método/ruta terminada en EnsureArchitectureReady; HEAD como GET;
+  no habilitar prefijos enteros que incluyan capacidades incompletas.
+- Permisos Laravel y .NET; opciones de formulario mínimas y DTO público sin PII
+  de propietarios. No ampliar roles automáticamente al migrar.
+- Solo consultas públicas de catálogo terminadas; /landing agregado y negocio
+  fuera de F4 conservan bloqueo. Mantener los módulos transversales en Laravel.
+- Resolver Maps sigue en Laravel: esquemas/hosts permitidos, revisar cada salto
+  y destino/IP, tiempo acotado y errores sin datos internos. No abrir un proxy
+  arbitrario al habilitar formulario remoto.
+- Ninguna ruta nueva usa PUT completo de LegacyPropertyStateBridge. Local no
+  llama MS; sincronizadores siguen bloqueados también en CLI/scheduler.
+Aceptación: catálogo terminado accesible; ventas/pagos/reportes/portal pendientes
+siguen 503 INTEGRATION_NOT_READY antes de acceder al origen indebido.
+
+F4-11 | Regresión, fallos y recuperación (2–3 días)
+- Suites F3 más matriz F4; SQL Server real para carreras, índices/migración/expiración;
+  dobles para red perdida DESPUÉS del commit. No simular concurrencia solo en SQLite.
+- Runner aislado con Seguridad/Propiedades/Comercial, BD y storage propios;
+  guard antes de toda escritura; certificados ficticios efímeros.
+- E2E catálogo main local/main remoto/directo, builds y regresión sesión F3.
+- Reiniciar servicios/expirador con Retenida/Confirmada; restaurar BD+archivos
+  mediante manifiesto/checksum y resolver resultados desconocidos.
+- config:cache, reinicio/contexto de workers; ningún job antiguo cambia de origen.
+Salida: RESULTADOS_F4.txt con comandos/versiones/evidencias/métricas y límites.
+Aceptación: cero fallos críticos ni SQL opcional omitido sin explicación; no
+afirmar paridad financiera/despliegue basándose solo en dobles HTTP.
+
+F4-12 | Documentación y cierre (0,5–1 día)
+- Contratos, matrices de rutas/permisos/paridad, PENDIENTES y revisiones finales.
+- Guía operativa de backup/recuperación, commits por repo en ramas F4.
+- Entrega revisable, sin merge/push/VPS implícitos.
+Aceptación: se cumplen E4-A a E4-E; lo pendiente conserva estado explícito.
+
+7. SECUENCIA Y ENTREGABLES
+============================================================
+F4-01 -> F4-02/F4-03 -> F4-04/F4-05 -> F4-06 -> F4-07.
+F4-08 acompaña contratos/esquema; F4-09/F4-10 esperan APIs terminadas;
+F4-11 verifica el conjunto; F4-12 cierra con evidencia.
+Estimación orientativa: 18–30 días laborables de una persona, revisable tras F4-01.
+La estimación general inicial 3–5 días no incluía baseline, archivos/canal de
+servicio, compatibilidad de ambos clientes y fallos reales; no sustituye aceptación.
+
+Entregables futuros: contratos/CATALOGO_V2.txt y RESERVAS_V1.txt; proveedores/
+migraciones/fixtures; operacion/CATALOGO_RESERVAS_F4.txt; pruebas/RESULTADOS_F4.txt;
+revisiones y actualización de las dos matrices anexas.
+No se presentan como implementados por crear este plan.
+
+8. ACTIVACIÓN POSTERIOR Y RECUPERACIÓN
+============================================================
+Ramas futuras desde F3: backend feature/fase-4-catalogo-dual, Propiedades
+feature/fase-4-reservas, Comercial feature/fase-4-consumidor-reservas y ramas
+frontend F4 separadas. Conservar Git independiente, sin reinicializar repositorios.
+F4 solo trabaja en instancias aisladas; no actualiza el sitio híbrido activo.
+
+Orden de validación futura:
+1. Respaldar revisiones/configuración/BD+storage e inspeccionar baseline.
+2. Aplicar expansión con preflight; conservar datos y claves de F3.
+3. Seguridad y Propiedades, storage y readiness/calentar modelo SQL/EF.
+4. Canal confiable y Comercial de integración, sin camino antiguo de venta inseguro.
+5. Laravel local/remoto separados y pruebas CRUD/media/reservas/clientes.
+6. Regenerar config:cache y reiniciar procesos persistentes/workers por instancia.
+7. Habilitar únicamente capacidades aceptadas. El corte real sigue F7–F9.
+
+Antes de nuevas escrituras: volver al par código/configuración compatible
+conservando esquema expandido y storage revisados.
+Después de escrituras/reservas F4: pausar comandos afectados, consultar resultado
+por operación y verificar origen/property_id/fencing/estado antes de compensar.
+No volver a código que ignore reservas activas ni cambiar remoto a local.
+Restaurar BD y fotos coherentes, comprobar manifiesto; no liberar Confirmada,
+otra operación o un resultado desconocido. No quitar tablas/columnas aún usadas.
+Snapshot de sesiones exige guía F3 de rotación/relogin para no revivir JWT.
+Claves/certificados privados fuera de Git. Expirador solo toca su BD y Retenida
+vencida condicionalmente; no llama Finanzas ni usa el último JWT de un usuario.
+
+9. CONDICIONES DE CIERRE
+============================================================
+E4-A LOCAL: suite F3 y catálogo completo pasan sin .NET ni HTTP remoto.
+E4-B CATÁLOGO: CRUD/ubicaciones/referencias/media y contratos equivalentes para
+casos aprobados; validación/errores/permisos correctos en ambas entradas.
+E4-C DISPONIBILIDAD: exclusión SQL real; replay/timeout/expiración/fencing y
+operación ajena no provocan doble reserva vigente ni confirmación indebida.
+E4-D INTEGRACIÓN: Comercial reconoce su reserva/snapshot, persiste intención y
+resuelve incertidumbre; ningún camino antiguo crea Activa fuera del protocolo.
+E4-E RECUPERACIÓN: baseline y BD+archivos ensayados, jobs/caché/arranque verificados,
+clientes pasan, documentación trazable y capacidades futuras siguen bloqueadas.
+
+No cerrar si solo funciona CRUD, si la exclusión vive en memoria, si PUT deshace
+reservas/ventas, si Bearer solo suplanta a Comercial, si timeout equivale a rollback,
+si publicar código elimina fotos o si se declara terminada F5 sin evidencia real.
+No usar producción para crear ventas/pagos de prueba.
+
+10. REFERENCIAS PRIMARIAS
+============================================================
+Consultadas 04-11-2026. Respaldan mecanismos; D01–D12 son propuestas del proyecto,
+no garantías de la librería. Se cierran antes de implementar en F4-01.
+https://learn.microsoft.com/en-us/ef/core/saving/concurrency
+https://learn.microsoft.com/en-us/ef/core/saving/transactions
+https://learn.microsoft.com/en-us/sql/t-sql/queries/hints-transact-sql-table
+https://learn.microsoft.com/en-us/aspnet/core/security/authentication/certauth?view=aspnetcore-10.0
+https://learn.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads?view=aspnetcore-10.0
+https://www.rfc-editor.org/rfc/rfc9110.html
+
+Estado de F4-01 a F4-12: PENDIENTE. No hay implementación ni activación de F4.

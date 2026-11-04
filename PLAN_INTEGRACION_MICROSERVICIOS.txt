@@ -1,7 +1,7 @@
 PLAN DE DESARROLLO: BACKEND DUAL Y FRONTEND UNIFICADO
 Proyecto: MultiliderNew
 Fecha: 4 de noviembre de 2026, America/La_Paz
-Versión del plan: 1.2
+Versión del plan: 1.3
 Estado: F0–F3 IMPLEMENTADAS y verificadas en ramas de trabajo. F4–F9 PENDIENTES.
 Evidencias: pruebas/RESULTADOS_F0_F2.txt, pruebas/RESULTADOS_F3.txt y PLAN_FASE_3.txt.
 No se ha desplegado ni habilitado el modo remoto completo.
@@ -20,7 +20,7 @@ El modo se configura por instancia del backend. No se elige desde el navegador,
 por una rama Git, por usuario ni automáticamente ante una caída.
 Ambos modos se conservarán y probarán como funcionalidades soportadas.
 
-2. PUNTO DE PARTIDA VERIFICADO
+2. PUNTO DE PARTIDA VERIFICADO (BASELINE ORIGINAL F0)
 ========================================
 - backend: main; login local Sanctum, soporte JWT adicional, sincronizadores
   usuarios:sync y propiedades:sync, y actualización remota de disponibilidad.
@@ -147,7 +147,7 @@ multilider-docs:
 
 6. FASES Y TAREAS
 ========================================
-Fases 0–2 completadas en el alcance del desglose operativo; fases 3–9 pendientes.
+Fases 0–3 completadas en ramas de trabajo; fases 4–9 pendientes.
 Desglose operativo de fases 0 a 2: PLAN_FASES_0_2.txt.
 La fase 2 entrega infraestructura y una consulta piloto; la activación funcional
 completa del modo remoto continúa en las fases 3 a 8.
@@ -212,8 +212,8 @@ Aceptación:
  detecta; no hay escrituras simultáneas en ambos orígenes ni fallback silencioso.
 
 FASE 3 | Identidad y autorización comunes
-Desglose operativo: PLAN_FASE_3.txt; pruebas/MATRIZ_PRUEBAS_F3.csv (50 casos planificados).
-Estado de la fase 3: PLANIFICADA; no implementada.
+Desglose operativo: PLAN_FASE_3.txt; pruebas/MATRIZ_PRUEBAS_F3.csv (50 casos trazados).
+Estado de la fase 3: IMPLEMENTADA Y VERIFICADA; ver pruebas/RESULTADOS_F3.txt.
 Repositorios: backend, Seguridad y frontend para contrato/sesión;
 Propiedades y validadores de Comercial/Finanzas para autorización/revocación común.
 Depende: F2.
@@ -245,6 +245,9 @@ Aceptación:
  La UI recibe un formato común de permisos en los dos escenarios.
 
 FASE 4 | Catálogo y disponibilidad segura de Propiedades
+Desglose: PLAN_FASE_4.txt y contratos/CATALOGO_RESERVAS_F4_PROPUESTA.txt.
+Matriz: pruebas/MATRIZ_PRUEBAS_F4.csv (77 casos PLANIFICADOS).
+Estado: plan detallado elaborado; IMPLEMENTACIÓN PENDIENTE.
 Repositorios: backend, Propiedades y Comercial.
 Depende: F2/F3.
 Tareas:
@@ -460,7 +463,8 @@ La documentación y pruebas se actualizan en cada fase.
 Estimación inicial para una persona dedicada, expresada como esfuerzo orientativo:
  F0: 1-2 días; F1: 2-3; F2: 3-4; F3: 3-5; F4: 3-5;
  F5: 6-10; F6: 6-9; F7: 4-7; F8: 3-5; F9: 2-4.
- Total aproximado: 33-54 días laborables.
+ Total preliminar original: 33-54 días; requiere reestimación con los desgloses
+ de F3 y F4, que sustituyen sus rangos iniciales.
 No es una fecha comprometida. Reestimar al terminar F0, especialmente por
 paridad de pagos/PDF/pasarela, calidad de datos y preparación de infraestructura.
 Trabajo con más personas solo reduce tiempo si las dependencias y contratos están
@@ -471,7 +475,8 @@ cerrados; la estimación no supone migrar todo a la vez.
 [ ] Un frontend y API pública común conservan la funcionalidad acordada.
 [x] Backend local funciona sin procesos .NET ni HTTP hacia esos cuatro servicios.
 [ ] Backend remoto utiliza los responsables correctos de cada dato.
-[ ] Identidad, permisos y ciclo de sesión son coherentes en ambos modos.
+[x] Identidad/permisos/sesión verificados en el alcance F3; autorización de
+    operaciones de negocio a completar/probar en F4–F8.
 [ ] No hay escrituras dobles ni cambio automático de origen ante fallos.
 [ ] Ventas/pagos distribuidos tienen estado durable, idempotencia y recuperación.
 [ ] Reportes/portal/dashboard muestran datos vigentes y totales conciliados.
@@ -494,6 +499,11 @@ Registro de cambios del plan:
 
 
 ACTUALIZACIÓN DE EJECUCIÓN 04-11-2026
-Fases 0, 1 y 2 completadas en el alcance de infraestructura/piloto definido.
+Fases 0 a 3 completadas en sus ramas de trabajo y alcances documentados.
 Ver analisis/, contratos/, pruebas/ y operacion/ para resultados y límites.
-Fases 3 a 9 conservan su estado pendiente. No se migraron datos ni se desplegó.
+Fases 4 a 9 conservan su implementación pendiente. F4 ya tiene plan detallado.
+No se migraron datos reales ni se desplegó al VPS.
+
+Actualización F4 (04-11-2026): el esfuerzo detallado de 18–30 días laborables
+sustituye la estimación preliminar F4 de 3–5 días; incluye baseline, archivos,
+canal de servicio, ambos clientes y fallos/concurrencia reales. No activa F4.

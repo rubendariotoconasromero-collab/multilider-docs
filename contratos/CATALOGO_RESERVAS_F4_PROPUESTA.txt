@@ -1,0 +1,209 @@
+PROPUESTA DE CONTRATO — CATÁLOGO Y RESERVAS F4
+Fecha: 04-11-2026. Estado: DISEÑO, NO IMPLEMENTADO.
+Se cierra en F4-01 antes de programar. Referencia: ../PLAN_FASE_4.txt.
+
+A. API LARAVEL Y COMPATIBILIDAD
+============================================================
+Conservar estas familias con los métodos actualmente expuestos en routes/api.php:
+ /api/propiedades: listado, alta, detalle, edición, alternar activo mediante DELETE.
+ /api/propiedades/{id}/caracteristicas/sync: sincronización por caracteristica_ids.
+ /api/propiedades/{id}/imagenes: multipart imagenes[]; respuesta 201, imagenes[].
+ /api/imagenes-propiedades/{id}: DELETE; /{id}/principal: PATCH.
+ /api/propietarios, /ciudades, /distritos, /sectores-urbanos, /caracteristicas.
+ /api/sectores-urbanos/por-distrito/{id}: lista del selector.
+ /api/ubicaciones: contratos efectivos actuales, sin activar métodos vacíos heredados.
+ /api/resolver-url-mapa: utilidad Laravel acotada, no proxy hacia cualquier destino.
+Las rutas Laravel y .NET de imágenes difieren; traducir explícitamente.
+Ubicaciones .NET necesita lectura/borrado hoy ausentes; POST Laravel 201 se adapta
+desde el actual POST .NET 200. Mantener show/listado paginado o plano según cada ruta.
+
+Campos/validaciones mínimos de propiedad:
+ propietario_ids no vacío con referencias válidas; sector_urbano_id válido;
+ ubicacion_id nullable, exclusivo de la propiedad; tipo; precio_venta >=0;
+ moneda BOB/USD; superficies/frente/fondo >=0; habitaciones/banos enteros >=0;
+ es_esquina/activo; dirección/lote/colindancias con longitudes actuales;
+ caracteristicas omitido distinto de [] cuando la operación permita vaciar.
+Código generado por autoridad, único y protegido frente a altas concurrentes.
+Preservar códigos heredados y es_destacado existente; no inventar un control de
+edición de destacado si no existe en el cliente/contrato caracterizado.
+Propietario: persona_natural/empresa; CI nullable único; nombre_completo obligatorio;
+nombre_empresa obligatorio para empresa; resto de límites según Laravel actual.
+
+Paginación/filtros: data,total,current_page,per_page,last_page y enlaces/metadatos
+que necesita Vue; búsqueda por código/propietario y filtros geográficos actuales.
+Caracterizar límites per_page=1000 de selectores; nunca truncar en silencio.
+Dinero/superficies con precisión decimal exacta y dos decimales en contrato Laravel;
+no convertir moneda ni calcular ventas desde este adaptador. Booleanos coherentes
+con los consumidores actuales. Relaciones anidadas solo del origen seleccionado.
+
+Ampliaciones propuestas:
+1. Guardado agregado mediante el MISMO POST/PUT de propiedad, añadiendo ubicacion
+   anidada opcional. Con ella, guardar/actualizar ubicación y propiedad dentro de
+   una transacción de la autoridad. Si se envían ubicacion y ubicacion_id incompatibles,
+   422 sin efectos. Mantener el payload antiguo con ubicacion_id para otros clientes.
+   Dos solicitudes antiguas separadas NO prometen atomicidad entre sí.
+2. GET /api/catalogo/opciones-propiedad: datos mínimos/paginables de selección,
+   con IDs/nombres/relaciones necesarias y sin CI/teléfono/correo de propietarios.
+   Policy acceso_propiedades para el caso de uso; no autoriza editar propietarios,
+   ciudades o zonas. Las rutas administrativas conservan su propio permiso.
+   Proponer equivalente .NET para el cliente directo, sin acceder a MySQL Laravel.
+3. version/capabilities aditivos; ETag fuerte e If-Match para clientes actualizados.
+   If-Match obsoleto412 y ninguna mutación; ausencia si es obligatorio428.
+   Conflicto de disponibilidad409 con código estable. Compatibilidad de lectores
+   antiguos conservada; no aceptar PUT que modifique disponibilidad gestionada.
+4. Idempotency-Key UUID en comandos reintentables de los clientes actualizados;
+   resultado consultable GET /api/catalogo/operaciones/{command_id} con pertenencia.
+   Guardar huella de método/recurso/payload normalizado, estado y resultado.
+   Payloads incluyen cantidades como decimales canónicos y campos ordenados;
+   archivos por hash de contenido, no nombres temporales ni orden incidental.
+
+Compatibilidad de escritores previos:
+Los clientes nuevos conservan la clave al reintentar. Un comando antiguo sin clave
+no adquiere idempotencia automáticamente: conservar contrato actual sin reintento
+automático; tras resultado incierto consultar/conciliar antes de otra acción.
+Antes de habilitar escrituras remotas en un entorno compartido deben actualizarse
+todos sus escritores y bloquear rutas que evadan protocolo. No cambiar requisitos
+obligatorios de un cliente desplegado sin migración coordinada de sus consumidores.
+DELETE que alterna estado se ejecuta una vez por clave; replay devuelve el estado
+resultante sin alternar otra vez. Endpoint explícito de estado deseado puede añadirse
+para nuevos clientes, sin atribuir idempotencia al toggle heredado.
+
+B. DISPONIBILIDAD: COMANDOS INTERNOS DE PROPIEDADES
+============================================================
+Rutas propuestas, sin exposición pública ni uso directo desde Vue:
+ POST /internal/catalogo/v1/propiedades/{id}/reservas
+ GET  /internal/catalogo/v1/operaciones/{operacion_id}/reserva
+ POST /internal/catalogo/v1/reservas/{reserva_id}/renovar
+ POST /internal/catalogo/v1/reservas/{reserva_id}/confirmar
+ POST /internal/catalogo/v1/reservas/{reserva_id}/liberar
+ GET  /internal/catalogo/v1/comandos/{command_id}
+Scope de certificado de Comercial: estos comandos y consultas de SU operación,
+sin CRUD de propietarios/catálogo ni acceso al almacenamiento arbitrario.
+Siempre comprobar servicio esperado, actor y permiso de venta vigente (F3).
+HTTP sin certificado, certificado ajeno y certificado solo sin usuario se rechazan.
+Si se termina TLS en un proxy futuro, autenticar y restringir también el salto
+proxy->app; nunca confiar en una cabecera de certificado enviada por el navegador.
+
+ReserveRequest:
+ operacion_id UUID estable, command_id UUID, expected_version de propiedad,
+ precio/moneda esperados OPCIONALES para detectar cambio de oferta, no autoridad.
+Origen de servicio y actor issuer/sub se derivan de las identidades verificadas;
+no se aceptan campos que suplanten esos valores. TTL se fija/acota en servidor.
+
+ReserveResponse/estado:
+ reserva_id, operacion_id, propiedad_id, fencing_token, estado_reserva,
+ estado_propiedad, expires_at_utc, version, precio_venta, moneda, version_precio,
+ resultado_comando y replay. Snapshot de precio devuelto proviene del catálogo.
+No devolver propietario/cliente/documentos privados en esta respuesta.
+
+Renovar/Confirmar/Liberar requieren:
+ command_id, operacion_id, reserva_id, propiedad_id coherente, fencing_token y
+ versión/precondiciones aplicables. Confirmar comprueba también snapshot/moneda.
+Caller legítimo con otro operation_id no puede reutilizar una reserva ajena.
+Nuevo login del mismo issuer/sub puede retomar; jti no define dueño de la operación.
+Usuario distinto no puede retomarla por coincidir correo/ID local. Transferencia
+operativa/excepciones de administrador deben diseñarse y auditarse aparte en F5.
+
+Estados:
+ Sin vigente + propiedad Disponible -> Retenida, propiedad Reservado.
+ Retenida vigente -> renovar explícitamente o Confirmada, propiedad Vendido.
+ Retenida vigente -> Liberada, propiedad Disponible.
+ Retenida vencida -> Vencida, propiedad Disponible, solo si sigue siendo la vigente.
+ Confirmada -> no expira; liberar devuelve 409, reversión de venta corresponde F5.
+ Liberada/Vencida -> no se reactivan por replay; nueva intención usa otra operación.
+
+Invariantes:
+- Una sola reserva vigente por propiedad, incluidas Confirmadas no revertidas.
+- Una operación no puede cambiar de propiedad/origen/actor usando el mismo UUID.
+- Repetir command_id y payload no repite efectos. Otro payload con la misma clave 409.
+- Autenticar/autorizar antes de consultar el resultado guardado. Para un replay
+  válido no volver a aplicar la precondición antigua contra la versión que su propio
+  comando ya cambió; las precondiciones se verifican al ejecutar un comando nuevo.
+- Replay devuelve el acuse original y el estado ACTUAL; nunca comunica Retenida
+  activa si ya venció/fue liberada. No extender TTL por repetir reservar.
+- Renovar es otro comando explícito; no revive una reserva ya vencida.
+- Comandos de fencing anterior fallan aunque el mismo usuario haya reservado otra vez.
+- No confirmar después de expires_at, ni liberar después de que otra reserva sea vigente.
+- Inactivar una propiedad Retenida no libera su reserva; en F4 se propone rechazar
+  ese cambio409 hasta cancelar/reconciliar la intención. Confirmada nunca vuelve
+  a Disponible mediante formulario, toggle, expirador o PUT legado.
+- Precio/moneda no se modifican durante la reserva; cambios descriptivos no deben
+  alterar ni el precio capturado ni el dueño de la disponibilidad.
+- Criterios y versión se vuelven a comprobar dentro de la transacción SQL corta.
+  Rowversion aislado no sustituye comprobar estado/vencimiento/propietario de reserva.
+
+Persistencia orientativa (nombres finales en RESERVAS_V1):
+ Propiedades: rowversion, último fencing, referencia a reserva vigente si se usa.
+ Reservas: UUID, propiedad FK, origen/operación únicos, actor issuer/sub, fencing,
+  estado, vigente bool, vencimiento UTC, snapshot decimal/moneda/versión, auditoría.
+ Índice único filtrado propiedad_id WHERE vigente=1; unicidad origen/operacion_id;
+  checks de estado y coherencia; índice de expiración para Retenida.
+ Comandos: origen/command_id únicos, operación/acción/huella, resultado durable,
+  estados/fechas/correlación. Su efecto y el resultado se confirman juntos.
+ No almacenar tokens/contraseñas/certificados privados ni blobs de fotos en auditoría.
+
+Fallo después de commit y antes de respuesta:
+Comercial consulta comando/operación con la misma identidad técnica y usuario
+vigente. Resultado conocido se reutiliza; desconocido se mantiene pendiente, sin
+una reserva nueva ni liberar por timeout. Registrar intención Comercial ANTES de
+HTTP; el seguimiento de disponibilidad no es la saga financiera completa de F5.
+No conservar indefinidamente un JWT de usuario para reanudar desde jobs.
+
+Retención y expiración:
+TTL inicial propuesto 15 minutos, rango a fijar en F4-01. Reloj servidor UTC.
+Expirador de BD local idempotente, condicionado por estado/fencing/expiración.
+Retener historial terminal/huellas durante la vida de la operación y su ventana
+de reintentos; no purgar mientras pueda ejecutarse un replay o existir una venta
+que lo referencia. La política exacta se documenta antes de activar limpieza.
+
+C. IMÁGENES Y CONSULTAS PÚBLICAS
+============================================================
+Autoridad de archivos: Propiedades remoto, Laravel local; raíz propia persistente.
+URL pública relativa Laravel, propuesta /catalogo/media/{public_id}/{revision}.
+Endpoint protegido de preview /api/catalogo/imagenes/{id}/contenido, leído con
+Axios Bearer y mostrado como ObjectURL; revocarlo al terminar/cerrar sesión.
+Equivalentes .NET conservan consumo directo y políticas F3. No emitir URL interna
+.NET a main ni descargar una URL arbitraria entregada por un servicio/usuario.
+
+Público sirve solo foto promocional marcada pública y permitida por propiedad.
+Anonimato nunca alcanza propietarios, credenciales o documentos de contratos.
+Respuesta de imagen incluye MIME correcto y política de caché/publicación coherente;
+el cambio a privado/inactivo exige retirar acceso y revisar caché/CDN, no solo ocultar
+el botón de Vue. No asumir que una foto legacy ya pública se volvió privada sin
+tratar su ruta anterior. Revisar ese caso en el manifiesto de migración de prueba.
+Temporales/archivos inválidos/pendientes de commit no son servibles.
+Limpieza de ficheros usa IDs/manifiestos propios, no rutas recibidas del navegador.
+
+GET /api/landing/propiedades, detalle/similares y geografía podrán adaptarse solo
+si existe endpoint .NET público específico con DTO reducido y filtros de publicación.
+No usar un JWT administrador para resolver consultas anónimas. Conservar filtros
+locales de tipo/geografía/precio/habitaciones/búsqueda según contrato caracterizado.
+GET /api/landing agregado con empresa/asesores permanece fuera de F4.
+
+D. ESTADOS HTTP Y ERRORES
+============================================================
+200/201: contrato existente según operación; nunca éxito antes de commit.
+202 solo si se crea una operación PENDIENTE consultable real, no para fingir éxito.
+401: sesión usuario inválida/revocada; 403: falta permiso/llamador/operación ajena.
+404: recurso inexistente o no publicable sin revelar datos privados.
+409: RESERVA_EN_CONFLICTO, RESERVA_NO_VIGENTE, OPERACION_INCOMPATIBLE,
+ PRECIO_CAMBIO, DISPONIBILIDAD_GESTIONADA o IDEMPOTENCY_KEY_REUSED.
+412: precondición If-Match obsoleta. 428 si el contrato exige versión y falta.
+422: errores por campo Laravel, incluida referencia inválida sin guardar parcialmente.
+413: lote/cuerpo excesivo según límite documentado. 429: límite de solicitudes.
+503 SERVICE_UNAVAILABLE: estado remoto no verificable; sin fallback ni éxito falso.
+503 INTEGRATION_NOT_READY: camino de venta/consulta fuera del alcance terminado.
+Señalar operación/correlación consultables si existe resultado incierto; no incluir
+SQL, stack, JWT, contraseñas, rutas privadas ni cuerpo remoto sin filtrar.
+
+E. RELACIÓN CON VENTAS Y SIGUIENTE FASE
+============================================================
+F4 garantiza exclusión del catálogo y prepara consumidor Comercial. En pruebas,
+dos intenciones compiten y solo una confirma disponibilidad. Eso NO acredita
+obligación financiera, contrato legal, cobro ni entrega distribuidos terminados.
+F5 utilizará la misma operación/snapshot: reserva -> venta pendiente -> preparar
+Finanzas -> confirmar disponibilidad/venta -> habilitar cobro, con coordinador
+durable y compensación/reversión autorizada. Su orden se cerrará en el plan F5.
+En F4 ninguna venta pendiente puede presentarse Activa ni habilitar firma/cobro/
+entrega mediante los endpoints viejos. No activar reservas sobre un catálogo
+compartido mientras exista un escritor que pueda crear venta sin el protocolo.

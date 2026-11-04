@@ -23,9 +23,10 @@ operacion/ARQUITECTURA_DUAL_F0_F2.txt
 Pendientes siguientes, ya definidos en el plan general
 F3: COMPLETADA en ramas de trabajo; contrato y sesiones locales/remotas verificados.
 Desglose y límites: PLAN_FASE_3.txt, pruebas/RESULTADOS_F3.txt y matriz F3.
-F4: paridad completa Propiedades, mapeos/proyecciones y reserva atómica.
-F5/F6: Comercial/Finanzas, coordinación durable y paridad financiera/documental.
-F7/F8: agregaciones, correo/infraestructura y unificación del frontend con E2E.
+F4: plan detallado elaborado; implementación PENDIENTE. Ver PLAN_FASE_4.txt.
+F5: Comercial/Finanzas, coordinación durable y paridad financiera/documental.
+F6: consultas/agregaciones y unificación del frontend; módulos siguen Laravel.
+F7: migración/conciliación de datos. F8: validación integral y recuperación.
 F9: migración/corte/despliegue y recuperación de producción autorizados.
 No activar modo remoto completo ni espejos antiguos para saltar estas fases.
 
@@ -37,8 +38,18 @@ revocados en servidor; logout pendiente durable y reintento probado tras caída.
 Ambas variantes frontend conservan sus contratos y tienen restauración/logout real.
 Guía: operacion/IDENTIDAD_F3.txt. Revisiones: analisis/REVISIONES_F3.txt.
 
-Siguiente entrega propuesta: elaborar el plan detallado F4 (Propiedades).
+Plan detallado F4 elaborado: PLAN_FASE_4.txt. Siguiente entrega: implementarlo.
+Esta planificación no autoriza ni ejecuta un despliegue del sistema.
 Catálogo completo e imágenes; reserva/confirmación/liberación idempotentes y
 atómicas, coordinadas con Comercial. No iniciar F5/Finanzas antes de esa base.
 Los módulos transversales acordados permanecen en Laravel. No activar el modo
 remoto completo ni modificar el VPS con esta entrega parcial de integración.
+
+PEND-003 | Catálogo y reservas F4
+Estado: PLANIFICADO; ninguna tarea F4 implementada por crear el plan.
+12 paquetes de trabajo y 77 casos de prueba planificados, con contrato propuesto,
+paridad por familia, dependencias, criterios E4-A a E4-E y recuperación.
+Archivos: PLAN_FASE_4.txt; contratos/CATALOGO_RESERVAS_F4_PROPUESTA.txt;
+analisis/PARIDAD_CATALOGO_F4.csv; pruebas/MATRIZ_PRUEBAS_F4.csv.
+Conservar los dos modos, las dos variantes cliente y los módulos transversales
+en Laravel. F4 prepara disponibilidad; venta/finanzas distribuida completa sigue F5.
