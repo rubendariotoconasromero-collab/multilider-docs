@@ -22,6 +22,7 @@ operacion/ARQUITECTURA_DUAL_F0_F2.txt
 
 Pendientes siguientes, ya definidos en el plan general
 F3: autenticación delegada real, identidad estable, JWT/permisos, logout/perfil.
+Desglose F3: PLAN_FASE_3.txt y pruebas/MATRIZ_PRUEBAS_F3.csv; estado PLANIFICADO.
 F4: paridad completa Propiedades, mapeos/proyecciones y reserva atómica.
 F5/F6: Comercial/Finanzas, coordinación durable y paridad financiera/documental.
 F7/F8: agregaciones, correo/infraestructura y unificación del frontend con E2E.

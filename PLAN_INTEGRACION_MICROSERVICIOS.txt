@@ -212,7 +212,10 @@ Aceptación:
  detecta; no hay escrituras simultáneas en ambos orígenes ni fallback silencioso.
 
 FASE 3 | Identidad y autorización comunes
-Repositorios: backend, Seguridad; frontend solo para contrato/sesión.
+Desglose operativo: PLAN_FASE_3.txt; pruebas/MATRIZ_PRUEBAS_F3.csv (50 casos planificados).
+Estado de la fase 3: PLANIFICADA; no implementada.
+Repositorios: backend, Seguridad y frontend para contrato/sesión;
+Propiedades y validadores de Comercial/Finanzas para autorización/revocación común.
 Depende: F2.
 Tareas:
  F3.1 Local: conservar login Sanctum y los permisos locales.

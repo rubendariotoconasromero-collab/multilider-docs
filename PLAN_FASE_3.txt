@@ -1,0 +1,456 @@
+PLAN DETALLADO — FASE 3: IDENTIDAD, SESIONES Y AUTORIZACIÓN
+Proyecto: MultiliderNew
+Fecha: 4 de noviembre de 2026, America/La_Paz
+Versión: 1.0
+Estado: PLANIFICADO. Este documento no implementa ni activa la fase 3.
+Base: backend e2ecb21, documentación F0–F2 67e7022.
+Referencias: PLAN_INTEGRACION_MICROSERVICIOS.txt y PLAN_FASES_0_2.txt.
+
+1. OBJETIVO Y COMPROMISO DE COMPATIBILIDAD
+============================================================
+Completar identidad y autorización para que la misma API Laravel pueda utilizar:
+- LOCAL: usuarios, contraseñas, permisos y sesiones Sanctum locales.
+- MICROSERVICES: identidad de Seguridad, JWT verificado y permisos remotos.
+La selección depende exclusivamente de APP_ARCHITECTURE en cada instancia.
+El frontend main seguirá entrando por Laravel y recibirá el contrato que conoce.
+La rama release/microservices conservará sus contratos directos durante la transición.
+
+Conservar funcionamiento significa mantener los casos de uso actualmente disponibles
+y autorizados de cada cliente, sin cambiar su origen de datos de forma implícita.
+No significa habilitar operaciones distribuidas que todavía no existen.
+El modo remoto nuevo de F2 solo tiene un piloto con dobles y bloquea las demás rutas.
+F3 habilitará identidad y el piloto autenticado; altas de catálogo, ventas y pagos
+por Laravel remoto siguen sus fases F4–F6. La unificación general de Vue sigue en F8.
+Un despliegue antiguo/híbrido que aún use ambos servicios originales conservará
+su revisión y configuración hasta verificar su reemplazo completo: no se convertirá
+en una instancia remota nueva parcialmente funcional durante esta fase.
+No se modifica el VPS ni se cambia un despliegue activo por elaborar/ejecutar el plan.
+
+2. ESTADO REAL INSPECCIONADO
+============================================================
+Backend:
+- AuthController autentica usuarios locales y emite tokens Sanctum.
+- Las rutas protegidas usan auth:sanctum,jwt; no separan todavía el token por modo.
+- JwtGuard valida HMAC manualmente, solo comprueba exp si existe y busca por correo.
+- User::hasPermission usa permisos del JWT o las relaciones locales, según el guard.
+- ProfileController escribe nombre/correo/contraseña en el usuario local.
+- IdentityGateway solo tiene currentUser(); hay un proveedor remoto pendiente.
+- DelegatedTokenProvider real rechaza: falta la identidad remota completa.
+- EnsureArchitectureReady permite únicamente GET /api/propiedades en modo remoto.
+- Sincronizadores antiguos están bloqueados; esa protección se conserva.
+- La suite F0–F2 tiene 56 tests/308 aserciones; es el mínimo de regresión.
+
+Seguridad:
+- POST /api/auth/login devuelve accessToken, tokenType, message y user.
+- user.rolesPermisos contiene RolPermisoId, RolId, NombreRol, PermisoId y NombrePermiso,
+  serializados según la configuración ASP.NET; no es el anidado Eloquent de Laravel.
+- Emite HS256 con sub numérico estable, email, name, jti, permisos y exp a ocho horas.
+- GET /api/auth/me busca literalmente sub; verificar el mapeo de claims de ASP.NET.
+- No se observaron endpoints específicos de logout, perfil propio ni contraseña propia.
+- UsuarioController y otros administrativos tienen Authorize genérico.
+- UsuarioUpdateDTO permite Password/Estado: no reutilizarlo como perfil de autoservicio.
+- No se observaron migraciones EF ni suite de pruebas de Seguridad en el repositorio.
+
+Frontend:
+- main espera roles_permisos[].rol_permiso.rol/permiso y llama /api/login de Laravel.
+- release/microservices usa rolesPermisos[].nombreRol/nombrePermiso, clientes .NET
+  directos y logout que solo limpia localStorage.
+- Ambas ramas almacenan auth_token/auth_user y envían Bearer; no dependen de que
+  el token tenga el mismo formato interno en ambos modos.
+- El correo de perfil usa una credencial de buzón distinta y una caché por sesión.
+
+3. DECISIONES PROPUESTAS PARA ESTA FASE
+============================================================
+D01. Mantener Sanctum en LOCAL, incluidos tokens locales existentes válidos y reglas
+actuales de login, bloqueo por intentos, perfil y contraseña. Los eventos de revocación
+definidos en D08 afectarán solo a las cuentas/sesiones correspondientes, en ambos modos.
+No cambiar a cookies ni exigir
+Seguridad/.NET, issuer remoto, tablas remotas o claves JWT en este modo.
+
+D02. En MICROSERVICES, Laravel delegará login a Seguridad y devolverá access_token,
+token_type, message y user normalizados. El access_token será el JWT del usuario
+verificado. No se creará un token Sanctum local para representar esa identidad.
+Esto mantiene compatibilidad con los consumidores .NET actuales y evita introducir
+otra familia de tokens en esta entrega. Un cambio a cookies/BFF con token opaco
+requiere un diseño y migración de clientes separados, fuera de esta fase.
+
+D03. El nuevo guard remoto solo aceptará JWT de Seguridad verificado; el guard local
+aceptará Sanctum. Quitar la aceptación indistinta sanctum,jwt del flujo nuevo.
+Conservar la revisión antigua para despliegues híbridos hasta su corte revisado;
+no añadir un tercer modo oculto ni permitir que una petición seleccione el guard.
+
+D04. Resolver la identidad mediante (issuer,sub), con comparación exacta. El correo
+será un atributo mutable. No crear usuarios locales, copiar contraseñas ni asociar
+dos cuentas automáticamente porque coincidan sus correos o números ID.
+Usar un principal remoto que implemente la interfaz de autenticación y hasPermission,
+sin necesitar que exista una fila users local. El mapper de salida construirá el DTO.
+
+D05. Añadir mapas explícitos para relaciones antiguas cuando sean necesarios:
+external_identities: issuer, subject, local_user_id nullable, created_at/updated_at,
+unicidad(issuer,subject), procedencia y estado de revisión de la asociación.
+No poblarlos con coincidencias automáticas; un conflicto devuelve IDENTITY_MAPPING_REQUIRED.
+El login/perfil remoto sin vínculos de negocio no exigirá un mapa local.
+No habilitar cartera, contratos ni archivos de negocio usando igualdad numérica.
+
+D06. Mantener inicialmente la duración de ocho horas del acceso remoto para no cambiar
+la experiencia actual sin necesidad. Al vencer, solicitar nuevamente login.
+No implementar refresh en esta primera versión: reduce secretos y casos de reutilización.
+expires_at/auth_source podrán añadirse como campos opcionales sin romper clientes.
+La revocación por logout/contraseña/estado/permisos se resolverá en servidor;
+el vencimiento por sí solo no sustituye esa revocación.
+
+D07. Mantener inicialmente HS256, issuer/audience y contratos compatibles con los
+consumidores existentes; fijar el algoritmo permitido desde configuración.
+No rotar ni distribuir claves en el repositorio. Evaluar firma asimétrica/JWKS
+como trabajo separado, con transición de verificadores y claves antes del emisor.
+Cada consumidor validará firma, algoritmo, issuer, audiencia, exp obligatorio,
+sub y jti. Validar nbf/iat cuando existan; emitirlos en tokens nuevos. Tolerancia
+de reloj propuesta: 30 segundos, misma en PHP y .NET y probada en los límites.
+La audiencia compartida heredada quedará documentada como deuda de segmentación;
+no se afirmará que hay tokens específicos por servicio si aún no se han emitido.
+
+D08. Seguridad será autoridad de estado de sesión y versión de permisos.
+Proponer sesiones por jti y versión de autenticación por usuario, con revocación
+persistente, consultas de estado autenticadas y aislamiento de cada dispositivo.
+Los verificadores consultarán estado tras la verificación criptográfica.
+Política inicial: sin caché positiva de estado, para comprobar revocación al instante
+cuando Seguridad esté disponible. Si no está disponible: 503, sin usar datos locales.
+Medir carga/latencia antes de introducir cualquier caché y su ventana de revocación.
+En local, el estado/permisos siguen en Laravel: comprobar cuenta activa y revocar
+los tokens Sanctum afectados por contraseña/desactivación; ninguna llamada a Seguridad.
+No invalidar sesiones de otras cuentas ni todos los usuarios al instalar la entrega.
+
+D09. Compatibilidad temporal de tokens previos: tienen jti/exp pero no versión/iat.
+Seguridad podrá tratarlos como versión 0 dentro de una ventana explícita de hasta
+ocho horas más tolerancia desde el corte. Todo cambio de contraseña, estado o permisos
+incrementa la versión e invalida esos tokens. Asegurar exp dentro de esa ventana.
+No aceptar tokens sin exp/sub/jti ni conservar indefinidamente el formato antiguo.
+Después del plazo se exige relogin; no se rescatan tokens fallidos con Sanctum.
+
+D10. Mantener autorizaciones por permiso y por recurso. Un usuario puede modificar
+solo su perfil; el rol administrativo usa rutas y políticas administrativas.
+El principal remoto tomará asignaciones vigentes de Seguridad; no confiar solo en
+claims de permiso emitidos horas antes. Rechazar una versión de permisos obsoleta.
+
+D11. Login del sistema y contraseña del buzón son independientes. Cambiar perfil
+no crea, renombra ni cambia contraseñas Postfix/Dovecot. Al cambiar correo, invalidar
+la conexión de buzón previa y pedir la nueva credencial cuando corresponda.
+
+D12. Mantener bloqueadas todas las capacidades remotas pendientes de F4–F8.
+Ampliar EnsureArchitectureReady mediante una lista de capacidades revisadas, no
+retirar el middleware completo al lograr que el login remoto funcione.
+
+4. REPOSITORIOS, VERSIONES Y ENTREGAS
+============================================================
+backend: implementar en rama feature/fase-3-identidad-dual a partir de e2ecb21.
+Seguridad: rama feature/fase-3-sesiones-autorizacion desde su revisión registrada.
+Propiedades: rama de autenticación/permisos; sin cambiar reglas de catálogo/reserva.
+Comercial/Finanzas: ramas de integración de validación/revocación únicamente si son
+necesarias para cerrar el protocolo común; conservar sus reglas y pruebas actuales.
+Ya cuentan con Git, commits iniciales bdfb91e/fa12bc4; no reinicializarlos.
+frontend: contrato/pruebas y ajustes mínimos de sesión en ramas de trabajo derivadas
+de main y release/microservices. No reemplazar una rama por otra ni fusionar toda la UI.
+multilider-docs: plan, contratos, matriz de pruebas y guías de recuperación.
+
+La implementación podrá reutilizar un módulo de autenticación entre los servicios
+.NET si su compatibilidad net8/net10 está verificada; evitar copias divergentes.
+No crear una biblioteca adicional ni cambiar frameworks hasta justificarlo en F3-01.
+No actualizar dependencias de negocio en bloque ni hacer push/despliegue automático.
+Migrations/paquetes de infraestructura se revisan por repositorio y se prueban juntos.
+
+5. TAREAS Y CRITERIOS DE ACEPTACIÓN
+============================================================
+F3-01 | Caracterización y cierre del contrato (1–2 días)
+Repositorios: todos en lectura; backend/Seguridad/frontend para fixtures y tests.
+- Registrar hashes, configuración pública, clientes desplegados y modo efectivo.
+- Caracterizar login/me/logout/perfil/contraseña de main y APIs .NET originales.
+- Cubrir formato real de roles/permisos, minúsculas/case de correo y hashes BCrypt
+  existentes; no regenerar contraseñas ni cambiar el formato de hash por conveniencia.
+- Verificar sub/NameIdentifier y MapInboundClaims, incluidos los dos runtimes .NET.
+- Elegir biblioteca JWT mantenida compatible con PHP real y probar sus validadores;
+  no sustituir la decodificación manual por otra implementación propia.
+- Revisar soporte .NET8/EF/Pomelo y dependencias actuales; registrar actualización
+  independiente necesaria antes de una publicación soportada, sin frenar el diseño.
+- Acordar D01–D12, ventana de tokens heredados y permisos de las rutas existentes.
+Salida: contratos/IDENTIDAD_V1.txt, fixtures falsos y foto de versiones F3.
+Aceptación: ninguna credencial, estructura de rol o regla de sesión se supone sin prueba.
+
+F3-02 | Entorno de pruebas, esquema y recuperación (1–2 días)
+Repositorios: backend y Seguridad.
+- Conservar runner/guard MySQL F0–F2; crear base exclusiva distinta para Seguridad.
+- Añadir WebApplicationFactory/pruebas .NET y datos mínimos de usuario/rol/permiso.
+- Crear migraciones aditivas de sesiones/versiones de Seguridad y mapa de identidad
+  Laravel. Establecer baseline del esquema existente sin recrear tablas con datos.
+- Probar migración sobre esquema nuevo y copia sintética con esquema previo; validar
+  índices, unicidad, transacciones y comparación exacta de identificadores externos.
+- Prohibir EnsureCreated/migrate:fresh contra bases existentes y sembrados administrativos
+  automáticos al iniciar. Usuarios SQL exclusivos de pruebas con permisos limitados.
+- Preparar snapshot/restore ensayado en pruebas, rutas privadas y limpieza por alcance.
+Aceptación: actualización aditiva no pierde usuarios/asignaciones y ambas bases están aisladas.
+
+F3-03 | Contratos y separación del guard por modo (1–2 días)
+Repositorios: backend.
+Archivos orientativos:
+ app/Contracts/Architecture/IdentityGateway.php
+ app/Contracts/Architecture/IdentityAdministrationGateway.php
+ app/Services/Local/LocalIdentityGateway.php
+ app/Services/Remote/RemoteIdentityGateway.php
+ app/Auth/RemotePrincipal.php y guard/verificador mantenido
+ app/Providers/ArchitectureServiceProvider.php, config/auth.php y config/architecture.php
+- Extender identidad con login/me/logout/perfil/contraseña sin agrupar toda la
+  administración en una interfaz única; separar CRUD/asignaciones administrativos.
+- Reutilizar la lógica local actual y el rate limiter; cambios pequeños y probados.
+- Resolver modo por contenedor; no añadir condiciones dispersas en controladores.
+- Configurar origen/guard por instancia: token de otro modo rechazado antes de BD de negocio.
+- Invalidar selección mal configurada; local no requiere dependencias remotas.
+Aceptación: las regresiones locales siguen pasando; una caída total de .NET no afecta local.
+
+F3-04 | Login remoto y contrato común de usuario (1–2 días)
+Repositorios: backend y Seguridad.
+- POST /api/login de Laravel delega a /api/auth/login; 401/403/422/429 normalizados.
+- Validar JWT antes de aceptar el login o transportarlo a otro servicio.
+- Normalizar roles_permisos anidados para main sin confundir IDs de otros orígenes.
+- Mantener accessToken/user.rolesPermisos planos en la API directa de Seguridad.
+- No introducir contraseña en logs/cache ni tokens administrativos como respaldo.
+- Mantener límites de intentos también en acceso directo a Seguridad; considerar
+  IP de proxy solo cuando sea de confianza, y proteger la enumeración de cuentas.
+- Si login remoto falla o devuelve JSON/JWT inválido, no autenticar contra users local.
+Aceptación: misma interfaz Laravel para ambos modos; ambos clientes conservan su contrato.
+
+F3-05 | Identidad estable y perfil propio (1–2 días)
+Repositorios: backend y Seguridad.
+- Resolver principal por issuer/sub; mapper de permisos/roles vigente y estado activo.
+- Crear GET/PUT /api/auth/profile y PUT /api/auth/password, o nombres equivalentes
+  fijados en el contrato; siempre operar sobre sub, nunca sobre un id del navegador.
+- Mantener /api/me, /api/perfil y /api/perfil/cambiar-password de Laravel.
+- Validar correo único, nombre y contraseña actual/política equivalente a Laravel;
+  rechazar password/estado/roles dentro de la actualización ordinaria del perfil.
+- Actualizar correo conservando sub, permisos y vínculos revisados; no duplicar cuenta.
+- Si un recurso requiere relación local no mapeada, rechazar sin vincular por correo.
+- Actualizar el DTO y caché del cliente tras perfil; separar credencial de buzón.
+Aceptación: cambiar correo no cambia la identidad; un usuario no edita a otro ni sus roles.
+
+F3-06 | Sesiones, revocación y estado vigente (2–3 días)
+Repositorios: Seguridad, backend y validadores consumidores de los cuatro MS.
+- Persistir sesiones por jti al autenticar; versión por usuario/asignaciones.
+- Implementar logout del jti actual y revocación de todas las sesiones cuando corresponda.
+- Definir endpoint interno de estado/introspección con contrato fijo, acceso autenticado,
+  sin enumeración pública ni credenciales administrativas compartidas.
+- Los consumidores validan primero el JWT; luego consultan estado/versiones vigentes.
+  Seguridad consulta su propia base sin hacer una llamada HTTP recursiva a sí misma.
+- Logout online: revocar actual; otro dispositivo sigue activo. Contraseña/desactivación:
+  revocar todas; cambio de permisos: invalidar versión para evitar permisos obsoletos.
+- Incluir cambios de rol/permiso compartido y asignaciones para todos los usuarios
+  afectados. Hacer atómicos el cambio y su versión; probar carreras con emisión de
+  tokens, logout y cambio de contraseña para no dejar una credencial antigua válida.
+- En local aplicar la misma política de eventos con Sanctum y permisos locales;
+  exigir relogin solo cuando corresponda e informar reauth_required tras contraseña.
+- Repetir logout no genera error destructivo; definir respuesta idempotente sin aceptar
+  la credencial revocada para ninguna otra operación. Evitar reintentos de perfil/password.
+- Si Seguridad cae al cerrar sesión: invalidación inmediata en la entrada Laravel,
+  registro durable de revocación pendiente con operación/jti y expiración, y respuesta
+  explícita 503 con revocation_pending. Reintento limitado para revocar al recuperar.
+- Si ese reintento necesita el JWT, cifrarlo con plazo mínimo y permiso de operación
+  limitado; no almacenarlo en claro ni utilizar un token de otro usuario.
+- Documentar que no puede garantizarse revocación instantánea en consumidores directos
+  durante una partición. Debe constar pendiente hasta confirmación o expiración.
+- Estado no comprobable: 503, sin caché positiva antigua ni fallback a permisos locales.
+- No añadir refresh hasta diseñar y probar rotación y detección de reutilización.
+Aceptación: revocación verificada en Laravel y accesos .NET directos, con efecto de
+contraseña/estado/permisos probado y comportamiento de caída sin éxitos falsos.
+
+F3-07 | Permisos administrativos, recurso propio e identidad de servicio (1–2 días)
+Repositorios: Seguridad; Propiedades y consumidores que lo requieran.
+- Matriz ruta/método -> permiso -> propiedad del recurso; separar lectura, administración
+  de cuentas y asignación de permisos conforme al catálogo actual, sin inventar roles.
+- Añadir policies a Seguridad y Propiedades donde hoy solo se exige autenticación.
+- Evitar escalada por UsuarioUpdateDTO, asignaciones ajenas o ids en rutas de perfil.
+- Comprobar también el acceso directo al MS; proteger solo Laravel sería insuficiente.
+- Conservar políticas más estrictas ya presentes en Comercial/Finanzas y su aislamiento
+  de cliente; revisar que sub se interprete como identidad y no id de cliente de otra BD.
+- Cartera/archivos no integrados siguen bloqueados en Laravel remoto. Añadir pruebas
+  negativas de rechazo; la prueba positiva completa de esos recursos llega F5/F6.
+- Definir ServiceIdentityProvider separado para futuros jobs, con scopes, audiencia,
+  duración y rotación; no emitirlo ni conceder privilegios globales sin caso concreto.
+- Mantener espejos/puente y trabajos incompatibles bloqueados; nunca ejecutar un job
+  con credenciales del último usuario que inició sesión.
+Aceptación: pruebas de acceso horizontal/vertical y permiso retirado pasan en cada API expuesta.
+
+F3-08 | Token delegado, piloto real y capacidades habilitadas (1 día)
+Repositorios: backend, Seguridad y Propiedades.
+- Implementar DelegatedTokenProvider para el JWT del principal remoto validado,
+  verificado para el destino y sesión; no reenviar un Sanctum ni cualquier bearer recibido.
+- Probar login Laravel -> Seguridad -> GET /api/propiedades -> Propiedades real.
+- Añadir a la lista de capacidades remotas solo login/me/logout/perfil/contraseña,
+  administración de identidad terminada y el listado piloto.
+- Mantener 503 INTEGRATION_NOT_READY para escrituras de catálogo/ventas/pagos/reportes
+  y portal/archivos que aún no tienen proveedores/mapeos completos.
+- No retirar el middleware de disponibilidad ni cambiar de lectura remota a local.
+Aceptación: el piloto deja de depender del proveedor de JWT falso; sus regresiones
+de paginación/filtros/errores siguen pasando con dobles y con las APIs reales aisladas.
+
+F3-09 | Clientes y correo de perfil (1 día)
+Repositorios: frontend, backend; Seguridad para contrato.
+- main sigue consumiendo Laravel; ajustar solo sesión/errores/normalización si hace falta.
+- release/microservices conserva sus endpoints directos y DTO plano; añadir llamada
+  real de logout y validación de sesión al restaurar una pestaña.
+- Conservar los orígenes CORS necesarios de los clientes vigentes; los destinos del
+  backend siguen saliendo de configuración y no de una URL enviada por el navegador.
+- Aplicar el ajuste equivalente en ambas ramas sin copiar toda la rama MS sobre main.
+- 401 limpia token/usuario y cabeceras de todos los clientes de la sesión; 403 conserva
+  sesión y muestra falta de permiso; 503 muestra indisponibilidad sin perder el formulario
+  ni asumir contraseña incorrecta; evitar bucles de navegación.
+- Invalidar DTO guardado cuando la autoridad devuelve identidad/versión distinta.
+- Proteger caché de buzón con origen/issuer/sub/sesión, además de correo; limpiar al
+  cerrar sesión o cambiar correo. En local conservar el flujo y duración existente.
+- El gestor de correo remoto se habilita solo si sus endpoints y principal quedaron
+  completamente adaptados y probados; de lo contrario conserva el bloqueo explícito.
+- No crear buzones ni alterar SMTP/IMAP, DNS, certificados o contraseñas de correo.
+Aceptación: roles/menús correctos, relogin/vencimiento/logout multiventana comprobados;
+correo local sin regresión, credenciales de buzones aisladas por identidad y sesión.
+
+F3-10 | Regresión, recuperación y cierre (1–2 días)
+Repositorios: todos los modificados.
+- Ejecutar las 56 pruebas existentes y toda la matriz nueva, sin conexiones a producción.
+- Conservar íntegras las regresiones locales de negocio. Actualizar únicamente las
+  expectativas F2 que cambian deliberadamente en F3 (login/perfil antes bloqueados,
+  proveedor delegado antes pendiente y dobles del guard); documentar el antes/después.
+  No dejar respuestas INTEGRATION_NOT_READY como expectativa de una capacidad ya terminada.
+- Ejecutar pruebas .NET actuales de Comercial/Finanzas si se tocaron sus verificadores.
+- Compilar ambas variantes del frontend en checkouts aislados, sin cambiar la rama
+  de trabajo del usuario ni sobreescribir las carpetas del proyecto.
+- Añadir E2E de identidad para ambos modos y prueba de contrato del cliente directo.
+- Probar config:cache, queue:restart/contexto de jobs y arranque sin claves remotas en local.
+- Ensayar migración/reversión y backup con bases ficticias; revisar logs sin secretos.
+- Actualizar PENDIENTES, contratos y guía de sesión/recuperación con evidencias reales.
+Aceptación: criterios de la sección 9 cumplidos y ninguna capacidad pendiente activada.
+
+6. CONTRATOS Y ERRORES PÚBLICOS A CONSERVAR
+============================================================
+Laravel /api/login: {message,access_token,token_type,user}.
+Laravel /api/me y /api/perfil: usuario con nombre/correo/estado y roles_permisos anidados.
+Laravel PUT /api/perfil: {message,data}; cambiar-password: {message}, errores por campo.
+Seguridad directa: preservar camelCase y rolesPermisos planos existentes.
+Roles/permisos del DTO son datos para UI; cada operación sigue autorizándose en servidor.
+Ningún endpoint devuelve hash, contraseña, secretos de firma o credencial del buzón.
+
+401: credencial ausente/inválida/expirada/revocada o versión de sesión inválida.
+403: identidad activa sin permiso o acceso ajeno; puede indicar cuenta desactivada
+en login según el contrato actual, sin revelar estado a peticiones no autenticadas.
+422: validación/política de contraseña/correo duplicado; respetar claves del formulario.
+429: bloqueo temporal con tiempo de reintento acotado.
+503 SERVICE_UNAVAILABLE: autoridad no disponible; no convertirlo en credenciales erróneas.
+503 INTEGRATION_NOT_READY: capacidad aún no habilitada.
+409 IDENTITY_MAPPING_REQUIRED: vínculo de negocio explícito pendiente/conflictivo,
+sin devolver los datos de la otra cuenta ni tratarlo como autorización.
+Logout pendiente añade un código estable REVOCATION_PENDING y estado claro para UI.
+La repetición de una actualización tras timeout requiere consultar /me; no reejecutar
+cambios de contraseña ni asignaciones automáticamente.
+
+7. CONFIGURACIÓN, OBSERVABILIDAD Y DATOS PRIVADOS
+============================================================
+Conservar APP_ARCHITECTURE, URLs y límites de transporte F2, sin credenciales globales
+de administrador. Añadir configuración de validación bajo config/architecture.php
+o config/identity.php: issuer, audiencias permitidas por destino, algoritmo, clave/
+proveedor de claves, tolerancia, duración y ventana de compatibilidad heredada.
+Todas las lecturas env() permanecen dentro de config; pruebas con config:cache.
+Solo validar las dependencias del modo activo. Local no requiere migraciones/sesiones
+de Seguridad para arrancar y no consulta sus endpoints, ni con flags antiguos true.
+
+Seguridad guarda únicamente sus sesiones/versiones e historial mínimo necesario.
+Laravel conserva mapeos explícitos y, si aplica, revocaciones pendientes por modo.
+Contraseñas/JWT de reintento cifrados solo donde sean imprescindibles; TTL, purga
+y respaldo privado. Token de usuario en transporte ligado a la petición, nunca a caché global.
+Logs: correlación, servicio, operación, resultado y latencia; omitir Authorization,
+password/password_actual/password_nuevo y cuerpos de login/perfil/correo.
+Métricas: fallos de login, 401/403/503, validación/estado, revocaciones pendientes,
+sesiones por versión y latencia; no usar correo como etiqueta de métrica.
+Alertar cuando no se pueda confirmar una revocación o la ventana heredada esté vencida.
+
+8. SECUENCIA, DESPLIEGUE POSTERIOR Y RECUPERACIÓN
+============================================================
+Secuencia de construcción:
+ F3-01 -> F3-02 -> F3-03/F3-04 -> F3-05/F3-06 -> F3-07 -> F3-08/F3-09 -> F3-10.
+Las tareas relacionadas pueden solaparse una vez cerrados sus contratos.
+
+Orden de activación futura, fuera de un despliegue automático de esta fase:
+1. Respaldar configuración privada/esquema y confirmar revisiones de cada instancia.
+2. Introducir esquema de sesiones/versiones y endpoints compatibles de Seguridad.
+3. Introducir validadores/permisos en consumidores, con compatibilidad heredada acotada.
+4. Verificar clientes originales con las mismas cuentas/permisos legítimos.
+5. Introducir backend dual nuevo en entorno separado, sin cambiar el sitio activo.
+6. Verificar identidad y piloto real; actualizar sesión de clientes en sus ramas.
+7. Mantener despliegue antiguo/híbrido mientras falten sus capacidades F4–F8;
+   no cambiar producción a microservices solo porque el login ya funciona.
+8. Programar el corte real con su propia aprobación, paridad y pruebas de recuperación.
+
+Recuperación:
+- Volver al par código/configuración validado de CADA modo, conservando sus datos.
+- No resolver un fallo remoto cambiando esa misma instancia a local con una BD distinta.
+- Mantener un entorno local completo probado; no es una réplica automática de datos remotos.
+- Migraciones aditivas: preferir rollback de código compatible conservando tablas/columnas.
+  Restaurar BD solo si hay daño demostrado y desde un respaldo previamente validado.
+- No volver a aceptar sesiones revocadas ni restaurar claves/tokens antiguos para recuperar acceso.
+- Reiniciar caché/workers y exigir relogin solo a sesiones afectadas de acuerdo con contrato.
+- No reactivar usuarios:sync/propiedades:sync ni puente legado para recuperar identidad.
+
+9. MATRIZ DE PRUEBAS Y CONDICIONES DE CIERRE
+============================================================
+Desglose ejecutable: pruebas/MATRIZ_PRUEBAS_F3.csv (estado inicial: PLANIFICADA).
+Mantener identificadores F3-Lxx, F3-Rxx, F3-Sxx, F3-Cxx y F3-Oxx para trazabilidad.
+
+Cierre E3-A (local y contratos): regresión F0–F2 y local nueva pasan; no hay .NET requerido.
+Cierre E3-B (autoridad): Seguridad prueba sesiones/versiones/permisos/migraciones y DTO legado.
+Cierre E3-C (integración): login/me/logout/perfil/password y piloto real completados;
+todos los consumidores expuestos respetan estado/revocación y permiso de recurso.
+Cierre E3-D (compatibilidad/recuperación): ambas variantes de cliente pasan sus casos
+de identidad, sin funcionalidades previas perdidas en sus despliegues compatibles.
+
+No cerrar F3 si:
+- Solo funciona el login pero logout/perfil/password escriben en otro origen.
+- JWT inválido/expirado o Sanctum local consigue entrar en modo remoto.
+- El usuario se vincula por correo o por igualdad numérica a otra cuenta.
+- Un MS directo acepta permisos retirados o revocaciones sin el efecto documentado.
+- Se reporta logout global correcto cuando la revocación sigue pendiente.
+- Se liberan rutas de negocio sin proveedor/mapeo o se reactivan espejos antiguos.
+- Solo hay dobles HTTP sin prueba real de Seguridad+Propiedades en entorno aislado.
+- Se requiere cambiar la configuración del VPS para considerar terminada la entrega de código.
+
+10. ESTIMACIÓN Y RIESGOS
+============================================================
+Estimación: 12–19 días laborables de una persona para backend, autoridad, validadores,
+compatibilidad de clientes, pruebas y documentación. Reestimar después de F3-01/F3-02.
+Las tareas son bloques aproximados con solapamientos; no es una fecha comprometida.
+No incluye completar dominios F4–F8, migración masiva, actualización mayor de frameworks
+ni publicación/corte del VPS. No se requiere decidirlos para elaborar este plan.
+
+Riesgos principales:
+- Consultar estado en cada solicitud aumenta dependencia/latencia de Seguridad:
+  medir y dimensionar; una caché futura necesita una ventana de revocación acordada.
+- Varias bases pueden contener usuarios distintos con correos/IDs iguales:
+  exigir mapa revisado; nunca reparar con merge automático de usuarios.
+- Fallos de red durante logout/password: distinguir estado pendiente de éxito;
+  recuperar consultando autoridad y operación, sin repetir acciones a ciegas.
+- APIs directas antiguas necesitan contratos y permisos probados durante la transición.
+- Laravel 10 y cercanía del fin de soporte de .NET8 requieren trabajo de actualización
+  registrado en RIESGOS_Y_DECISIONES.txt antes de una publicación soportada.
+- El entorno local inspeccionado no tenía ASP.NET Core 8 en la lista de runtimes;
+  preparar runtime de pruebas compatible o contenedor, sin sustituir instalaciones existentes.
+- IMAP no disponible en PHP CLI local: usar doble para la regresión del correo y,
+  cuando se habilite correo remoto, comprobar conexión real en un entorno preparado.
+
+11. REFERENCIAS PRIMARIAS
+============================================================
+Laravel 10 / Sanctum, ciclo y revocación de tokens:
+https://laravel.com/docs/10.x/sanctum
+Autenticación Laravel y guards:
+https://laravel.com/docs/10.x/authentication
+Validación JWT ASP.NET Core:
+https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-jwt-bearer-authentication
+Buenas prácticas de validación, algoritmos, issuer y audience:
+https://www.rfc-editor.org/rfc/rfc8725
+Consultadas el 04-11-2026. Las decisiones concretas de sesión/compatibilidad de este
+documento son propuestas del proyecto, no garantías de una librería o del estándar.
+
+Estado de F3-01 a F3-10: PENDIENTE. No se han modificado código, claves, cuentas,
+sesiones, esquemas, configuración privada ni VPS al redactar este plan.

@@ -1,0 +1,51 @@
+﻿id,grupo,caso,preparacion,resultado_esperado,repositorios,estado
+F3-L01,Local,Login/me/logout actuales y contrato Sanctum,Credenciales/usuario/asignaciones ficticios,200 y revocación de sesión actual; cero HTTP MS,backend,PLANIFICADA
+F3-L02,Local,Arranque con URLs/issuer/claves remotas ausentes,APP_ARCHITECTURE local; servicios detenidos,Arranque válido y operaciones locales disponibles,backend,PLANIFICADA
+F3-L03,Local,Sync true no activa MS,Cuatro servicios inaccesibles y flag antiguo true,"Cero clientes, tokens o solicitudes remotas",backend,PLANIFICADA
+F3-L04,Local,Regresión de ventas/cobros/reportes/correo,Casos locales F0–F2,"Reglas, importes y documentos conservados; Mail fake",backend,PLANIFICADA
+F3-L05,Local,Token Sanctum anterior válido continúa,Token generado antes del cambio de código,Sesión conservada hasta evento de revocación propio,backend,PLANIFICADA
+F3-L06,Local,Desactivación/contraseña revoca sesiones afectadas,Dos usuarios y dos dispositivos por usuario,Cuenta afectada requiere relogin; resto continúa; cero HTTP MS,backend,PLANIFICADA
+F3-L07,Local,Permiso retirado se aplica,Usuario activo y asignación local retirada,403 sin consultar Seguridad ni copiar permisos remotos,backend,PLANIFICADA
+F3-R01,Remoto,Login por Laravel con Seguridad real,MySQL de Seguridad aislado y JWT real,Contrato Laravel estable; sin alta/contraseña Sanctum local,backend; Seguridad,PLANIFICADA
+F3-R02,Remoto,Credencial incorrecta o cuenta inactiva,Fixtures activas/inactivas,401/403 del contrato; no login local de respaldo,backend; Seguridad,PLANIFICADA
+F3-R03,Remoto,Autoridad caída o respuesta inválida,"Timeout, 500, JSON inválido o JWT ilegítimo",503 controlado; cero autenticación local,backend; Seguridad,PLANIFICADA
+F3-R04,Remoto,Token Sanctum no entra en modo MS,Token local válido reutilizado,401 antes de BD de negocio y antes de delegado HTTP,backend,PLANIFICADA
+F3-R05,Local,JWT remoto no entra como usuario local,JWT remoto real con mismo correo/ID,401; no mezcla de guard o usuario,backend,PLANIFICADA
+F3-R06,Remoto,Algoritmo/firma/emisor/audiencia incorrectos,Tokens firmados con claves de prueba y variantes,Rechazo criptográfico; sin llamadas de negocio,backend; cuatro MS,PLANIFICADA
+F3-R07,Remoto,Claims obligatorios y tiempos,Sin exp/sub/jti; expirado; nbf futuro; bordes de skew,401; solo tolerancia de reloj documentada,backend; cuatro MS,PLANIFICADA
+F3-R08,Remoto,Mapeo correcto de sub .NET,Tokens con sub numérico como string y mapeo real,/me recupera identidad correcta; sin dependencia de email,Seguridad; consumidores,PLANIFICADA
+F3-R09,Remoto,Usuario remoto sin fila users local,Identidad existente solo en Seguridad,Login/me/perfil sin crear usuario local ni copiar hash,backend; Seguridad,PLANIFICADA
+F3-R10,Remoto,Cambiar correo conserva issuer/sub,Perfil autorizado con email nuevo,"Misma identidad, sin cuenta duplicada ni re-vínculo automático",backend; Seguridad,PLANIFICADA
+F3-R11,Remoto,Correo/ID coincidente entre bases distintas,Dos identidades ajenas con email/ID coincidente,Sin suplantación; vínculo requerido devuelve 409 controlado,backend,PLANIFICADA
+F3-R12,Remoto,Roles/permisos normalizados,Fixture con roles múltiples y permisos repetidos,Laravel anidado correcto; .NET directo conserva plano,backend; Seguridad; frontend,PLANIFICADA
+F3-R13,Remoto,Perfil propio protegido,Intento de enviar id/estado/roles/password en perfil,Solo campos permitidos; ninguna escalada ni escritura local,backend; Seguridad,PLANIFICADA
+F3-R14,Remoto,Cambio de contraseña y validación,"Actual incorrecta, nueva débil y cambio válido",422 por campos o éxito con revocación/relogin según política,backend; Seguridad,PLANIFICADA
+F3-R15,Remoto,Piloto Propiedades de extremo a extremo,Login Laravel -> Seguridad -> Propiedades reales aislados,Filtros y paginación válidos; token actual del usuario,backend; Seguridad; Propiedades,PLANIFICADA
+F3-R16,Remoto,Aislamiento de token delegado concurrente,Usuarios A y B con JWT/issuer distintos,Cada solicitud usa su usuario; sin caché global ni credencial admin,backend,PLANIFICADA
+F3-R17,Remoto,Capacidades fuera de F3 continúan bloqueadas,POST venta/pago/propiedad y consulta cartera/archivo no integrada,503 INTEGRATION_NOT_READY antes de mutación,backend,PLANIFICADA
+F3-S01,Sesión,Logout real de una sesión,Dos jti activos del mismo usuario,Revocado actual en Laravel y MS directo; otro sigue válido,Seguridad; backend; consumidores,PLANIFICADA
+F3-S02,Sesión,Logout repetido,Mismo jti revocado; peticiones de repetición,Resultado idempotente; token no autoriza otros endpoints,Seguridad; backend,PLANIFICADA
+F3-S03,Sesión,Contraseña/desactivación invalida todos los accesos,Dos dispositivos y acceso directo a MS,Ningún JWT anterior vuelve a autorizar tras confirmar cambio,Seguridad; consumidores,PLANIFICADA
+F3-S04,Sesión,Cambio de permisos invalida versión antigua,JWT firmado con permiso recién retirado,Versión antigua rechazada; relogin obtiene permisos nuevos,Seguridad; consumidores,PLANIFICADA
+F3-S05,Sesión,Seguridad cae al comprobar estado,JWT criptográficamente válido; estado no consultable,503 sin permisos antiguos ni fallback local,backend; consumidores,PLANIFICADA
+F3-S06,Sesión,Logout con autoridad inaccesible,"Timeout al revocar, reinicio y recuperación",REVOCATION_PENDING durable; no éxito global falso; confirma o expira,backend; Seguridad,PLANIFICADA
+F3-S07,Sesión,Compatibilidad limitada de JWT anterior,Sin versión/iat pero con sub/jti/exp y ventana permitida,Versión 0 válida solo en plazo; cambio de versión la invalida,Seguridad; consumidores,PLANIFICADA
+F3-S08,Sesión,Fin de ventana heredada,Token sin versión/iat fuera del plazo o exp excesivo,401 y relogin; no compatibilidad indefinida,Seguridad; consumidores,PLANIFICADA
+F3-S09,Sesión,Persistencia tras reiniciar o usar varios procesos,Dos instancias con repositorio de sesiones de prueba común,Revocación/versiones coherentes; sin cache array como autoridad,Seguridad; backend,PLANIFICADA
+F3-S10,Sesión,Identidad de servicio separada,Token usuario frente a scope técnico propuesto,Sin admin por defecto; job sin identidad no ejecuta MS,backend; consumidores,PLANIFICADA
+F3-C01,Cliente,main login/me/perfil/logout,"Frontend main en checkout aislado, modo local y remoto",Contrato normalizado compatible y roles/menús correctos,frontend,PLANIFICADA
+F3-C02,Cliente,Cliente .NET heredado,release/microservices y APIs reales aisladas,Login/roles planos/directo Propiedades disponibles; logout real,frontend; Seguridad; Propiedades,PLANIFICADA
+F3-C03,Cliente,Distinguir 401/403/503,Sesión válida/expirada y autoridad inaccesible,401 limpia sesión; 403 no cierra; 503 informa sin bucle ni perder formulario,frontend,PLANIFICADA
+F3-C04,Cliente,Restauración de pestaña y sesión revocada,auth_token/auth_user previos en almacenamiento,Comprobar autoridad y limpiar datos obsoletos en todos los clientes,frontend,PLANIFICADA
+F3-C05,Correo,Buzón separado de contraseña del sistema,Mail/IMAP dobles y credenciales ficticias distintas,Nunca usa contraseña de login como contraseña de correo,backend; frontend,PLANIFICADA
+F3-C06,Correo,Aislamiento por origen/sub/sesión,Mismo ID numérico/correo en dos orígenes y sesiones,Sin reutilizar caché de buzón; limpiar en logout/cambio de correo,backend,PLANIFICADA
+F3-C07,Autorización,Acceso horizontal y vertical directo,Usuario sin permiso consulta/edita/asigna accesos de otro,403/404 sin filtración; negar también llamando directamente a .NET,Seguridad; Propiedades; consumidores,PLANIFICADA
+F3-C08,Autorización,Cartera/archivos aún sin mapeo,IDs de otro cliente y rutas no integradas,Rechazo seguro; prueba positiva de dominio permanece para F5/F6,backend; consumidores,PLANIFICADA
+F3-O01,Operación,Migración aditiva y baseline previo,Esquema sintético actual con usuarios/asignaciones,"Sin pérdida de filas, duplicación o EnsureCreated sobre BD existente",backend; Seguridad,PLANIFICADA
+F3-O02,Operación,Guard de bases de pruebas,Intento de usar conexión/puerto/base de negocio,Runner rechaza antes de migrar o escribir,backend; Seguridad,PLANIFICADA
+F3-O03,Operación,config:cache HTTP/CLI ambos modos,Configuraciones privadas ficticias y cachés aisladas,Mismo proveedor/guard/claims y local sin parámetros remotos,backend,PLANIFICADA
+F3-O04,Operación,Logs/trazas sin secretos,Errores con contraseñas/tokens/señuelos ficticios,No aparecen Authorization/password/JWT/cuerpos privados en registros,todos,PLANIFICADA
+F3-O05,Operación,Jobs/espejos y cambio de modo,"Trabajo anterior, modo distinto, flag antiguo true",No solicitudes con usuario ajeno ni upsert de negocio,backend,PLANIFICADA
+F3-O06,Operación,Recuperación ensayada por modo,Rollback de código compatible sobre copia de pruebas,No mezclar bases ni revivir sesiones revocadas; revisar relogin,todos,PLANIFICADA
+F3-O07,Operación,Pruebas y builds de proyectos tocados,Suites PHP/.NET y checkouts Vue de ambas ramas,Regresión sin fallos; cambios de expectativa F2 documentados,todos,PLANIFICADA
+F3-O08,Operación,Latencia/carga de estado de sesión,Tráfico concurrente ficticio con autoridad saludable/lenta,"Medición p95, presupuesto HTTP y sin tormenta de reintentos",Seguridad; consumidores,PLANIFICADA
