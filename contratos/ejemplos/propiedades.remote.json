@@ -1,0 +1,15 @@
+{
+  "data": [{
+    "id": 81, "codigo": "TEST-REMOTE", "tipo": "Lote", "precio_venta": 10000.50,
+    "moneda": "BOB", "superficie_m2": 200.00, "superficie_construida_m2": null,
+    "frente_mts": null, "fondo_mts": null, "habitaciones": null, "banos": null,
+    "es_esquina": false, "direccion": "Dirección ficticia", "nro_lote": null,
+    "colinda_norte": null, "colinda_sur": null, "colinda_este": null, "colinda_oeste": null,
+    "estado": "Disponible", "activo": true, "es_destacado": false, "sector_urbano_id": 4,
+    "ubicacion_id": null, "sector_urbano": {"id":4, "distrito_id":3, "nombre":"Sector ficticio", "tipo":"Barrio",
+      "uv":null, "manzano":null, "estado":true, "distrito":{"id":3, "ciudad_id":2, "nombre":"Distrito ficticio",
+        "ciudad":{"id":2,"nombre":"Ciudad ficticia","departamento":"Prueba"}}},
+    "ubicacion": null, "propietarios": [], "caracteristicas": [], "imagenes": []
+  }],
+  "total":3, "current_page":2, "per_page":1, "last_page":3
+}

@@ -1,0 +1,9 @@
+{
+  "message": "Los datos proporcionados no son válidos.",
+  "code": "REMOTE_REQUEST_REJECTED",
+  "errors": {
+    "page": [
+      "El valor proporcionado no es válido."
+    ]
+  }
+}

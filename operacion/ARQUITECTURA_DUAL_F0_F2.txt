@@ -1,0 +1,83 @@
+USO Y RECUPERACIÓN — implementación F0–F2
+
+ESTADO
+Local conserva Laravel/MySQL/Sanctum y frontend main. Catálogo local implementado
+mediante contrato; piloto remoto comprobado con dobles. Modo remoto completo NO
+está listo para producción. No se modificaron VPS ni bases del sistema.
+
+VARIABLES DE DESPLIEGUE
+APP_ARCHITECTURE=local (predeterminado) | microservices.
+MICROSERVICE_SYNC_ENABLED=false: compatibilidad antigua, NO selector de arquitectura.
+Local + true: prevalece local, cero salidas a MS; aviso de configuración al arrancar.
+Sincronizadores antiguos bloqueados en ambos modos, independientemente del flag.
+SEGURIDAD_SERVICE_URL, PROPIEDADES_SERVICE_URL, COMERCIAL_SERVICE_URL,
+FINANZAS_SERVICE_URL: URLs de servicios configuradas; no se aceptan desde la petición.
+MICROSERVICE_CONNECT_TIMEOUT=2, MICROSERVICE_TIMEOUT=5: segundos; total<=30 y
+connect_timeout>0<=timeout. TLS validado; no seguir redirecciones ni reintentar.
+Local no requiere ninguna URL ni credencial/JWT remota para trabajar.
+JWT_SECRET queda disponible para el guard legado, leído desde config/services.php.
+Libélula conserva LIBELULA_ENABLED/API_URL/API_KEY, APP_URL y FRONTEND_URL desde config.
+No se cambió .env privado. .env.example documenta las opciones sin credenciales.
+
+CAPACIDADES F2
+app/Contracts/Architecture: CatalogGateway, IdentityGateway, CommercialGateway,
+FinanceGateway y DelegatedTokenProvider.
+ArchitectureServiceProvider selecciona proveedores de forma centralizada.
+LocalCatalogGateway conserva la consulta anterior de PropiedadController::index.
+LocalDomainGateway define lecturas de usuario/venta/pago como puntos de extensión;
+los controladores de esos dominios conservan su lógica actual hasta F3/F5/F6.
+RemoteCatalogGateway consulta el listado y construye un paginador Laravel.
+PendingDomainGateway rechaza dominios pendientes. PendingDelegatedTokenProvider
+rechaza hasta implementar login/delegación real en F3; nunca reenvía Sanctum.
+EnsureArchitectureReady bloquea todas las rutas API remotas excepto GET exacto
+/api/propiedades, antes de autenticación y resolución de modelos. El piloto solo
+funciona con proveedor delegado sustituido explícitamente en pruebas controladas.
+No hay fallback a BD local al fallar la red ni rutas monetarias híbridas.
+
+EXTENDER EN LA FASE SIGUIENTE
+1. Implementar/verificar identidad remota y permisos por recurso en F3.
+2. Definir DTO/identidad/errores y paridad del caso de uso antes de delegarlo.
+3. Implementar proveedor remoto por contrato; mantener proveedor local y sus tests.
+4. Añadir pruebas de contrato/error/no fallback y, después, integración .NET real.
+5. Ampliar deliberadamente EnsureArchitectureReady solo para la capacidad terminada.
+6. No añadir if de modo en cada controlador ni tokens administrativos compartidos.
+7. Escrituras requieren UUID, reconciliación y reserva/outbox según F4/F5.
+
+PRUEBAS REPRODUCIBLES (PowerShell 7 desde MultiliderNew)
+  .\backend\scripts\test-isolated.ps1
+O indicando otra instalación MySQL 8:
+  .\backend\scripts\test-isolated.ps1 -MySqlBin 'C:\laragon\bin\mysql\mysql-8.4.3-winx64\bin'
+El script necesita permisos para iniciar su mysqld y conectar a loopback. No usa
+la instancia MySQL en 3306. Elige puerto libre, datadir dentro del proyecto,
+base multilider_tests_isolated y usuario multilider_test limitado a esa base.
+Genera .env.testing privado/ignorado y clave aleatoria de pruebas; no reutilizarla
+para datos reales. Resguardo previo a RefreshDatabase comprueba entorno, puerto,
+servidor, DB, usuario, host y ausencia de DATABASE_URL.
+storage/framework/testing contiene datadir, logs, cachés y junit.xml (ignorados).
+El runner cierra solo su proceso MySQL y restaura sus variables al terminar.
+Si se interrumpe, revisar el proceso con datadir de esa carpeta antes de detenerlo;
+nunca detener otros mysqld ni borrar su datadir. No ejecutar PHPUnit contra .env.
+No es necesario mantener MySQL de pruebas ejecutándose después de los tests.
+Frontend (desde frontend): npm run build. No publica automáticamente.
+
+CACHÉ Y COLAS
+Tras cambiar configuración de una instancia autorizada: php artisan config:cache.
+Cambiar .env no afecta a un config.php ya cacheado hasta regenerarlo.
+Reiniciar procesos persistentes/servidor PHP y php artisan queue:restart cuando aplique.
+Durante un futuro cambio de modo: pausar entradas y workers, drenar/identificar
+pendientes, respaldar, desplegar configuración, regenerar caché y reiniciar.
+No reintentar automáticamente trabajos del modo anterior. El job de correo
+actual protege el acceso local al cambiar de modo, también en su callback failed.
+SMTP, IMAP, mapas y Libélula son dependencias distintas de los cuatro MS.
+
+RECUPERACIÓN
+Para volver al comportamiento local de esta revisión: APP_ARCHITECTURE=local,
+MICROSERVICE_SYNC_ENABLED=false; regenerar caché y reiniciar workers si existían.
+No hace falta migrar/revertir esquema: esta entrega no contiene migraciones de negocio.
+Para retirar la entrega de código, volver al commit previo de backend registrado
+en BASELINE_F0.txt mediante checkout/release revisada, conservando .env y storage.
+No usar reset --hard sobre trabajo sin guardar ni restaurar una BD sin motivo.
+Los repositorios nuevos tienen commit inicial propio y aún no tienen remoto;
+git log/status funcionan independientemente dentro de cada carpeta.
+El frontend y los cuatro servicios conservan el código previo. Las fases posteriores
+deben conservar las pruebas locales al implementar las capacidades remotas.

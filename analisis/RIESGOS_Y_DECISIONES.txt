@@ -1,0 +1,48 @@
+RIESGOS Y DECISIONES — F0–F2
+Cada fase futura tiene como responsable técnico a quien ejecute esa entrega;
+las discrepancias de negocio requieren además validación del responsable funcional.
+
+R01 JWT manual: validación incompleta de alg/iss/aud/exp obligatorio/nbf y cuenta
+activa. F3 debe sustituir/reforzar JwtGuard y probar logout/perfil/contraseña con
+sesiones delegadas. Mantener login local actual en local no certifica JWT remoto.
+R02 Logout llama currentAccessToken()->delete(), propio de Sanctum. F3 implementa
+revocación/cierre remoto sin asumir token local. En F2 se bloquea logout remoto.
+R03 Permisos de Vue no sustituyen permisos API. Varias rutas Laravel y los dos
+servicios originales solo exigen autenticación. F3/F4 deben proteger permiso y
+recurso/tenant. El piloto no amplía acceso: mantiene el guard vigente y usa dobles.
+R04 Mapeo por correo/igualdad de IDs inseguro: sincronizadores retirados en F2.
+F3/F4 crean identidad estable y proyecciones, sin sobrescribir negocio local.
+R05 Comisiones/precio del catálogo/estados/anulación no son equivalentes aún.
+Ver PARIDAD_FUNCIONAL.csv; resolver F5/F6 con aprobación funcional, no cambiar F2.
+R06 No hay reserva atómica en Propiedades ni coordinador durable Comercial/Finanzas.
+Bloquear escrituras remotas ahora; F4/F5 implementan reserva/outbox/reconciliación.
+R07 El puente legado sigue solo como colaborador transitorio comprobable, sin
+caché global de JWT. Local siempre retorna antes de construir HTTP. Las rutas
+remotas de venta/anulación están bloqueadas. No usar ese puente para habilitar
+ventas distribuidas. Máximo 3 solicitudes de 5 s = 15 s, sin reintentos.
+R08 Config:cache: env() fuera de config trasladado a services.php. Se verificó
+configuración y resolución HTTP/CLI con cachés aisladas en ambos modos.
+R09 Cambiar modo con workers/trabajos activos puede mezclar dueños de datos.
+Job de correo registra modo de origen y rechaza modo incompatible antes de BD/SMTP,
+incluido callback failed. Fases futuras deben pausar/drenar colas y reiniciar workers.
+R10 Pruebas anteriores no aislaban BD: runner crea proceso MySQL propio, usuario
+limitado, guard previo a RefreshDatabase y rutas de caché/archivos privadas de pruebas.
+Conexión heredada, DATABASE_URL externo y base real se rechazan.
+R11 Se encontraron retornos dentro de transacciones de venta/anulación. Se añadió
+rollback antes del rechazo, preservando HTTP 400 y reglas existentes; prueba incluida.
+R12 Soporte de versiones: no se actualizaron paquetes por esta integración.
+Laravel 10 terminó soporte de seguridad el 04-02-2025. Programar actualización
+separada y probada antes de nuevas publicaciones (no resolver con cambios masivos aquí).
+.NET 8 termina soporte el 10-11-2026; Seguridad requiere plan de actualización.
+.NET 10 LTS soportado hasta 14-11-2028; SDK instalado y runtime son distintos.
+Propiedades usa EF8 con net10; validar compatibilidad de paquetes/proveedor y
+alinear en F4 en una entrega separada. No asumir que cambiar TargetFramework migra EF.
+Fuentes oficiales consultadas el 04-11-2026:
+https://laravel.com/docs/10.x/releases
+https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core
+https://devblogs.microsoft.com/dotnet/dotnet-8-9-end-of-support/
+https://learn.microsoft.com/en-us/ef/core/providers/
+R13 IMAP/PTR/DKIM/TLS del correo/VPS no se probaron ni alteraron en F0–F2. La prueba
+de envío intercepta Mail con datos ficticios. No se enviaron mensajes reales.
+R14 No existe aún una suite E2E de navegador completa. PHPUnit valida HTTP Laravel
+y documentos locales; npm run build valida compilación. Consolidación UI y E2E F8.

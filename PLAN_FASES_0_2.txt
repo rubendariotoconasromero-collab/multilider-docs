@@ -1,0 +1,530 @@
+PLAN DETALLADO DE DESARROLLO: FASES 0, 1 Y 2
+Proyecto: MultiliderNew
+Fecha: 4 de noviembre de 2026, America/La_Paz
+Versión: 1.1
+Estado: IMPLEMENTADO F0–F2 en rama de trabajo, verificado el 04-11-2026.
+Evidencias: pruebas/RESULTADOS_F0_F2.txt; operación: operacion/ARQUITECTURA_DUAL_F0_F2.txt.
+No desplegado; integración productiva remota y frontend unificado siguen en F3–F9.
+Referencia: PLAN_INTEGRACION_MICROSERVICIOS.txt, versión 1.0.
+
+1. OBJETIVO DE ESTA PRIMERA ENTREGA
+========================================
+A. Documentar qué existe, cómo se comporta y qué contratos deben mantenerse.
+B. Corregir el puente de ventas para garantizar el funcionamiento local.
+C. Preparar una arquitectura dual, verificable y extensible, sin activar
+   prematuramente ventas/cobros distribuidos.
+
+Resultado esperado al terminar:
+- Laravel y frontend main conservan su funcionamiento local.
+- En modo local no hay solicitudes a Seguridad, Propiedades, Comercial o Finanzas,
+  ni por ventas ni por programadores o comandos de integración.
+- Existe selección explícita de modo, contratos y proveedores por dominio.
+- Una consulta piloto demuestra el recorrido controlador -> contrato ->
+  proveedor local/remoto -> respuesta pública común.
+- El resto de integraciones se habilita cuando sus capacidades estén completas.
+  La fase 2 NO equivale a habilitar en producción todo el modo microservicios.
+
+Esta etapa no incluye la unificación funcional del frontend, migración de datos,
+implementación completa del nuevo login, reservas de inmuebles, coordinación
+distribuida de pagos ni despliegue. Esos trabajos siguen en las fases 3 a 9.
+
+2. BASE TÉCNICA Y OBSERVACIONES
+========================================
+- backend: Laravel 10, PHP >=8.1, Guzzle 7, Sanctum y PHPUnit 10.
+- frontend main consume Laravel; release/microservices tiene clientes directos
+  para Seguridad y Propiedades y diferencias funcionales con main.
+- El backend tiene servicios de sincronización y JwtGuard, pero el login activo
+  aún utiliza usuarios locales y Sanctum.
+- La única configuración de activación observada es
+  services.microservice_sync_enabled, basada en MICROSERVICE_SYNC_ENABLED.
+- Console/Kernel.php condiciona la programación de usuarios:sync y propiedades:sync.
+  Los comandos pueden ejecutarse manualmente y no tienen todavía un bloqueo de modo.
+- NotaVentaController::pushEstadoAMicroservicio no comprueba esa configuración.
+  La autenticación HTTP de ese método no tiene timeout explícito.
+- Hay llamadas env() en AuthServiceProvider, LandingController y PagoPublicoController;
+  deben tratarse antes de declarar compatible config:cache.
+- phpunit.xml no tiene activada una base aislada y las pruebas visibles del backend
+  son las de ejemplo. Preparar el entorno de pruebas es un requisito previo.
+- Los nuevos servicios ya tienen sus pruebas; no se modificarán sus reglas en esta etapa.
+
+3. REPOSITORIOS Y FORMA DE TRABAJO
+========================================
+Principal: backend.
+Documentación: multilider-docs.
+Consulta de contratos: frontend y los cuatro microservicios, solo lectura.
+
+Ramas sugeridas durante la ejecución:
+- docs/analisis-arquitectura: documentos de fase 0.
+- feature/modo-local: corrección PEND-001 y pruebas de fase 1.
+- feature/arquitectura-dual: infraestructura y piloto de fase 2.
+Los nombres son orientativos; no se crean ni cambian ramas con este documento.
+No mezclar cambios ajenos ni eliminar diferencias del frontend.
+main se mantiene como referencia estable y recibe solo entregas verificadas.
+No hay publicación automática por Git ni cambios del VPS en estas fases.
+
+Cada tarea se ejecutará con:
+1. alcance y archivos definidos;
+2. prueba o evidencia reproducible;
+3. cambios pequeños y revisables;
+4. resultado documentado y condición de cierre comprobada.
+
+4. FASE 0: ANÁLISIS Y CONTRATOS
+========================================
+Duración orientativa: 1-2 días dedicados, ajustable al volumen de datos/reglas.
+Dependencias: ninguna.
+Responsable funcional: confirmar reglas y equivalencias de F0.
+Responsable técnico: inventario, contratos, pruebas y documentación.
+Los roles pueden ser cubiertos por la misma persona, dejando constancia.
+
+F0-01 | Registrar línea base
+Entradas:
+- Ramas, commits, estado de trabajo y configuración pública de cada repositorio.
+Trabajo:
+- Registrar commits actuales sin alterar el contenido del trabajo del usuario.
+- Identificar carpetas que todavía no tengan repositorio propio; para ellas,
+  registrar huellas de archivos y copia de referencia, sin inventar commits.
+- Registrar versiones de PHP, Composer, Node, SDK/runtime .NET y motores SQL.
+- Registrar cómo se inicia cada proyecto y qué procesos/puertos necesita.
+Salida propuesta:
+ multilider-docs/analisis/BASELINE_F0.txt
+Aceptación:
+ Se puede identificar qué versión se comparó y cómo repetir las verificaciones.
+ No se guardan .env privados, contraseñas, JWT ni copias de datos personales en Git.
+
+F0-02 | Inventariar módulos y dependencias
+Revisar:
+ backend/routes/api.php
+ backend/app/Http/Controllers/Api/
+ backend/app/Models/
+ backend/app/Services/
+ backend/app/Console/
+ backend/app/Jobs/
+ frontend/src/router/index.js y componentes/stores/API de ambas ramas.
+Trabajo:
+- Relacionar pantalla -> ruta -> controlador -> datos -> permisos -> llamadas externas.
+- Identificar operaciones que mezclan ventas, cuotas, ingresos, comisiones y archivos.
+- Distinguir lo que ya se delega de lo que sigue leyendo/escribiendo Laravel.
+- Inventariar correo, mapas y pasarela como dependencias diferentes de los cuatro MS.
+Salida:
+ multilider-docs/analisis/MATRIZ_MODULOS_DEPENDENCIAS.csv
+Columnas mínimas:
+ módulo, pantalla, ruta, operación, permiso, origen_actual, responsable_objetivo,
+ tablas/archivos, dependencia_externa, evidencia, brecha.
+Aceptación:
+ Ninguna pantalla o ruta crítica queda sin clasificar.
+
+F0-03 | Comparar contratos reales
+Trabajo:
+- Comparar plural/singular: /usuarios de Laravel frente a /usuario de Seguridad.
+- Comparar access_token/accessToken y estructura de usuario/roles/permisos.
+- Comparar listados Laravel con data/current_page/last_page frente a los formatos
+  de servicios con page_number/per_page/total u otras envolturas.
+- Definir traducción entre Bs/$ y BOB/USD sin convertir ni sumar monedas distintas.
+- Registrar estados, nombres snake_case/camelCase y precisión de importes/tasas.
+- Distinguir fechas de negocio sin hora de timestamps y su zona horaria.
+- Comparar errores message/errors de Laravel con ProblemDetails title/status.
+- Registrar documentos como archivos/referencias y su política de acceso.
+Salida:
+ multilider-docs/contratos/API_PUBLICA_V1.txt
+ multilider-docs/contratos/ejemplos/ con JSON de fixtures sin datos reales.
+Aceptación:
+ Hay ejemplos de solicitud/respuesta válidos, vacíos, paginados y con errores.
+ Se decide qué conserva el frontend y qué traduce Laravel.
+ Las rupturas necesarias se identifican, no se introducen de manera silenciosa.
+
+F0-04 | Matriz de paridad y reglas
+Trabajo:
+- Documentar venta al contado/crédito, comisión, cuota inicial, planes,
+  amortización, reprogramación, anulación, entrega y reversión.
+- Comparar funciones locales con lo que ofrecen los servicios nuevos.
+- Registrar las brechas conocidas: reserva atómica, inscripción financiera,
+  compensación, PDF legal, pasarela y variantes de cobro.
+- No cambiar cálculos ni estados por conveniencia de la integración.
+Salida:
+ multilider-docs/analisis/PARIDAD_FUNCIONAL.csv
+Estados:
+ equivalente / adaptar / ausente / pendiente de definición funcional.
+Aceptación:
+ Cada brecha tiene una fase posterior asignada y un criterio de cierre.
+ Una regla desconocida queda explícitamente pendiente y no se inventa.
+
+F0-05 | Inventario de datos e identidad
+Trabajo:
+- Inventariar tablas/relaciones, referencias a usuarios y documentos.
+- Definir el identificador externo de Seguridad y el lugar de sus equivalencias.
+- Detectar asociaciones basadas solo en correo, por tratarse de un dato modificable.
+- Registrar cómo se preservarán IDs de clientes/ventas/cuotas y documentos
+  sin asumir igualdad numérica entre bases.
+- Usar metadatos, conteos o datos ficticios; no importar/exportar producción todavía.
+Salida:
+ multilider-docs/analisis/MAPA_DATOS_IDENTIDAD.txt
+Aceptación:
+ Se conoce el dueño actual/futuro de cada entidad y qué vínculos necesitarán mapeo.
+
+F0-06 | Catálogo de riesgos y compatibilidad
+Trabajo:
+- Revisar JWT manual, logout que usa currentAccessToken y perfil/contraseña local.
+- Identificar autorizaciones genéricas en .NET que requieran permiso o recurso propio.
+- Inventariar env() fuera de config, cachés globales de token y tareas que hacen HTTP.
+- Verificar compatibilidad/soporte de SDK, paquetes EF y proveedores, sin actualizar
+  versiones en bloque durante la planificación.
+Salida:
+ multilider-docs/analisis/RIESGOS_Y_DECISIONES.txt
+Aceptación:
+ Los riesgos tienen responsable, fase de resolución y alcance.
+ No se afirma que la autenticación remota está resuelta antes de la fase 3.
+
+F0-07 | Diseñar pruebas y entorno seguro
+Trabajo:
+- Elegir una base MySQL exclusiva de pruebas para los casos que dependen de su
+  comportamiento. SQLite solo donde las migraciones/reglas sean compatibles.
+- Definir usuario SQL limitado a esa base y configuración privada .env.testing.
+- Añadir como requisito un guard que impida RefreshDatabase/migrate:fresh sobre
+  una base real o sobre una conexión heredada de .env del usuario.
+- Preparar fixtures mínimos con correo, roles y permisos del esquema real;
+  no reutilizar sin revisar factories de Laravel basadas en email en lugar de correo.
+- Aislar cache, archivos, colas y correo. No enviar mensajes ni pagos reales.
+- Definir las intercepciones tanto de Guzzle como de Laravel HTTP.
+Salida:
+ multilider-docs/pruebas/MATRIZ_PRUEBAS_F0_F2.csv
+Aceptación:
+ Cada requisito tiene prueba prevista y un entorno aislado reproducible.
+
+F0-08 | Cerrar decisiones de la entrega
+Trabajo:
+- Confirmar modo local por defecto y selección explícita del modo remoto.
+- Seleccionar como piloto una consulta de propiedades con búsqueda/paginación.
+- Separar infraestructura lista de funcionalidad remota todavía pendiente.
+- Reestimar duración si aparecen brechas mayores.
+Salida:
+ Acta de decisiones incluida en BASELINE_F0.txt.
+Cierre de fase 0:
+ Inventario completo, contratos comunes definidos, riesgos asignados,
+ fixtures seguros y alcance del piloto explícito.
+
+5. FASE 1: MODO LOCAL Y PEND-001
+========================================
+Duración orientativa: 2-3 días dedicados.
+Depende de: F0-01, F0-02, F0-03 y F0-07.
+Repositorio de implementación: backend.
+El uso de MICROSERVICE_SYNC_ENABLED en esta fase es transitorio; la precedencia
+definitiva del modo global se incorpora en fase 2.
+
+F1-01 | Preparar la base de pruebas y caracterización
+Archivos previstos:
+ backend/phpunit.xml
+ backend/tests/CreatesApplication.php
+ backend/tests/TestCase.php
+ backend/tests/Support/ y fixtures/factories específicos de prueba.
+Trabajo:
+- Aislar conexiones y rutas de almacenamiento antes de modificar reglas.
+- Crear guard de base de pruebas y datos mínimos de usuarios, roles, catálogo,
+  propietarios, asesores, clientes, métodos y cuentas.
+- Capturar el comportamiento válido de login, consultas, venta y cobro.
+Aceptación:
+ Los tests no pueden resetear bases ajenas ni depender de procesos .NET.
+
+F1-02 | Bloquear el envío remoto cuando la opción esté desactivada
+Archivo principal:
+ backend/app/Http/Controllers/Api/NotaVentaController.php
+Trabajo:
+- Comprobar config('services.microservice_sync_enabled') al principio de
+  pushEstadoAMicroservicio.
+- Retornar antes de consultar/generar tokens o construir/ejecutar HTTP.
+- Mantener registro/anulación de venta y disponibilidad local.
+- Facilitar una mínima inyección del cliente para comprobar llamadas sin red.
+  Si se extrae un colaborador pequeño, no trasladar todavía toda la venta.
+Aceptación:
+ Opción false, URLs inexistentes y credenciales remotas vacías: operación local válida,
+ cero HTTP a los microservicios y ninguna autenticación remota intentada.
+
+F1-03 | Acotar el puente antiguo y su tratamiento de errores
+Archivos:
+ NotaVentaController.php y config/services.php.
+Trabajo:
+- Configurar connect_timeout y timeout en autenticación y consultas/actualización.
+- Valores iniciales propuestos para validar: 2 s de conexión y 5 s por solicitud.
+- Tener en cuenta que el flujo puede incluir login, GET y PUT; limitar/documentar
+  el presupuesto total y no multiplicarlo con reintentos automáticos.
+- Conservar el comportamiento de mejor esfuerzo del puente antiguo, capturando
+  el fallo sin impedir la transacción local.
+- Emitir registros acotados por servicio/operación, sin payloads ni secretos.
+Aceptación:
+ Con el puente explícitamente activo, simular timeout/401/500 produce el
+ resultado local esperado y no deja una espera ilimitada ni datos parciales.
+ Este comportamiento NO define la política del futuro proveedor remoto de ventas.
+
+F1-04 | Verificar tareas programadas
+Archivos:
+ backend/app/Console/Kernel.php
+ config/services.php
+Trabajo:
+- Confirmar que la opción false no programa usuarios:sync ni propiedades:sync.
+- Documentar que el bloqueo de ejecución MANUAL por modo se añade en F2.
+Aceptación:
+ schedule:list o su prueba equivalente refleja el comportamiento configurado.
+ No se ejecutan tareas reales de sincronización para comprobarlo.
+
+F1-05 | Completar regresión funcional local
+Pruebas mínimas:
+ L-01 Login local, /me, permisos y logout Sanctum.
+ L-02 Listado/detalle de propiedades y sus filtros.
+ L-03 Venta al contado: propiedad vendida, contrato pendiente y pago inicial
+      pendiente según la lógica actual; no generar ingresos antes de confirmar.
+ L-04 Venta a crédito: plan/cuotas/comisión coherentes con las reglas de línea base.
+ L-05 Anulación: estados locales correctos, sin llamadas remotas.
+ L-06 Confirmación de pago: movimiento e ingreso una sola vez según reglas actuales.
+ L-07 Puente false con URLs inválidas y sin credenciales: cero HTTP/cero token remoto.
+ L-08 Puente true con error/timeout: espera acotada y operación local consistente.
+ L-09 Tareas de sincronización desactivadas no se programan.
+ L-10 Pruebas de humo de PDF, destinatarios/correo y consultas principales usando dobles.
+Trabajo:
+- Si la caracterización descubre un defecto crítico previo, registrarlo y
+  corregirlo aisladamente con prueba, sin ocultarlo ajustando las expectativas.
+Aceptación:
+ Pruebas relevantes pasan, fallos nuevos resueltos y diferencias previas documentadas.
+
+F1-06 | Cerrar PEND-001 y documentar
+Trabajo:
+- Registrar archivos, pruebas y comportamiento efectivo.
+- Marcar PEND-001 completado únicamente después de verificar F1.
+- Revisar el cambio y preparar su incorporación a main, sin desplegar automáticamente.
+Cierre de fase 1:
+ El frontend main sigue usando Laravel; no necesita cambios.
+ El sistema local ejecuta las operaciones verificadas sin los microservicios.
+ Código/configuración/documentación son coherentes y existe reversión del cambio.
+
+6. FASE 2: INFRAESTRUCTURA DUAL Y CONSULTA PILOTO
+========================================
+Duración orientativa: 3-4 días dedicados para la base y el piloto definidos.
+Depende de: F1 y contratos F0.
+Repositorio principal: backend.
+No se pretende convertir todos los controladores o completar flujos distribuidos
+en estos días; esas extracciones se realizan en fases 3, 4, 5 y 6 del plan general.
+
+F2-01 | Definir la configuración única del modo
+Archivos previstos:
+ backend/config/architecture.php [nuevo]
+ backend/config/services.php
+ backend/.env.example
+ backend/app/Architecture/ArchitectureMode.php [nuevo, nombre propuesto]
+Reglas:
+- APP_ARCHITECTURE=local por defecto; valores permitidos local|microservices.
+- Configuración desconocida: error claro, no selección silenciosa.
+- Validar solo dependencias del modo seleccionado.
+- Local no exige URL, claves JWT remotas, credenciales de sincronización ni .NET.
+- El selector no lee parámetros de peticiones, navegador ni rama Git.
+Aceptación:
+ Misma versión del código puede configurarse de forma determinista en cada entorno.
+
+F2-02 | Resolver precedencia y compatibilidad de la opción antigua
+Matriz objetivo:
+ Modo local + sync false -> sin llamadas/tareas de microservicios.
+ Modo local + sync true  -> el modo local prevalece, sin llamadas; advertencia acotada.
+ Modo microservices + sync false -> sin tareas periódicas, adaptadores solo según
+                                   capacidades y credenciales listas.
+ Modo microservices + sync true  -> no habilita los antiguos upsert sobre negocio;
+                                   solo proyecciones autorizadas cuando existan.
+Trabajo:
+- No usar MICROSERVICE_SYNC_ENABLED como un segundo selector de arquitectura.
+- Durante F2, mantener bloqueadas las sincronizaciones antiguas cuyo nuevo papel
+  todavía no esté definido. Su sustitución se resuelve en las fases siguientes.
+Aceptación:
+ Una variable antigua no puede introducir llamadas o escrituras remotas en local.
+
+F2-03 | Contratos y resolución por contenedor
+Estructura orientativa:
+ app/Contracts/Architecture/
+ app/Services/Local/
+ app/Services/Remote/
+ app/DTOs/Architecture/
+ app/Providers/ArchitectureServiceProvider.php
+Trabajo:
+- Definir responsabilidades/contratos por identidad, catálogo, comercial y finanzas.
+- Crear factories/resolución centralizada, evitando if de modo en cada controlador.
+- Implementar primero el contrato de consulta piloto de catálogo en ambos proveedores.
+- Reutilizar Eloquent/validaciones existentes en la implementación local.
+- Definir el resto de contratos sin fingir funcionalidades implementadas:
+  operaciones todavía ausentes fallan explícitamente cuando se seleccionen.
+- Registrar el provider conforme al mecanismo real de Laravel 10.
+Aceptación:
+ Las pruebas resuelven el proveedor correcto y los controladores dependen del contrato.
+
+F2-04 | Cliente HTTP y autorización transportada
+Estructura orientativa:
+ app/Services/Remote/HttpClientFactory.php
+ app/Contracts/Architecture/DelegatedTokenProvider.php
+ app/Services/Remote/Exceptions/
+Trabajo:
+- Configurar bases URL por servicio, conexión, timeout y TLS validado cuando aplique.
+- Resolver/validar destinos desde configuración, sin URL arbitraria de la petición.
+- Transportar correlación y el UUID del comando cuando corresponda.
+- Obtener el JWT a través de un proveedor explícito; no enviar un token Sanctum
+  a .NET ni fabricar credenciales administrativas para que el test pase.
+- En F2, usar un proveedor de tokens de prueba en tests de contrato.
+  La obtención/ciclo real del token remoto se completa en F3.
+- No compartir el token de un usuario entre solicitudes de otros usuarios.
+- No repetir automáticamente un POST/PUT después de un timeout sin mecanismo
+  de idempotencia y consulta de estado; la coordinación se implementa en F5.
+Aceptación:
+ Solicitudes esperadas, cabeceras correctas y errores acotados, sin fuga de secretos.
+ Sin credencial remota válida o capacidad lista, no se escribe en ninguna base local.
+
+F2-05 | Adaptadores de respuestas y errores
+Trabajo:
+- Aplicar el contrato público F0 a paginación, nombres de campos, enums e importes.
+- Traducir ProblemDetails de .NET al contrato de error esperado por el frontend.
+- Distinguir 401/403/404/409/422 de errores de transporte/servicio no disponible.
+- Mantener errores de negocio; no convertir todo en 500 o en campos incompletos.
+- No sumar monedas ni reinterpretar fechas de negocio en la traducción.
+Aceptación:
+ Fixtures locales y remotos equivalentes producen la misma respuesta pública,
+ incluidas listas vacías, paginación, errores y campos opcionales.
+
+F2-06 | Completar un corte vertical de consulta
+Piloto propuesto: GET /api/propiedades con filtros/paginación.
+Archivos:
+ backend/app/Http/Controllers/Api/PropiedadController.php
+ contrato/proveedores/DTO del catálogo y pruebas.
+Trabajo:
+- Extraer únicamente la lectura piloto al proveedor local, sin modificar su resultado.
+- Implementar lectura remota con solicitudes/fixtures del servicio Propiedades real.
+- Verificar el recorrido completo de la petición con autenticación de prueba controlada.
+- Mantener la interfaz pública existente y respetar sus filtros.
+- No trasladar aún altas/ediciones, ventas, cobros ni cambios de identidad.
+Aceptación:
+ En local, la consulta usa Eloquent y no HTTP.
+ En remoto de prueba, usa el adaptador y normaliza el resultado.
+ Si el servicio falla, devuelve error controlado: no cambia a lectura/escritura
+ local para aparentar éxito.
+Importante:
+ Antes de declarar equivalencia real, F3/F4 verificarán JWT y API .NET en ejecución.
+ El piloto con dobles no se presenta como una integración productiva terminada.
+
+F2-07 | Impedir rutas remotas incompletas y proteger procesos
+Archivos:
+ Console/Kernel.php
+ Console/Commands/SyncUsuariosMicroservicio.php
+ Console/Commands/SyncPropiedadesMicroservicio.php
+ jobs involucrados y política de disponibilidad de integraciones.
+Trabajo:
+- Añadir guard de modo a comandos manuales y programadores.
+- Proteger puntos antiguos de salida HTTP y evitar instanciar clientes remotos en local.
+- Definir rechazo controlado antes de escribir cuando un módulo remoto aún no esté
+  implementado/listo. Respuesta propuesta: 503 con código INTEGRATION_NOT_READY.
+- No permitir que rutas todavía locales ejecuten escrituras de negocio si el
+  despliegue se anuncia como modo microservicios.
+- Mantener el modo remoto fuera de producción hasta completar sus requisitos.
+- Documentar recarga de workers y tratamiento de trabajos creados con otro modo.
+  Los cambios de modo reales/corte se ejecutarán en fases posteriores.
+Aceptación:
+ No hay rutas monetarias incompletas que terminen escribiendo localmente como respaldo.
+ Los trabajos del correo/mapas/pasarela no se confunden con llamadas a los cuatro MS.
+
+F2-08 | Compatibilidad con caché de configuración
+Archivos conocidos a revisar:
+ AuthServiceProvider.php -> JWT_SECRET.
+ LandingController.php -> LIBELULA_ENABLED.
+ PagoPublicoController.php -> LIBELULA_API_URL, APP_URL, FRONTEND_URL, LIBELULA_API_KEY.
+ Archivos config pertinentes y .env.example.
+Trabajo:
+- Trasladar lectura env() a archivos config, con defaults que preserven la línea base.
+- Usar config() en código de aplicación y proveedores.
+- Verificar arranque HTTP, CLI y selección de proveedor con/sin config:cache.
+- Aislar archivos de caché durante los tests para no modificar la configuración del usuario.
+- Documentar que cambios de .env requieren regeneración de caché/reinicio correspondiente.
+Aceptación:
+ Configuración efectiva idéntica con/sin caché y sin exponer valores privados.
+
+F2-09 | Documentación y cierre de infraestructura
+Trabajo:
+- Documentar variables, modo por defecto, precedencia, guard de rutas incompletas,
+  estructura de contratos y cómo agregar el siguiente adaptador.
+- Registrar qué operaciones están listas y cuáles siguen pendientes de F3-F6.
+- Probar la misma revisión backend con dos configuraciones aisladas.
+- Preparar incorporación revisada a main conservando la ejecución local.
+Cierre de fase 2:
+ Hay infraestructura dual y piloto verificados, sin activar flujos remotos incompletos.
+ La interfaz actual funciona en local; no se han migrado datos ni cambiado el VPS.
+
+7. ARCHIVOS DE PRUEBA PROPUESTOS
+========================================
+tests/Support/IsolatedDatabaseGuard.php
+tests/Support/FakeMicroserviceClients.php
+tests/Feature/Architecture/LocalAuthenticationTest.php
+tests/Feature/Architecture/LocalSaleIsolationTest.php
+tests/Feature/Architecture/LegacyBridgeFailureTest.php
+tests/Feature/Architecture/ArchitectureModeTest.php
+tests/Feature/Architecture/SyncCommandModeTest.php
+tests/Feature/Architecture/CatalogGatewayContractTest.php
+tests/Feature/Architecture/ConfigurationCacheTest.php
+
+Son ubicaciones propuestas, no archivos ya creados con este plan.
+Los nombres se ajustarán a las convenciones del repositorio al implementar.
+
+Matriz adicional de fase 2:
+ A-01 Modo omitido -> local.
+ A-02 Valor inválido -> error de configuración identificable.
+ A-03 Local sin URL/JWT de .NET -> arranque y operaciones locales válidos.
+ A-04 Local con sync true -> cero HTTP a los cuatro servicios.
+ A-05 Contrato de catálogo -> proveedor correspondiente.
+ A-06 Paginación/filtros locales y remotos -> contrato público equivalente.
+ A-07 401/403/404/409/422 y timeout remotos -> traducción correcta, sin fallback.
+ A-08 Token Sanctum no se reenvía como JWT de .NET.
+ A-09 Correlación y UUID se preservan; no se registran tokens/contraseñas.
+ A-10 Ejecución manual de sincronizadores en local -> rechazo/no-op documentado,
+      cero solicitudes y cero mutaciones de sincronización.
+ A-11 config:cache -> mismo modo/valores efectivos y arranque válido.
+ A-12 Ruta remota no implementada -> rechazo antes de cualquier escritura local.
+ A-13 Local conserva las regresiones F1 y las rutas del frontend main.
+ A-14 Sincronización antigua no sobrescribe entidades de negocio en modo remoto.
+
+8. ENTREGABLES Y PUNTOS DE CONTROL
+========================================
+Entrega E0:
+ Documentos de línea base, matriz de módulos/paridad, contratos y pruebas previstas.
+ No contiene cambios de reglas de negocio.
+
+Entrega E1:
+ PEND-001 implementado y probado, fixtures seguros y regresión local.
+ Su cierre no significa que los otros microservicios ya estén integrados.
+
+Entrega E2:
+ Configuración dual, contenedor/proveedores, transporte, normalización, piloto,
+ guards de CLI/rutas y compatibilidad de caché.
+ F3 continúa con autenticación real y F4/F5 con dominio/operaciones distribuidas.
+
+Para cerrar una entrega:
+- Resultados de pruebas adjuntos con entorno/versión.
+- Ningún fallo crítico sin resolver.
+- Diferencias previas documentadas sin alterar resultados para ocultarlas.
+- Archivos/configuración de ejemplo sin secretos.
+- Solo código correspondiente a la entrega; revisión antes de fusionar.
+- PENDIENTES y plan general actualizados con estado real.
+
+9. ESTIMACIÓN Y SECUENCIA
+========================================
+F0 (1-2 días) -> F1 (2-3 días) -> F2 (3-4 días).
+Total inicial: 6-9 días laborables de esfuerzo de una persona dedicada.
+Estimación condicionada al alcance de infraestructura y piloto descrito.
+No incluye desarrollar toda la integración funcional, cambios de todos los
+controladores, migraciones de datos ni publicación. Reestimar tras F0 si la línea
+base tiene defectos relevantes o exige más preparación del entorno.
+
+10. REFERENCIAS Y ESTADO
+========================================
+Configuración y caché:
+https://laravel.com/docs/10.x/configuration
+Contenedor e inyección:
+https://laravel.com/docs/10.x/container
+Dobles y registro de solicitudes Guzzle:
+https://docs.guzzlephp.org/en/stable/testing.html
+Opciones de conexión y timeout:
+https://docs.guzzlephp.org/en/stable/request-options.html
+
+Estado F0-01 a F0-08: COMPLETADO (inventario, contratos y decisiones documentados).
+Estado F1-01 a F1-06: COMPLETADO (regresión local y PEND-001 verificados).
+Estado F2-01 a F2-09: COMPLETADO (infraestructura/piloto con dobles; no integración productiva).
+Incorporación a main y despliegue no realizados; cambios revisables en ramas de trabajo.
+F2 sustituye el comportamiento transitorio F1: comandos/espejos bloqueados en ambos modos.
+Ver pruebas/MATRIZ_PRUEBAS_F0_F2.csv y operacion/ARQUITECTURA_DUAL_F0_F2.txt.

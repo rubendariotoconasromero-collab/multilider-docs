@@ -1,0 +1,4 @@
+{
+  "message": "Esta operación todavía no está disponible en modo microservicios.",
+  "code": "INTEGRATION_NOT_READY"
+}

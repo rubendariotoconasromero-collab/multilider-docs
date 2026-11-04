@@ -1,0 +1,2127 @@
+[
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "/",
+    "name": null,
+    "action": "Closure",
+    "middleware": [
+      "web"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/asesores",
+    "name": "asesores.index",
+    "action": "App\\Http\\Controllers\\Api\\AsesorController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/asesores",
+    "name": "asesores.store",
+    "action": "App\\Http\\Controllers\\Api\\AsesorController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/asesores/{asesore}",
+    "name": "asesores.show",
+    "action": "App\\Http\\Controllers\\Api\\AsesorController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT|PATCH",
+    "uri": "api/asesores/{asesore}",
+    "name": "asesores.update",
+    "action": "App\\Http\\Controllers\\Api\\AsesorController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "DELETE",
+    "uri": "api/asesores/{asesore}",
+    "name": "asesores.destroy",
+    "action": "App\\Http\\Controllers\\Api\\AsesorController@destroy",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/asignar-permisos",
+    "name": "asignar-permisos.index",
+    "action": "App\\Http\\Controllers\\Api\\RolPermisoController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/asignar-permisos",
+    "name": "asignar-permisos.store",
+    "action": "App\\Http\\Controllers\\Api\\RolPermisoController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/asignar-permisos/{asignar_permiso}",
+    "name": "asignar-permisos.show",
+    "action": "App\\Http\\Controllers\\Api\\RolPermisoController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT|PATCH",
+    "uri": "api/asignar-permisos/{asignar_permiso}",
+    "name": "asignar-permisos.update",
+    "action": "App\\Http\\Controllers\\Api\\RolPermisoController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "DELETE",
+    "uri": "api/asignar-permisos/{asignar_permiso}",
+    "name": "asignar-permisos.destroy",
+    "action": "App\\Http\\Controllers\\Api\\RolPermisoController@destroy",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/caracteristicas",
+    "name": "caracteristicas.index",
+    "action": "App\\Http\\Controllers\\Api\\CaracteristicaController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/caracteristicas",
+    "name": "caracteristicas.store",
+    "action": "App\\Http\\Controllers\\Api\\CaracteristicaController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/caracteristicas/{caracteristica}",
+    "name": "caracteristicas.show",
+    "action": "App\\Http\\Controllers\\Api\\CaracteristicaController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT|PATCH",
+    "uri": "api/caracteristicas/{caracteristica}",
+    "name": "caracteristicas.update",
+    "action": "App\\Http\\Controllers\\Api\\CaracteristicaController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "DELETE",
+    "uri": "api/caracteristicas/{caracteristica}",
+    "name": "caracteristicas.destroy",
+    "action": "App\\Http\\Controllers\\Api\\CaracteristicaController@destroy",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/ciudades",
+    "name": "ciudades.index",
+    "action": "App\\Http\\Controllers\\Api\\CiudadController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/ciudades",
+    "name": "ciudades.store",
+    "action": "App\\Http\\Controllers\\Api\\CiudadController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/ciudades/{ciudade}",
+    "name": "ciudades.show",
+    "action": "App\\Http\\Controllers\\Api\\CiudadController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT|PATCH",
+    "uri": "api/ciudades/{ciudade}",
+    "name": "ciudades.update",
+    "action": "App\\Http\\Controllers\\Api\\CiudadController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "DELETE",
+    "uri": "api/ciudades/{ciudade}",
+    "name": "ciudades.destroy",
+    "action": "App\\Http\\Controllers\\Api\\CiudadController@destroy",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/clientes",
+    "name": "clientes.index",
+    "action": "App\\Http\\Controllers\\Api\\ClienteController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/clientes",
+    "name": "clientes.store",
+    "action": "App\\Http\\Controllers\\Api\\ClienteController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/clientes/{cliente}",
+    "name": "clientes.show",
+    "action": "App\\Http\\Controllers\\Api\\ClienteController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT|PATCH",
+    "uri": "api/clientes/{cliente}",
+    "name": "clientes.update",
+    "action": "App\\Http\\Controllers\\Api\\ClienteController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "DELETE",
+    "uri": "api/clientes/{cliente}",
+    "name": "clientes.destroy",
+    "action": "App\\Http\\Controllers\\Api\\ClienteController@destroy",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/comisiones-asesores",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ComisionAsesorController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_egresos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/comisiones-asesores/egreso/{egresoId}/comprobante",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ComisionAsesorController@comprobante",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_egresos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/comisiones-asesores/{asesorId}/impagas",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ComisionAsesorController@impagas",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_egresos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/comisiones-asesores/{asesorId}/pagadas",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ComisionAsesorController@pagadas",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_egresos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/contratos",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ContratoController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_contratos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT",
+    "uri": "api/contratos/{id}/anular",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ContratoController@anular",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_contratos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/contratos/{id}/descargar",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ContratoController@descargar",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_contratos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/contratos/{id}/generar-pdf",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ContratoController@generarPdf",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_contratos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/contratos/{id}/gestionar",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ContratoController@gestionar",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_contratos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/correo-masivo/enviar",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\CorreoMasivoController@enviar",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/correo-masivo/estado/{id}",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\CorreoMasivoController@estado",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/correo-masivo/grupos",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\CorreoMasivoController@grupos",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/correo-masivo/historial",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\CorreoMasivoController@historial",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/correo-masivo/preview-destinatarios",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\CorreoMasivoController@previewDestinatarios",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/cuentas-bancarias",
+    "name": "cuentas-bancarias.index",
+    "action": "App\\Http\\Controllers\\Api\\CuentaBancariaController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/cuentas-bancarias",
+    "name": "cuentas-bancarias.store",
+    "action": "App\\Http\\Controllers\\Api\\CuentaBancariaController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/cuentas-bancarias/{cuentas_bancaria}",
+    "name": "cuentas-bancarias.show",
+    "action": "App\\Http\\Controllers\\Api\\CuentaBancariaController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT|PATCH",
+    "uri": "api/cuentas-bancarias/{cuentas_bancaria}",
+    "name": "cuentas-bancarias.update",
+    "action": "App\\Http\\Controllers\\Api\\CuentaBancariaController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "DELETE",
+    "uri": "api/cuentas-bancarias/{cuentas_bancaria}",
+    "name": "cuentas-bancarias.destroy",
+    "action": "App\\Http\\Controllers\\Api\\CuentaBancariaController@destroy",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/dashboard/admin",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\DashboardController@admin",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/dashboard/asesor",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\DashboardController@asesor",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/distritos",
+    "name": "distritos.index",
+    "action": "App\\Http\\Controllers\\Api\\DistritoController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/distritos",
+    "name": "distritos.store",
+    "action": "App\\Http\\Controllers\\Api\\DistritoController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/distritos/{distrito}",
+    "name": "distritos.show",
+    "action": "App\\Http\\Controllers\\Api\\DistritoController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT|PATCH",
+    "uri": "api/distritos/{distrito}",
+    "name": "distritos.update",
+    "action": "App\\Http\\Controllers\\Api\\DistritoController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "DELETE",
+    "uri": "api/distritos/{distrito}",
+    "name": "distritos.destroy",
+    "action": "App\\Http\\Controllers\\Api\\DistritoController@destroy",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/egresos",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\EgresoController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_egresos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/egresos",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\EgresoController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_egresos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/egresos/resumen",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\EgresoController@resumen",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_egresos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/egresos/{id}",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\EgresoController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_egresos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT",
+    "uri": "api/egresos/{id}",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\EgresoController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_egresos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT",
+    "uri": "api/egresos/{id}/anular",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\EgresoController@anular",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_egresos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT",
+    "uri": "api/egresos/{id}/pagar",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\EgresoController@pagar",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_egresos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/empresa",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\LandingController@updateEmpresa",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_empresa"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/entregas",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\EntregaController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_entregas"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT",
+    "uri": "api/entregas/{id}",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\EntregaController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_entregas"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/entregas/{id}/descargar-acta",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\EntregaController@descargarActa",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_entregas"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/entregas/{id}/subir-acta",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\EntregaController@subirActa",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_entregas"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "DELETE",
+    "uri": "api/imagenes-propiedades/{id}",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ImagenPropiedadController@destroy",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PATCH",
+    "uri": "api/imagenes-propiedades/{id}/principal",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ImagenPropiedadController@setPrincipal",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/ingresos",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\IngresoController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_ingresos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/ingresos",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\IngresoController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_ingresos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/ingresos/resumen",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\IngresoController@resumen",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_ingresos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/ingresos/{id}",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\IngresoController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_ingresos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT",
+    "uri": "api/ingresos/{id}",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\IngresoController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_ingresos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT",
+    "uri": "api/ingresos/{id}/anular",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\IngresoController@anular",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_ingresos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/landing",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\LandingController@getLandingData",
+    "middleware": [
+      "api"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/landing/ciudades",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\LandingController@getCiudades",
+    "middleware": [
+      "api"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/landing/distritos",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\LandingController@getDistritos",
+    "middleware": [
+      "api"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/landing/propiedades",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\LandingController@getPropiedades",
+    "middleware": [
+      "api"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/landing/propiedades/{id}",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\LandingController@getPropiedad",
+    "middleware": [
+      "api"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/landing/propiedades/{id}/similares",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\LandingController@getSimilares",
+    "middleware": [
+      "api"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/landing/sectores-urbanos/{distritoId}",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\LandingController@getSectoresUrbanos",
+    "middleware": [
+      "api"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/login",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\AuthController@login",
+    "middleware": [
+      "api"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/logout",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\AuthController@logout",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/mapeo-metodos-cuentas",
+    "name": "mapeo-metodos-cuentas.index",
+    "action": "App\\Http\\Controllers\\Api\\MetodoPagoCuentaDefaultController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/mapeo-metodos-cuentas",
+    "name": "mapeo-metodos-cuentas.store",
+    "action": "App\\Http\\Controllers\\Api\\MetodoPagoCuentaDefaultController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/mapeo-metodos-cuentas/obtener-cuenta/{metodoId}",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\MetodoPagoCuentaDefaultController@obtenerCuentaPorMetodo",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/mapeo-metodos-cuentas/{mapeo_metodos_cuenta}",
+    "name": "mapeo-metodos-cuentas.show",
+    "action": "App\\Http\\Controllers\\Api\\MetodoPagoCuentaDefaultController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT|PATCH",
+    "uri": "api/mapeo-metodos-cuentas/{mapeo_metodos_cuenta}",
+    "name": "mapeo-metodos-cuentas.update",
+    "action": "App\\Http\\Controllers\\Api\\MetodoPagoCuentaDefaultController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "DELETE",
+    "uri": "api/mapeo-metodos-cuentas/{mapeo_metodos_cuenta}",
+    "name": "mapeo-metodos-cuentas.destroy",
+    "action": "App\\Http\\Controllers\\Api\\MetodoPagoCuentaDefaultController@destroy",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/me",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\AuthController@me",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/metodos-pago",
+    "name": "metodos-pago.index",
+    "action": "App\\Http\\Controllers\\Api\\MetodoPagoController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/metodos-pago",
+    "name": "metodos-pago.store",
+    "action": "App\\Http\\Controllers\\Api\\MetodoPagoController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/metodos-pago/{metodos_pago}",
+    "name": "metodos-pago.show",
+    "action": "App\\Http\\Controllers\\Api\\MetodoPagoController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT|PATCH",
+    "uri": "api/metodos-pago/{metodos_pago}",
+    "name": "metodos-pago.update",
+    "action": "App\\Http\\Controllers\\Api\\MetodoPagoController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "DELETE",
+    "uri": "api/metodos-pago/{metodos_pago}",
+    "name": "metodos-pago.destroy",
+    "action": "App\\Http\\Controllers\\Api\\MetodoPagoController@destroy",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/mi-cartera",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ClienteController@miCartera",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/pagos",
+    "name": "pagos.index",
+    "action": "App\\Http\\Controllers\\Api\\PagoController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_pagos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/pagos",
+    "name": "pagos.store",
+    "action": "App\\Http\\Controllers\\Api\\PagoController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_pagos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/pagos/bulk",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\PagoController@storeBulk",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_pagos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/pagos/cliente/{clienteId}/resumen",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\PagoController@resumenPorCliente",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_pagos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/pagos/pendientes/listar",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\PagoController@pagosPendientes",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_pagos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/pagos/reportes/periodo",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\PagoController@reportePeriodo",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_reportes_pagos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/pagos/venta/{notaVentaId}/resumen",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\PagoController@pagosPorVenta",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_pagos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT",
+    "uri": "api/pagos/{id}/cancelar",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\PagoController@cancelar",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_pagos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/pagos/{id}/comprobante",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\PagoController@comprobante",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_pagos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/pagos/{id}/procesar",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\PagoController@procesarPagoPendiente",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_pagos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/pagos/{pago}",
+    "name": "pagos.show",
+    "action": "App\\Http\\Controllers\\Api\\PagoController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_pagos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT|PATCH",
+    "uri": "api/pagos/{pago}",
+    "name": "pagos.update",
+    "action": "App\\Http\\Controllers\\Api\\PagoController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_pagos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "DELETE",
+    "uri": "api/pagos/{pago}",
+    "name": "pagos.destroy",
+    "action": "App\\Http\\Controllers\\Api\\PagoController@destroy",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "App\\Http\\Middleware\\CheckPermission:acceso_pagos"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/perfil",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ProfileController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT",
+    "uri": "api/perfil",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ProfileController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT",
+    "uri": "api/perfil/cambiar-password",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ProfileController@changePassword",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/perfil/correo/conectar",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ProfileMailController@connect",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "Illuminate\\Routing\\Middleware\\ThrottleRequests:60,1,profile-mail:",
+      "Illuminate\\Routing\\Middleware\\ThrottleRequests:5,1,profile-mail-connect:"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/perfil/correo/desconectar",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ProfileMailController@disconnect",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "Illuminate\\Routing\\Middleware\\ThrottleRequests:60,1,profile-mail:"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/perfil/correo/enviar",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ProfileMailController@send",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "Illuminate\\Routing\\Middleware\\ThrottleRequests:60,1,profile-mail:",
+      "Illuminate\\Routing\\Middleware\\ThrottleRequests:10,1,profile-mail-send:"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/perfil/correo/estado",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ProfileMailController@status",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "Illuminate\\Routing\\Middleware\\ThrottleRequests:60,1,profile-mail:"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/perfil/correo/mensajes",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ProfileMailController@messages",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "Illuminate\\Routing\\Middleware\\ThrottleRequests:60,1,profile-mail:"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/perfil/correo/mensajes/{uid}",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ProfileMailController@read",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "Illuminate\\Routing\\Middleware\\ThrottleRequests:60,1,profile-mail:"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/perfil/correo/mensajes/{uid}/mover",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ProfileMailController@move",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt",
+      "Illuminate\\Routing\\Middleware\\ThrottleRequests:60,1,profile-mail:"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/permisos",
+    "name": "permisos.index",
+    "action": "App\\Http\\Controllers\\Api\\PermisoController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/permisos",
+    "name": "permisos.store",
+    "action": "App\\Http\\Controllers\\Api\\PermisoController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/permisos/{permiso}",
+    "name": "permisos.show",
+    "action": "App\\Http\\Controllers\\Api\\PermisoController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT|PATCH",
+    "uri": "api/permisos/{permiso}",
+    "name": "permisos.update",
+    "action": "App\\Http\\Controllers\\Api\\PermisoController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "DELETE",
+    "uri": "api/permisos/{permiso}",
+    "name": "permisos.destroy",
+    "action": "App\\Http\\Controllers\\Api\\PermisoController@destroy",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/planes-pago/{planId}/amortizar",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReprogramacionController@amortizar",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/planes-pago/{planId}/reprogramaciones",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReprogramacionController@historial",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/planes-pago/{planId}/reprogramar",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReprogramacionController@reprogramar",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/propiedades",
+    "name": "propiedades.index",
+    "action": "App\\Http\\Controllers\\Api\\PropiedadController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/propiedades",
+    "name": "propiedades.store",
+    "action": "App\\Http\\Controllers\\Api\\PropiedadController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/propiedades/{id}/caracteristicas/sync",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\PropiedadController@syncCaracteristicas",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/propiedades/{id}/imagenes",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ImagenPropiedadController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/propiedades/{propiedade}",
+    "name": "propiedades.show",
+    "action": "App\\Http\\Controllers\\Api\\PropiedadController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT|PATCH",
+    "uri": "api/propiedades/{propiedade}",
+    "name": "propiedades.update",
+    "action": "App\\Http\\Controllers\\Api\\PropiedadController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "DELETE",
+    "uri": "api/propiedades/{propiedade}",
+    "name": "propiedades.destroy",
+    "action": "App\\Http\\Controllers\\Api\\PropiedadController@destroy",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/propietarios",
+    "name": "propietarios.index",
+    "action": "App\\Http\\Controllers\\Api\\PropietarioController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/propietarios",
+    "name": "propietarios.store",
+    "action": "App\\Http\\Controllers\\Api\\PropietarioController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/propietarios/{propietario}",
+    "name": "propietarios.show",
+    "action": "App\\Http\\Controllers\\Api\\PropietarioController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT|PATCH",
+    "uri": "api/propietarios/{propietario}",
+    "name": "propietarios.update",
+    "action": "App\\Http\\Controllers\\Api\\PropietarioController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "DELETE",
+    "uri": "api/propietarios/{propietario}",
+    "name": "propietarios.destroy",
+    "action": "App\\Http\\Controllers\\Api\\PropietarioController@destroy",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/public/clientes/buscar",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\PagoPublicoController@buscarCliente",
+    "middleware": [
+      "api"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/public/pagos/callback",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\PagoPublicoController@callbackLibelula",
+    "middleware": [
+      "api"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/public/pagos/confirmar-retorno",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\PagoPublicoController@confirmarRetorno",
+    "middleware": [
+      "api"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/public/pagos/procesar",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\PagoPublicoController@procesarPago",
+    "middleware": [
+      "api"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/public/pagos/verificar/{id}",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\PagoPublicoController@verificarEstado",
+    "middleware": [
+      "api"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/reportes/cartera-mora",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReporteController@carteraMora",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/reportes/cartera-mora/excel",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReporteController@carteraMoraExcel",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/reportes/cartera-mora/pdf",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReporteController@carteraMoraPdf",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/reportes/comisiones",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReporteController@comisiones",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/reportes/comisiones/excel",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReporteController@comisionesExcel",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/reportes/comisiones/pdf",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReporteController@comisionesPdf",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/reportes/desempeno-asesores",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReporteController@desempenoAsesores",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/reportes/desempeno-asesores/excel",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReporteController@desempenoAsesoresExcel",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/reportes/desempeno-asesores/pdf",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReporteController@desempenoAsesoresPdf",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/reportes/destinatarios",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReporteController@destinatariosInforme",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/reportes/enviar-informe",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReporteController@enviarInforme",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/reportes/inventario-propiedades",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReporteController@inventarioPropiedades",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/reportes/inventario-propiedades/excel",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReporteController@inventarioPropiedadesExcel",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/reportes/inventario-propiedades/pdf",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReporteController@inventarioPropiedadesPdf",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/reportes/ventas-cobros",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReporteController@ventasCobros",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/reportes/ventas-cobros/excel",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReporteController@ventasCobrosExcel",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/reportes/ventas-cobros/pdf",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReporteController@ventasCobrosPdf",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/resolver-url-mapa",
+    "name": null,
+    "action": "Closure",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/roles",
+    "name": "roles.index",
+    "action": "App\\Http\\Controllers\\Api\\RolController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/roles",
+    "name": "roles.store",
+    "action": "App\\Http\\Controllers\\Api\\RolController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/roles/{id}/permisos",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\RolController@getPermisos",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/roles/{id}/permisos/sync",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\RolController@syncPermisos",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/roles/{role}",
+    "name": "roles.show",
+    "action": "App\\Http\\Controllers\\Api\\RolController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT|PATCH",
+    "uri": "api/roles/{role}",
+    "name": "roles.update",
+    "action": "App\\Http\\Controllers\\Api\\RolController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "DELETE",
+    "uri": "api/roles/{role}",
+    "name": "roles.destroy",
+    "action": "App\\Http\\Controllers\\Api\\RolController@destroy",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/sectores-urbanos",
+    "name": "sectores-urbanos.index",
+    "action": "App\\Http\\Controllers\\Api\\SectorUrbanoController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/sectores-urbanos",
+    "name": "sectores-urbanos.store",
+    "action": "App\\Http\\Controllers\\Api\\SectorUrbanoController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/sectores-urbanos/por-distrito/{distritoId}",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\SectorUrbanoController@porDistrito",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/sectores-urbanos/{sectores_urbano}",
+    "name": "sectores-urbanos.show",
+    "action": "App\\Http\\Controllers\\Api\\SectorUrbanoController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT|PATCH",
+    "uri": "api/sectores-urbanos/{sectores_urbano}",
+    "name": "sectores-urbanos.update",
+    "action": "App\\Http\\Controllers\\Api\\SectorUrbanoController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "DELETE",
+    "uri": "api/sectores-urbanos/{sectores_urbano}",
+    "name": "sectores-urbanos.destroy",
+    "action": "App\\Http\\Controllers\\Api\\SectorUrbanoController@destroy",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/ubicaciones",
+    "name": "ubicaciones.index",
+    "action": "App\\Http\\Controllers\\Api\\UbicacionController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/ubicaciones",
+    "name": "ubicaciones.store",
+    "action": "App\\Http\\Controllers\\Api\\UbicacionController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/ubicaciones/{ubicacione}",
+    "name": "ubicaciones.show",
+    "action": "App\\Http\\Controllers\\Api\\UbicacionController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT|PATCH",
+    "uri": "api/ubicaciones/{ubicacione}",
+    "name": "ubicaciones.update",
+    "action": "App\\Http\\Controllers\\Api\\UbicacionController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "DELETE",
+    "uri": "api/ubicaciones/{ubicacione}",
+    "name": "ubicaciones.destroy",
+    "action": "App\\Http\\Controllers\\Api\\UbicacionController@destroy",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/usuarios",
+    "name": "usuarios.index",
+    "action": "App\\Http\\Controllers\\Api\\UserController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/usuarios",
+    "name": "usuarios.store",
+    "action": "App\\Http\\Controllers\\Api\\UserController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/usuarios/{id}/asignaciones",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\UserController@getAsignaciones",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/usuarios/{id}/asignaciones/sync",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\UserController@syncAsignaciones",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/usuarios/{usuario}",
+    "name": "usuarios.show",
+    "action": "App\\Http\\Controllers\\Api\\UserController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT|PATCH",
+    "uri": "api/usuarios/{usuario}",
+    "name": "usuarios.update",
+    "action": "App\\Http\\Controllers\\Api\\UserController@update",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "DELETE",
+    "uri": "api/usuarios/{usuario}",
+    "name": "usuarios.destroy",
+    "action": "App\\Http\\Controllers\\Api\\UserController@destroy",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/ventas",
+    "name": "ventas.index",
+    "action": "App\\Http\\Controllers\\Api\\NotaVentaController@index",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "POST",
+    "uri": "api/ventas",
+    "name": "ventas.store",
+    "action": "App\\Http\\Controllers\\Api\\NotaVentaController@store",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "PUT",
+    "uri": "api/ventas/{id}/anular",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\NotaVentaController@anular",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/ventas/{ventaId}/plan-pago",
+    "name": null,
+    "action": "App\\Http\\Controllers\\Api\\ReprogramacionController@planPorVenta",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  },
+  {
+    "domain": null,
+    "method": "GET|HEAD",
+    "uri": "api/ventas/{venta}",
+    "name": "ventas.show",
+    "action": "App\\Http\\Controllers\\Api\\NotaVentaController@show",
+    "middleware": [
+      "api",
+      "App\\Http\\Middleware\\Authenticate:sanctum,jwt"
+    ]
+  }
+]

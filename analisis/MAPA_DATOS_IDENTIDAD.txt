@@ -1,0 +1,49 @@
+DATOS E IDENTIDAD — inventario de código, sin exportar filas
+
+Fuentes: backend/database/migrations, app/Models, MODELOS_Y_RELACIONES_F0.csv,
+los DTO/modelos de los cuatro servicios y los dos sincronizadores anteriores.
+
+Dueño actual en local / dueño objetivo remoto:
+users, roles, permisos, rol_permiso, rol_permiso_usuario -> Seguridad.
+personal_access_tokens -> sesión local Laravel; sesiones delegadas se diseñan F3.
+ciudades, distritos, sectores_urbanos, propietarios, propiedad_propietario,
+propiedades, ubicaciones, caracteristicas, caracteristica_propiedad,
+imagenes_propiedades -> Propiedades.
+clientes, asesores, notas_ventas, contratos, entregas -> Comercial.
+planes_pagos, cuotas, reprogramaciones, pagos, ingresos, egresos, metodos_pago,
+cuentas_bancarias, metodo_pago_cuenta_default -> Finanzas.
+mi_empresa, campanas_correo, jobs, failed_jobs, correo de perfil -> infraestructura
+Laravel/BFF con dueño/acceso definitivo por resolver en F7/F8.
+Campo porcentaje_comision: Comercial; egreso de comisión desembolsable: Finanzas.
+Libélula depende de pagos y callbacks: Finanzas/BFF en F6, sin moverlo en F2.
+
+Vínculos críticos:
+clientes.user_id y asesores.user_id son únicos hacia users locales.
+asesores/clientes.correo pueden divergir de users.correo; no son una identidad estable.
+NotaVenta enlaza asesor/cliente/propiedad; contrato enlaza venta; entrega enlaza contrato.
+PlanPago enlaza venta; cuotas enlazan plan/reprogramación; pago enlaza venta/cuota;
+ingreso enlaza pago/venta/cuenta; egreso enlaza asesor/venta/cuenta.
+Los documentos son rutas/referencias en contratos, entregas, perfiles y catálogos.
+Ficheros existentes e imágenes no se reasignaron ni se copiaron en estas fases.
+
+Identificador acordado para F3/F4:
+Usar (issuer/sub) estable de Seguridad, no correo, como identidad externa.
+Si Seguridad aún emite solo id numérico, namespacing por emisor sigue siendo obligatorio.
+Crear en F3 un mapa explícito tipo external_identities con provider, subject y
+local_user_id, unicidad(provider,subject); resolver duplicados antes de poblarlo.
+Las relaciones de negocio migrarán con mapas (servicio,entidad,id_origen,id_destino).
+No se crea esa tabla ni se inventan equivalencias en F2: solo usa fixtures aislados.
+Un id=1 de una base no autoriza a enlazarlo con id=1 de otra base.
+El piloto retorna IDs del catálogo seleccionado y bloquea escrituras posteriores:
+no permite usar esos IDs para registrar ventas locales en modo remoto.
+
+Sincronizadores anteriores:
+Usuarios buscaba por correo y creaba hash aleatorio; propiedades hacía upsert con
+ID del servicio sobre tablas de negocio, incluidos pivotes e imágenes.
+Se retiró su ejecución manual y programada en ambos modos; comandos conservados
+como aviso/exit 1. Fases posteriores deben crear proyecciones explícitas, con mapa,
+propietario y política de actualización, antes de habilitar cualquier sincronización.
+
+Inventario de esquema no equivale a migración validada de producción.
+No se consultaron conteos ni registros personales reales; las migraciones completas
+se ejecutaron únicamente contra MySQL de pruebas con usuario limitado a esa base.

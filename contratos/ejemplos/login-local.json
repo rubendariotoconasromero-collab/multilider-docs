@@ -1,0 +1,12 @@
+{
+  "message": "¡Bienvenido al sistema!",
+  "access_token": "<token omitido; ejemplo no utilizable>",
+  "token_type": "Bearer",
+  "user": {
+    "id": 101,
+    "nombre": "Usuario ficticio",
+    "correo": "usuario@example.test",
+    "estado": 1,
+    "roles_permisos": []
+  }
+}

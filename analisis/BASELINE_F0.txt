@@ -1,0 +1,79 @@
+LÍNEA BASE Y DECISIONES F0 — 4 de noviembre de 2026
+
+Alcance autorizado: fases 0, 1 y 2 de PLAN_FASES_0_2.txt.
+Repositorio principal: backend. Evidencia y procedimientos: multilider-docs.
+No se accedió al VPS ni se migraron/exportaron datos del sistema.
+
+REVISIONES
+Ver REVISIONES_F0.txt para los hashes completos anteriores a esta implementación.
+backend partía de main limpio: 1f30b8c7781458473be63b367fed956107ea7a81.
+frontend main: dd17e955c1dfe186a1ba9eca4b2f944647870611.
+frontend origin/release/microservices: 44c6cda28e2e0db40ed7e5560ead5b34f78c6ef7.
+Seguridad: a29dd6bbf0ba0dba8e899c3ebfa738b858443929.
+Propiedades: 0f598c47e01b4718404ed7b4b3f5ecd7d2800f82.
+Rama de implementación backend: feature/fases-0-2-arquitectura-dual.
+Rama de documentación: docs/implementacion-fases-0-2.
+Comercial/Finanzas no tenían Git: se inició antes de cualquier cambio funcional,
+con .gitignore y commits bdfb91e / fa12bc4 en main, sin remotos ni publicación.
+Su código no se modificó en esta entrega. No se cambió de rama el frontend.
+
+ENTORNO VERIFICADO
+Windows, PowerShell 7, PHP CLI 8.2.29, Composer 2.8.11, Node 22.19.0, npm 10.9.3.
+PHP: curl, pdo_mysql, pdo_sqlite, pdo_sqlsrv, mbstring, gd, openssl disponibles.
+Extensión IMAP no disponible en este PHP CLI; no se certifica acceso IMAP real.
+SDK .NET 10.0.400; ASP.NET Core 10.0.11 instalado; NETCore 8.0.6 y 10.0.11.
+MySQL de pruebas: 8.0.46, binarios de Program Files/MySQL/MySQL Server 8.0/bin.
+Las pruebas arrancan otro proceso en puerto aleatorio, con otro directorio de datos.
+La base actual y el SQL Server instalado no se modificaron para probar Laravel.
+Ver composer.lock, package-lock.json y *.csproj para versiones exactas de paquetes.
+
+INICIO LOCAL (desde cada carpeta, configuración privada ya preparada)
+backend: composer install; php artisan serve --host=127.0.0.1 --port=8000
+frontend main: npm ci; npm run dev -- --host 127.0.0.1 --port 5173
+Seguridad: dotnet restore; dotnet run --project MSMultilider.Seguridad.csproj
+  API 5211, .NET 8, MySQL. Requiere runtime ASP.NET 8 para su ejecución.
+Propiedades: dotnet restore; dotnet run --project MSMultilider.Propiedades.csproj
+  API 5212, .NET 10, SQL Server/EF8 según proyecto actual.
+Comercial: dotnet restore --locked-mode; dotnet run --project MSMultilider.Comercial.csproj
+  API 5213, .NET 10/EF10, SQL Server propio; migraciones y JWT en configuración privada.
+Finanzas: dotnet restore --locked-mode; dotnet run --project MSMultilider.Finanzas.csproj
+  API 5214, .NET 10/EF10, SQL Server propio.
+Los puertos .NET corresponden a los perfiles HTTP actuales. No se necesitan en local.
+No ejecutar migraciones ni semillas de producción para repetir las pruebas.
+
+DIFERENCIAS FRONTEND
+main consume Laravel. La otra rama añade clientes axiosSecurity/axiosPropiedades.
+Cuatro commits exclusivos de release/microservices: 765027e, 74f5766, bbaf37f, 44c6cda.
+main conserva correcciones de correo en perfil, validación de propiedades y
+destinatarios de informes que faltan en esa rama. No son ramas intercambiables.
+La consolidación del frontend pertenece a F8; F0–F2 conserva main sin cambios.
+Se compiló main satisfactoriamente; no se publicaron los artefactos de dist.
+
+INVENTARIO
+190 rutas propias (incluye raíz web), 30 modelos inventariados desde código.
+MATRIZ_MODULOS_DEPENDENCIAS.csv cubre cada ruta, permiso real y pantalla relacionada.
+MODELOS_Y_RELACIONES_F0.csv y database/migrations son el inventario de esquema.
+contratos/rutas-f0.json es una instantánea de route:list, sin filas de negocio.
+Las rutas sin permiso granular se registran así, aunque Vue oculte sus menús.
+No se afirma que todas las rutas antiguas tengan autorización suficiente.
+
+ACTA DE DECISIONES
+1. APP_ARCHITECTURE=local por defecto; solo se selecciona en el despliegue.
+2. Local prevalece sobre MICROSERVICE_SYNC_ENABLED, incluso si vale true.
+3. No habilitar antiguos espejos por ID/correo: podrían sobrescribir negocio.
+4. Piloto: GET /api/propiedades, búsqueda, ciudad, distrito, page y per_page.
+5. API Laravel estable; proveedores por contenedor; sin fallback remoto->local.
+6. En microservices, el piloto requiere una credencial delegada. En F2 solo se
+   inyecta un proveedor de prueba; el proveedor real rechaza hasta F3.
+7. Todas las otras rutas API se bloquean antes de autenticación/model binding/BD
+   en modo remoto. Incluye login, callbacks públicos, informes, perfil y correo.
+8. Reglas actuales caracterizadas con fixtures ficticios; no se cambian importes,
+   monedas ni fórmulas. Diferencias funcionales remotas siguen asignadas a F3–F8.
+9. No hay datos migrados, integración productiva remota ni despliegue en esta entrega.
+10. La duración inicial del plan era orientativa; el cierre se basa en evidencias
+    reproducibles, no en transcurrir el número estimado de días.
+
+VERIFICACIÓN INICIAL
+Pruebas originales: 2 tests/2 aserciones, OK.
+Caracterización previa a cambiar controladores: 8 tests/55 aserciones, OK.
+Resultado final y comandos: ../pruebas/RESULTADOS_F0_F2.txt.

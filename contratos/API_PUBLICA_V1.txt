@@ -1,0 +1,93 @@
+CONTRATO PÚBLICO V1 — Laravel como entrada estable
+Revisión F0–F2, 4 de noviembre de 2026.
+
+ÁMBITO
+La instantánea rutas-f0.json conserva método, URI, acción y middleware originales.
+Las URLs públicas del frontend main siguen siendo /api/... en Laravel.
+F2 solo extrae GET /api/propiedades a CatalogGateway. Los demás contratos de
+dominio son puntos de extensión de lectura; no son APIs remotas completas.
+
+AUTENTICACIÓN
+Local: POST /api/login {correo,password}; respuesta access_token, token_type,
+message y user (nombre, correo, estado, roles_permisos anidados). /api/me devuelve
+el usuario; /api/logout revoca el token Sanctum actual.
+Seguridad: /api/auth/login y /api/usuario; no confundir con /api/usuarios Laravel.
+Variantes accessToken/access_token requieren normalización en F3. JwtGuard legado
+no define todavía la solución definitiva; no reutilizar el token técnico del espejo.
+DelegatedTokenProvider deberá verificar/obtener una credencial para el usuario,
+emisor, audiencia y servicio correctos; jamás reenviar Sanctum a .NET.
+Hasta F3, el proveedor real lanza INTEGRATION_NOT_READY sin solicitudes HTTP.
+
+PILOTO DE CATÁLOGO
+GET /api/propiedades?search=TEST&ciudad_id=2&distrito_id=3&page=2&per_page=1
+search busca código o propietario (nombre_completo/nombre_empresa).
+Filtros simultáneos se combinan mediante AND. Orden: id descendente.
+Por defecto page=1, per_page=10. El adaptador remoto valida page>=1,
+per_page entre 1 y 1000; IDs positivos; filtros vacíos se omiten al consultar .NET.
+El proveedor local conserva la lógica de entrada anterior para no alterar pantallas.
+En remoto se consulta exclusivamente api/propiedades de la URL configurada.
+
+PAGINACIÓN
+Formato público: data,current_page,per_page,total,last_page,from,to,path,links,
+first_page_url,last_page_url,next_page_url,prev_page_url.
+Las URLs del paginador apuntan a Laravel, nunca a la dirección interna del MS.
+No se agregan filtros a los enlaces: conserva el comportamiento Laravel anterior.
+.NET Propiedades ya usa current_page/per_page/last_page explícitos, además de data
+y total. No se supone pageNumber ni page_number: se verificó el DTO real.
+Reconstruir LengthAwarePaginator conserva links/from/to y last_page=1 en vacío,
+aunque el servicio informe last_page=0. Ejemplos adjuntos sin datos personales.
+
+CAMPOS DE PROPIEDAD
+Snake case, con propietarios[], sector_urbano.distrito.ciudad, ubicacion nullable,
+caracteristicas[] e imagenes[]. Los IDs pertenecen al origen seleccionado.
+precio_venta y superficies DECIMAL MySQL se serializan como cadenas de dos
+decimales; se normalizan los números JSON de .NET a ese formato para el piloto.
+Booleanos principales no casteados por Eloquent: 0/1; el adaptador los normaliza.
+Los DTO .NET omiten created_at/updated_at y metadatos pivot; no se fabrican fechas
+ni pivotes. Estos metadatos no son un requisito del listado; paridad de altas,
+edición, relaciones y documentos queda en F4. No declarar igualdad JSON total.
+Los booleanos anidados pueden conservar bool: se comparan semánticamente al
+evaluar paridad, y se revisarán casts comunes en F4.
+
+MONEDAS E IMPORTES
+Propiedades: BOB/USD. Ingresos/egresos locales: Bs/$.
+Mapeo semántico BOB<->Bs y USD<->$; no existe conversión ni tipo de cambio implícito.
+La comisión local toma monto_total enviado; Comercial toma precio del catálogo.
+Esta discrepancia NO se resuelve modificando cálculos en F2 (ver paridad).
+Cantidades de negocio conservan precisión decimal/escala; no sumar monedas distintas.
+
+FECHAS Y ESTADOS
+fecha, fecha_pago, fecha_vencimiento y fecha_inicio_pago son fechas de negocio
+YYYY-MM-DD; no convertirlas por zona horaria. Timestamps mantienen su origen.
+Propiedad: Disponible/Vendido/Reservado; venta: Completada/Anulada; contrato:
+Pendiente y estados de firma; pagos: PENDIENTE_PAGO/PAGADO/CANCELADO/RECHAZADO.
+Planes/cuotas, mora y estados de entrega requieren su propio contrato F5/F6.
+No normalizar un estado desconocido a un estado de éxito.
+
+ERRORES
+Local conserva message/errors y sus códigos actuales.
+Remoto: 401/403/404/409/422 mantienen status; ProblemDetails 400 con errors se
+traduce a 422. Timeout, red, 5xx o redirecciones se traducen a 503 SERVICE_UNAVAILABLE.
+Respuesta malformada: 503 INVALID_SERVICE_RESPONSE; capacidad ausente: 503
+INTEGRATION_NOT_READY. No se intenta resolver el problema leyendo/escribiendo local.
+ProblemDetails.title/detail no se exponen por contener potencialmente información
+interna. Se usan mensajes públicos; errores de campos permitidos mantienen la
+clave y usan texto validado. No reflejar contraseñas, JWT, SQL ni cuerpos remotos.
+
+TRANSPORTE
+Solo destinos de services.*.base_url. TLS validado, sin redirecciones ni reintentos.
+2 s de conexión, 5 s total por solicitud; configurables en config/architecture.php.
+X-Correlation-ID e Idempotency-Key se preservan si son UUID; se genera correlación
+cuando falta o no es válida. El GET piloto no crea comandos ni promete idempotencia
+de escrituras: la coordinación durable pertenece a F5.
+
+DOCUMENTOS
+PDF/Excel y adjuntos continúan en Laravel local. Respetar permisos y almacenamiento
+privado; documentos remotos se transportarán como referencias con acceso autorizado.
+El PDF borrador de Comercial no sustituye el contrato legal local sin revisión F5.
+
+EJEMPLOS
+ejemplos/propiedades.remote.json: DTO del servicio, con datos ficticios.
+ejemplos/propiedades.vacio.json: envoltura pública vacía.
+ejemplos/error-validacion.json y error-no-listo.json: errores públicos.
+ejemplos/login-local.json: contrato local sin token utilizable.

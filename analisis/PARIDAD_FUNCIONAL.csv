@@ -1,0 +1,20 @@
+﻿dominio,capacidad,estado,evidencia_brecha,fase,criterio_cierre
+Identidad,Login/me/logout/contraseña/permisos,adaptar,Sanctum local; JWT manual y perfiles locales; MS Seguridad API singular,F3,JWT verificado; identidad estable; sesión/logout por origen; permisos por recurso
+Catálogo,Listado con filtros/paginación,adaptar,F2 ambos proveedores; fixtures de DTO real; sin JWT delegado productivo,F3/F4,JWT/API real y metadatos/casts/IDs estables verificados
+Catálogo,CRUD propietarios/catálogos/imágenes,adaptar,API similar; referencias IDs y rutas de storage no equivalentes por defecto,F4,Mismos campos/validaciones; migración con mapa y documentos autorizados
+Catálogo,Reserva atómica de propiedad,ausente,Comercial solo consulta disponibilidad; Propiedades sin reserva dedicada,F4/F5,Reserva con concurrencia y liberación compensable probada
+Comercial,Venta contado y descuento,pendiente de definición funcional,Laravel toma monto_total/monto_liquido enviados; MS usa precio de catálogo menos descuento,F5,Acordar fuente de precio y validar reglas compartidas con casos frontera
+Comercial,Comisión de asesor,adaptar,"Local round(monto_total*porcentaje/100,2); MS usa precio de catálogo",F5/F6,Misma base aprobada; egreso pendiente de Finanzas una sola vez
+Finanzas,Crédito y cuotas francesas,adaptar,Local crea plan dentro de venta; MS inscribe venta por paso separado; tasas y fechas distintas,F5/F6,Fixtures de interés cero/positivo/redondeo/fin de mes y registro financiero coordinado
+Finanzas,Pago inicial pendiente,equivalente,Ambos generan pendiente; registro separado y monedas/formato difieren,F5/F6,Validar operación de extremo a extremo y ausencia de ingresos prematuros
+Transversal,Registro venta+propiedad+finanzas,ausente,No hay coordinador durable/outbox entre servicios,F5,Fallos intermedios/idempotencia/reserva/reconciliación sin dobles cobros
+Comercial,Anulación y reversión,pendiente de definición funcional,Laravel libera propiedad y anula comisión pendiente; MS bloquea cobros/entregas y compensa Finanzas,F5/F6,Acordar restricciones; pruebas de comisión pagada/pago confirmado/entrega
+Comercial,Contrato y firma/PDF legal,adaptar,MS ofrece borrador/resumen; plantilla y código contractual local distintos,F5,Plantilla legal aprobada; archivo privado/autorización; firma con reglas actuales
+Comercial,Entrega y acta,adaptar,Ambos tienen entidad/adjuntos; verificación financiera cruzada y permisos pendientes,F5/F6,Saldo/firma/acta/autorización de descarga y concurrencia verificados
+Finanzas,Cobro y movimiento de ingreso,adaptar,Local confirma pendiente; MS agrega UUID/idempotencia/cuenta por moneda,F6,Repetición y concurrencia no duplican movimientos; variantes históricas cubiertas
+Finanzas,Mora/amortización/reprogramación,adaptar,Servicios locales especializados; MS tiene versiones propias; no se compararon todas las combinaciones,F6,Aprobar fixtures financieros completos; precisión y periodos idénticos
+Finanzas,Pasarela Libélula/callbacks/retorno,ausente,Solo Laravel integra la pasarela actualmente,F6,Autenticación callback/estado/idempotencia; pruebas sandbox; sin doble ingreso
+Finanzas,Ingresos/egresos/cuentas/métodos,adaptar,MS maneja BOB/USD y filtros; local Bs/$ y otra envoltura/política de edición,F6,Contrato y moneda por cuenta; conciliación y anulaciones verificadas
+Transversal,Informes/PDF/Excel/dashboard,adaptar,Consultas locales cruzan varias tablas; sin read model remoto completo,F7,Agregación por dueño; filtros/KPI/documentos equivalentes por moneda
+Transversal,Correo de perfil/campañas,adaptar,Laravel usa SMTP/IMAP/cola; no pertenecen a los cuatro MS; perfil depende de identidad,F3/F7/F8,Permisos/identidad/credencial de buzón y jobs por modo; IMAP real donde esté instalado
+Frontend,Unificar main y release/microservices,adaptar,main tiene correcciones faltantes; rama MS consume .NET directamente,F8,Una UI consume Laravel; regresiones y E2E ambos modos sin pérdida funcional

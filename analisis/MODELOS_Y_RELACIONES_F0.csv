@@ -1,0 +1,31 @@
+﻿modelo,tabla,relaciones,evidencia
+Asesor,asesores,"usuario:belongsTo User::class, 'user_id'; egresos:hasMany Egreso::class, 'asesor_id'",backend/app/Models/Asesor.php
+CampanaCorreo,campanas_correo,"usuario:belongsTo User::class, 'user_id'",backend/app/Models/CampanaCorreo.php
+Caracteristica,caracteristicas,"propiedades:belongsToMany Propiedad::class, 'caracteristica_propiedad'",backend/app/Models/Caracteristica.php
+Ciudad,ciudades,"zonas:hasMany Zona::class, 'ciudad_id'",backend/app/Models/Ciudad.php
+Cliente,clientes,"usuario:belongsTo User::class, 'user_id'; notasVentas:hasMany NotaVenta::class, 'cliente_id'",backend/app/Models/Cliente.php
+Contrato,contratos,"notaVenta:belongsTo NotaVenta::class, 'nota_venta_id'; entrega:hasOne Entrega::class, 'contrato_id'",backend/app/Models/Contrato.php
+CuentaBancaria,cuentas_bancarias,"empresa:belongsTo MiEmpresa::class, 'mi_empresa_id'; pagos:hasMany Pago::class, 'cuenta_id'",backend/app/Models/CuentaBancaria.php
+Cuota,cuotas,"planPago:belongsTo PlanPago::class, 'plan_pago_id'; pagos:hasMany Pago::class, 'cuota_id'; reprogramacion:belongsTo Reprogramacion::class, 'reprogramacion_id'",backend/app/Models/Cuota.php
+Distrito,distritos,"ciudad:belongsTo Ciudad::class, 'ciudad_id'; sectoresUrbanos:hasMany SectorUrbano::class, 'distrito_id'",backend/app/Models/Distrito.php
+Egreso,egresos,"notaVenta:belongsTo NotaVenta::class, 'nota_venta_id'; asesor:belongsTo Asesor::class, 'asesor_id'; cuentaBancaria:belongsTo CuentaBancaria::class, 'cuenta_bancaria_id'; registradoPor:belongsTo User::class, 'user_id'",backend/app/Models/Egreso.php
+Entrega,entregas,"contrato:belongsTo Contrato::class, 'contrato_id'",backend/app/Models/Entrega.php
+ImagenPropiedad,imagenes_propiedades,propiedad:belongsTo Propiedad::class,backend/app/Models/ImagenPropiedad.php
+Ingreso,ingresos,"pago:belongsTo Pago::class, 'pago_id'; notaVenta:belongsTo NotaVenta::class, 'nota_venta_id'; cuentaBancaria:belongsTo CuentaBancaria::class, 'cuenta_bancaria_id'; registradoPor:belongsTo User::class, 'user_id'",backend/app/Models/Ingreso.php
+MetodoPago,metodos_pago,"pagos:hasMany Pago::class, 'metodo_pago_id'",backend/app/Models/MetodoPago.php
+MetodoPagoCuentaDefault,metodo_pago_cuenta_default,"empresa:belongsTo MiEmpresa::class, 'mi_empresa_id'; metodoPago:belongsTo MetodoPago::class, 'metodo_pago_id'; cuenta:belongsTo CuentaBancaria::class, 'cuenta_bancaria_id'",backend/app/Models/MetodoPagoCuentaDefault.php
+MiEmpresa,mi_empresa,"cuentas:hasMany CuentaBancaria::class, 'mi_empresa_id'",backend/app/Models/MiEmpresa.php
+NotaVenta,notas_ventas,"asesor:belongsTo Asesor::class, 'asesor_id'; cliente:belongsTo Cliente::class, 'cliente_id'; propiedad:belongsTo Propiedad::class, 'propiedad_id'; planPago:hasOne PlanPago::class, 'nota_venta_id'; pagos:hasMany Pago::class, 'nota_venta_id'; contrato:hasOne Contrato::class, 'nota_venta_id'",backend/app/Models/NotaVenta.php
+Pago,pagos,"notaVenta:belongsTo NotaVenta::class, 'nota_venta_id'; cuota:belongsTo Cuota::class, 'cuota_id'; metodoPago:belongsTo MetodoPago::class, 'metodo_pago_id'; cuenta:belongsTo CuentaBancaria::class, 'cuenta_id'",backend/app/Models/Pago.php
+Permiso,permisos,"roles:belongsToMany Rol::class, 'rol_permiso', 'permiso_id', 'rol_id') ->withPivot('id') ->withTimestamps(",backend/app/Models/Permiso.php
+PlanPago,planes_pagos,"notaVenta:belongsTo NotaVenta::class, 'nota_venta_id'; cuotas:hasMany Cuota::class, 'plan_pago_id'; reprogramaciones:hasMany Reprogramacion::class, 'plan_pago_id')->orderBy('fecha_reprogramacion'",backend/app/Models/PlanPago.php
+Propiedad,propiedades,"propietarios:belongsToMany Propietario::class, 'propiedad_propietario'; sectorUrbano:belongsTo SectorUrbano::class, 'sector_urbano_id'; ubicacion:belongsTo Ubicacion::class, 'ubicacion_id'; caracteristicas:belongsToMany Caracteristica::class, 'caracteristica_propiedad'; imagenes:hasMany ImagenPropiedad::class, 'propiedad_id'",backend/app/Models/Propiedad.php
+Propietario,propietarios,"propiedades:belongsToMany Propiedad::class, 'propiedad_propietario'",backend/app/Models/Propietario.php
+Reprogramacion,reprogramaciones,"planPago:belongsTo PlanPago::class, 'plan_pago_id'; usuario:belongsTo User::class, 'usuario_id'; cuotas:hasMany Cuota::class, 'reprogramacion_id'",backend/app/Models/Reprogramacion.php
+Rol,roles,"permisos:belongsToMany Permiso::class, 'rol_permiso', 'rol_id', 'permiso_id') ->withPivot('id') ->withTimestamps(",backend/app/Models/Rol.php
+RolPermiso,rol_permiso,rol:belongsTo Rol::class; permiso:belongsTo Permiso::class,backend/app/Models/RolPermiso.php
+RolPermisoUsuario,rol_permiso_usuario,rolPermiso:belongsTo RolPermiso::class,backend/app/Models/RolPermisoUsuario.php
+SectorUrbano,sectores_urbanos,"distrito:belongsTo Distrito::class, 'distrito_id'; propiedades:hasMany Propiedad::class, 'sector_urbano_id'",backend/app/Models/SectorUrbano.php
+Ubicacion,ubicaciones,"propiedad:hasOne Propiedad::class, 'ubicacion_id'",backend/app/Models/Ubicacion.php
+User,users,"rolesPermisos:hasMany RolPermisoUsuario::class, 'user_id'; asignaciones:belongsToMany  RolPermiso::class, 'rol_permiso_usuario', 'user_id', 'rol_permiso_id' ",backend/app/Models/User.php
+Zona,zonas,"ciudad:belongsTo Ciudad::class, 'ciudad_id'; propiedades:hasMany Propiedad::class, 'zona_id'",backend/app/Models/Zona.php

@@ -1,0 +1,7 @@
+backend | 1f30b8c7781458473be63b367fed956107ea7a81 | rama de trabajo: feature/fases-0-2-arquitectura-dual
+frontend | dd17e955c1dfe186a1ba9eca4b2f944647870611 | rama de trabajo: main
+multilider-ms-seguridad | a29dd6bbf0ba0dba8e899c3ebfa738b858443929 | rama de trabajo: main
+multilider-ms-propiedades | 0f598c47e01b4718404ed7b4b3f5ecd7d2800f82 | rama de trabajo: main
+multilider-ms-comercial | bdfb91e487d7906cbca6acdcba2f8ff6fcdcb67c | rama de trabajo: main
+multilider-ms-finanzas | fa12bc46cb720363a7572ee4d445c081dd69cd92 | rama de trabajo: main
+multilider-docs | c4bdd1fd20ab9641fe4c4621a52af7db19405a03 | rama de trabajo: docs/implementacion-fases-0-2

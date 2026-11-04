@@ -1,0 +1,51 @@
+RESULTADOS DE IMPLEMENTACIÓN — 4 de noviembre de 2026
+
+Estado: fases 0, 1 y 2 completadas en el alcance de PLAN_FASES_0_2.txt.
+Entrega en ramas de trabajo; no fusionada a main ni desplegada.
+Backend: commit e2ecb21, rama feature/fases-0-2-arquitectura-dual.
+Comercial: baseline bdfb91e. Finanzas: baseline fa12bc4. Sin remotos configurados.
+
+VERIFICACIÓN
+1. Línea base original: PHPUnit 2 tests, 2 aserciones, OK.
+2. Caracterización antes de integrar controladores: 8 tests, 55 aserciones, OK.
+3. Suite final: PHPUnit 10.5.63 / PHP 8.2.29 / MySQL 8.0.46.
+   56 tests, 308 aserciones, todos correctos; 13.452 s en la ejecución final.
+   Comando desde MultiliderNew: .\backend\scripts\test-isolated.ps1
+   Matriz: MATRIZ_PRUEBAS_F0_F2.csv (L-01..L-10, A-01..A-14 y cinco casos adicionales).
+4. Sintaxis PHP: 53 archivos de infraestructura/configuración/tests/controladores
+   comprobados con php -l, sin errores. Nuevos archivos formateados con Pint.
+5. Frontend main: npm run build, Vite 8.0.3, compilación correcta.
+   Ningún cambio en su código fuente ni cambio de rama.
+6. Auditoría de env(): ninguna llamada env() restante en backend/app.
+7. .env, .env.testing, datos/logs/cachés/junit de pruebas ignorados por Git.
+8. mysqld temporal cerrado correctamente; se conservan datadir/logs ignorados
+   para repetir pruebas. No se tocó la instancia de datos actual.
+
+COBERTURA EFECTIVA
+Login/me/logout y permisos locales reales; consulta/detalle de propiedades;
+venta contado/crédito, contrato/pago pendiente, cuotas y comisión; anulación;
+confirmación secuencial repetida de pago con un solo ingreso; PDF, Excel,
+destinatarios de usuarios y envío interceptado por Mail fake.
+Local con flag false/true sin construir HTTP; fallos de puente legado acotados;
+comandos/espejos bloqueados en cuatro combinaciones de modo/flag; ninguna tarea
+de espejo programada; job incompatible no escribe ni envía correo.
+Proveedores por dominio, errores remotos/JSON inválido sin fallback, filtros,
+paginación vacía y comparación de campos/envoltura entre orígenes equivalentes.
+Cabeceras UUID, no reenvío de Sanctum, rechazo de rutas incompletas antes de BD.
+Arranque HTTP y CLI con y sin config:cache en ambos modos, usando cachés propias.
+
+LÍMITES
+Las pruebas remotas usan Guzzle MockHandler y un proveedor delegado de prueba,
+con el DTO real de Propiedades como referencia. No hay login/JWT productivo F3,
+integración .NET de extremo a extremo ni transacciones distribuidas certificadas.
+No se probó concurrencia de cobros/reservas entre servicios en esta fase.
+No se enviaron correos, llamadas de pasarela ni solicitudes de mapas reales.
+No se comprobó IMAP en este PHP CLI; falta su extensión. No se accedió al VPS.
+No se modificó ni repitió la suite .NET de Comercial/Finanzas: solo se versionó
+su código existente. Las 23 pruebas .NET citadas en el plan son evidencia previa.
+No hay validación E2E de navegador completa ni consolidación del frontend (F8).
+
+CAMBIOS Y RECUPERACIÓN
+Ver operacion/ARQUITECTURA_DUAL_F0_F2.txt para variables, precedencia, archivos,
+límites del piloto, ejecución de pruebas, caché/workers y recuperación.
+PEND-001 completado. Continúan F3–F9, según PLAN_INTEGRACION_MICROSERVICIOS.txt.

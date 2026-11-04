@@ -1,0 +1,30 @@
+﻿id,requisito,prueba,entorno_alcance,resultado
+L-01,Login/me/permisos/logout Sanctum,LocalRegressionTest::test_local_login_me_permissions_and_logout,MySQL aislado; token de prueba,PASS
+L-02,Propiedades detalle/filtros/paginación,LocalRegressionTest::test_property_search_filters_pagination_and_detail,MySQL aislado; propietarios ficticios,PASS
+L-03,Venta contado/contrato/pago pendiente/sin ingreso,LocalRegressionTest::test_cash_sale_and_cancellation_preserve_local_state,MySQL aislado; sin credenciales remotas,PASS
+L-04,Crédito/plan/cuotas/comisión,LocalRegressionTest::test_credit_plan_and_commission_keep_existing_calculations,Capital/interés cero; reglas actuales,PASS
+L-05,Anulación/disponibilidad/comisión pendiente,LocalRegressionTest::test_cash_sale_and_cancellation_preserve_local_state,Sin solicitudes remotas,PASS
+L-06,Confirmación repetida no duplica ingreso,LocalRegressionTest::test_payment_confirmation_creates_income_only_once,Repetición secuencial; concurrencia distribuida F5/F6,PASS
+L-07,Flag false/URLs vacías/sin token remoto,LocalRegressionTest; LegacyBridgeTest::test_false_flag_does_not_construct_client_in_either_mode,Factory interceptada; sin .NET,PASS
+L-08,Puente habilitado: timeout/401/500 y transacción local,LegacyBridgeTest::test_enabled_transitional_bridge_catches_failure_without_retry_or_secrets; test_transitional_bridge_failure_keeps_local_sale_atomic,Colaborador forzado de prueba; rutas remotas reales bloqueadas,PASS
+L-09,No programar espejos desactivados,ArchitectureModeTest::test_legacy_commands_and_schedules_cannot_overwrite_business_data,4 combinaciones de modo/flag,PASS
+L-10,PDF/Excel/destinatarios/envío de informe,LocalRegressionTest::test_inventory_pdf_excel_and_mail_recipient_use_local_users,mPDF/Excel real local; Mail fake; sin SMTP/IMAP real,PASS
+A-01,Modo por defecto local,ArchitectureModeTest::test_default_mode_and_domain_bindings,Configuración por defecto y contenedor,PASS
+A-02,Valor inválido falla explícitamente,ArchitectureModeTest::test_invalid_mode_fails_explicitly,Sin acceso de negocio,PASS
+A-03,Local sin URL/JWT/.NET,ArchitectureModeTest::test_local_mode_overrides_sync_true_without_constructing_http_clients; LocalRegressionTest,URLs vacías/erróneas; Sanctum local,PASS
+A-04,Local prevalece sobre sync true,ArchitectureModeTest::test_local_mode_overrides_sync_true_without_constructing_http_clients,Factory sin construcciones; caché sin token,PASS
+A-05,Proveedor correcto por contrato,ArchitectureModeTest::test_default_mode_and_domain_bindings,4 dominios; remotos incompletos explícitos,PASS
+A-06,Listado equivalente y página vacía,RemoteCatalogContractTest::test_equivalent_origins_keep_public_listing_fields_and_pagination; test_empty_remote_page_keeps_laravel_empty_paginator,DTO real ficticio; sin equivalencia de timestamps/pivotes,PASS
+A-07,Errores 401/403/404/409/422/timeout sin fallback,RemoteCatalogContractTest::test_problem_details_status_is_translated_without_local_fallback; test_timeout_is_bounded_and_does_not_read_local_catalog_or_retry,"Incluye 400 con errors, 500 y 302",PASS
+A-08,No reenviar Sanctum como JWT .NET,RemoteCatalogContractTest::test_sanctum_token_is_never_forwarded_as_dotnet_credential,Proveedor real pendiente: 503 antes de HTTP,PASS
+A-09,Correlación/UUID y registros sin secretos,RemoteCatalogContractTest::test_remote_filter_pagination_and_headers_match_public_contract; LegacyBridgeTest,Cabeceras UUID y errores ficticios con SECRET,PASS
+A-10,Comandos manuales bloqueados,ArchitectureModeTest::test_legacy_commands_and_schedules_cannot_overwrite_business_data,Exit 1; cero construcciones HTTP/mutaciones,PASS
+A-11,HTTP/CLI con y sin config:cache,ConfigurationCacheTest,Ambos modos; caché propia; fixtures de configuración,PASS
+A-12,Rutas remotas incompletas bloqueadas antes de BD,ArchitectureModeTest::test_remote_unready_routes_fail_before_local_reads_or_writes,9 rutas: ventas/pagos/callback/login/landing/etc.,PASS
+A-13,Regresión local y frontend main,LocalRegressionTest; npm run build,Fuente frontend sin cambios; build OK; E2E UI pendiente F8,PASS
+A-14,Espejos no sobrescriben negocio remoto,ArchitectureModeTest::test_legacy_commands_and_schedules_cannot_overwrite_business_data,Ambos comandos en remoto con flag false/true,PASS
+EX-01,Guard rechaza base de negocio antes de consultas,ArchitectureModeTest::test_test_database_guard_rejects_a_business_database_before_queries,DB ficticia insegura rechazada,PASS
+EX-02,Rechazos de venta/anulación cierran transacción,ArchitectureModeTest::test_repeated_sale_or_cancellation_closes_its_transaction,Nivel transaccional conservado,PASS
+EX-03,Job antiguo no envía ni escribe tras cambio de modo,ArchitectureModeTest::test_stale_mail_job_does_not_send_or_write_after_mode_switch,Handle y failed; Mail fake; cero queries,PASS
+EX-04,JSON remoto inválido/query inválida controlados,RemoteCatalogContractTest::test_malformed_response_is_controlled; test_invalid_query_is_rejected_before_http,5 respuestas malformadas; sin fallback,PASS
+EX-05,Destino y TLS/timeouts configurados,LegacyBridgeTest::test_factory_timeouts_tls_and_destinations,Factory real sin red; TLS true; destino arbitrario rechazado,PASS

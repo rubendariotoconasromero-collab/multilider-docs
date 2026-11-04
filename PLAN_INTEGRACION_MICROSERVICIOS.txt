@@ -1,0 +1,496 @@
+PLAN DE DESARROLLO: BACKEND DUAL Y FRONTEND UNIFICADO
+Proyecto: MultiliderNew
+Fecha: 4 de noviembre de 2026, America/La_Paz
+Versión del plan: 1.1
+Estado: F0–F2 IMPLEMENTADAS y verificadas en ramas de trabajo. F3–F9 PENDIENTES.
+Evidencias: pruebas/RESULTADOS_F0_F2.txt y PLAN_FASES_0_2.txt versión 1.1.
+No se ha desplegado ni habilitado el modo remoto completo.
+Alcance de este documento: diseño, secuencia y criterios de verificación.
+
+1. OBJETIVO Y RESULTADO ESPERADO
+========================================
+Mantener un frontend Vue y un backend Laravel capaces de operar en dos despliegues:
+- LOCAL: Laravel autentica y ejecuta las operaciones sobre sus datos locales.
+- MICROSERVICIOS: Laravel conserva la API pública y delega cada dominio a
+  Seguridad, Propiedades, Comercial y Finanzas.
+El usuario utiliza las mismas pantallas. Las diferencias se resuelven mediante
+adaptadores de backend, salvo estados nuevos que deban mostrarse, como una
+operación pendiente de confirmación.
+El modo se configura por instancia del backend. No se elige desde el navegador,
+por una rama Git, por usuario ni automáticamente ante una caída.
+Ambos modos se conservarán y probarán como funcionalidades soportadas.
+
+2. PUNTO DE PARTIDA VERIFICADO
+========================================
+- backend: main; login local Sanctum, soporte JWT adicional, sincronizadores
+  usuarios:sync y propiedades:sync, y actualización remota de disponibilidad.
+- frontend: main y rama remota release/microservices. main utiliza Laravel.
+  release/microservices consulta directamente Seguridad y Propiedades.
+- Las ramas frontend divergen: la de microservicios no contiene todas las
+  correcciones de main de correo de perfil, validación de propiedades y
+  destinatarios de informes. No se debe hacer una sustitución ciega de ramas.
+- Comercial y Finanzas existen junto a backend/frontend, tienen .sln, APIs,
+  JWT, bases SQL Server propias, migraciones, Swagger y pruebas.
+- Se verificaron 23 pruebas de esos dos servicios, con dobles HTTP y pruebas
+  de migraciones/índices/concurrencia en SQL Server temporal.
+  Esto NO certifica todavía el flujo real entre los cuatro servicios y Laravel.
+- PEND-001 completado en F1/F2: en local no hay llamadas a microservicios,
+  aunque el flag antiguo esté activo. Sincronizadores antiguos bloqueados.
+- El frontend no tiene configurado actualmente un conjunto automatizado de
+  pruebas de componentes/E2E comparable al que requiere este plan.
+
+Brechas conocidas de los servicios nuevos que deben cerrarse antes del corte:
+- Comercial consulta disponibilidad, pero Propiedades aún no ofrece reserva
+  atómica. La unicidad local de una venta no protege a otros escritores.
+- La inscripción de una venta en Finanzas es hoy un paso explícito.
+- No hay un coordinador durable de los pasos distribuidos ni outbox.
+- El PDF de contrato nuevo es un resumen/borrador, no la plantilla legal actual.
+- Finanzas aún no incorpora Libélula ni todas las posibles variantes de pagos,
+  anulaciones y recargos del sistema histórico. Se verificará la paridad real.
+- El JWT manual de Laravel requiere revisar algoritmo, emisor, audiencia,
+  vencimiento obligatorio y usuario activo.
+- Los endpoints administrativos existentes de Seguridad/Propiedades requieren
+  verificar permisos por operación; una autorización genérica no basta.
+
+3. REGLAS DE ARQUITECTURA
+========================================
+3.1 Entrada única
+Frontend -> Laravel -> implementación local o API del servicio.
+El navegador deja de depender de las URL internas de los cuatro servicios.
+
+3.2 Configuración
+Introducir APP_ARCHITECTURE=local|microservices en config/architecture.php.
+- Valor inicial y por defecto: local.
+- Un valor desconocido debe producir un error de configuración identificable.
+- En local, el arranque no exigirá claves JWT remotas, URL ni procesos .NET;
+  se validarán únicamente las dependencias necesarias del modo seleccionado.
+- Mantener secretos/URL en configuración del servidor, nunca en el frontend.
+- Centralizar env() en archivos config antes de habilitar config:cache.
+- Definir la relación con MICROSERVICE_SYNC_ENABLED: nunca podrá habilitar
+  conexiones a microservicios si APP_ARCHITECTURE=local.
+- En modo remoto, la sincronización antigua no seguirá sobrescribiendo tablas
+  de negocio. Se retirará o sustituirá por proyecciones de lectura explícitas.
+- Elegir el modo exige reiniciar/recargar workers, renovar sesiones y validar
+  el estado de los datos. No será un interruptor de uso cotidiano.
+
+3.3 Dos implementaciones detrás de un contrato
+Crear contratos por dominio y resolver implementaciones mediante el contenedor:
+  IdentidadGateway        Local / SeguridadHttp
+  CatalogoGateway         Local / PropiedadesHttp
+  ClientesAsesoresGateway Local / ComercialHttp
+  VentasContratosGateway  Local / ComercialHttp
+  CobranzasGateway        Local / FinanzasHttp
+  MovimientosGateway      Local / FinanzasHttp
+Los nombres son orientativos. Los controladores no acumularán condiciones de modo.
+La implementación local debe reutilizar el comportamiento existente.
+Los adaptadores remotos traducirán DTO, estados, errores y paginación.
+
+3.4 Propiedad de datos
+En local: Laravel conserva sus datos de negocio.
+En remoto:
+  Seguridad: identidad, credenciales, roles, permisos.
+  Propiedades: catálogo, propietarios, disponibilidad, reservas e imágenes.
+  Comercial: clientes, asesores, ventas, contratos y entregas.
+  Finanzas: obligaciones, planes, cuotas, pagos, ingresos, egresos, comisiones.
+Laravel conserva configuración empresarial, correo, coordinación y, si hacen
+falta, proyecciones de lectura y equivalencias de identificadores.
+Ningún servicio escribe directamente en la base de otro.
+Los datos reflejados para consultas no serán un segundo origen de escritura.
+
+3.5 Errores e idempotencia
+No se confirmará una venta/pago que solo se guardó parcialmente.
+No se ejecutará una escritura local como respaldo de una operación remota.
+Cada comando reintentable tendrá un identificador persistente de operación.
+Un timeout puede significar que el servicio sí confirmó: consultar/reconciliar
+por identificador antes de repetir. No reintentar escrituras con un UUID nuevo.
+Añadir tiempos máximos de conexión/respuesta, correlación y errores normalizados.
+No registrar contraseñas, JWT completos ni datos personales innecesarios.
+
+4. REPOSITORIOS Y RESPONSABILIDADES
+========================================
+backend:
+  selección de modo, contratos/adaptadores, autenticación, coordinación,
+  consultas de reportes/dashboard/portal, equivalencias y pruebas de ambos modos.
+frontend:
+  recuperar mejoras de ambas ramas, consumir una API común, unificar permisos,
+  errores, identificadores de reintento y estados de procesamiento.
+multilider-ms-seguridad:
+  contratos de identidad, validación de permisos, perfil, credenciales,
+  ciclo de vida de sesiones y pruebas con Laravel/otros servicios.
+multilider-ms-propiedades:
+  reservas/confirmación/liberación atómicas, autorización y migración de catálogo.
+multilider-ms-comercial:
+  integración real con reservas, estados de ventas, contratos/entregas,
+  idempotencia, consultas y paridad funcional.
+multilider-ms-finanzas:
+  inscripción financiera, estados coordinados, paridad de cobros/reversiones,
+  pasarela si corresponde, consultas y conciliación.
+multilider-docs:
+  contratos, decisiones, matriz de cobertura, migración y recuperación.
+
+5. FLUJO DE RAMAS Y ENTORNOS
+========================================
+- main será estable en todos los repositorios.
+- Durante implementación, crear ramas cortas por tarea, por ejemplo:
+  backend: feature/modo-local y feature/adaptadores-ms.
+  frontend: feature/frontend-unificado, basada inicialmente en main.
+  servicios: feature/reservas, feature/ventas-coordinadas, etc.
+- Conservar release/microservices como referencia mientras se recupera/adapta
+  su trabajo. Integrar selectivamente; no perder funciones presentes en main.
+- Revisar y probar cada cambio antes de fusionar. No hacer fusiones automáticas,
+  reinicios del VPS ni actualizaciones Git por el simple hecho de publicar commits.
+- Mantener dos instancias de validación con el mismo código backend:
+  una local y otra microservicios, con configuraciones y datos aislados.
+- Durante la transición, los parciales se prueban en integración; no se expone
+  en producción una combinación arbitraria de dominios locales/remotos.
+- Un cambio común de interfaz se implementa una vez y se prueba contra ambos modos.
+
+6. FASES Y TAREAS
+========================================
+Fases 0–2 completadas en el alcance del desglose operativo; fases 3–9 pendientes.
+Desglose operativo de fases 0 a 2: PLAN_FASES_0_2.txt.
+La fase 2 entrega infraestructura y una consulta piloto; la activación funcional
+completa del modo remoto continúa en las fases 3 a 8.
+
+FASE 0 | Inventario, contratos y línea base
+Repositorios: todos. Dependencias: ninguna.
+Tareas:
+ F0.1 Registrar commits y respaldos de las versiones actuales sin alterar main.
+ F0.2 Inventariar rutas, permisos, DTO, archivos y reglas por módulo.
+ F0.3 Elaborar matriz de paridad Laravel vs servicios, clasificando cada función:
+      equivalente / requiere adaptación / ausente / fuera de alcance acordado.
+ F0.4 Definir contrato público común tomando como base la API que consume main:
+      login, usuario/permisos, paginación, monedas, estados, fechas y errores.
+ F0.5 Identificar reglas de entrega, anulaciones, pagos parciales, mora,
+      comisiones, PDFs y pasarela; no sustituirlas por supuestos.
+ F0.6 Identificar esquema real, volúmenes e inconsistencias de datos, sin publicar
+      credenciales ni extraer datos personales hacia repositorios.
+ F0.7 Verificar soporte de .NET/EF/proveedores/PHP y compatibilidad de paquetes.
+Entregables:
+ Matriz funcional, catálogo de endpoints y permisos, decisiones de identidad,
+ propietario de datos y lista ordenada de brechas.
+Aceptación:
+ Cada pantalla y operación tiene responsable, contrato y prueba prevista.
+ No quedan decisiones financieras implícitas ni funciones críticas sin clasificar.
+
+FASE 1 | Asegurar el modo local y resolver PEND-001
+Repositorio: backend. Depende: F0.
+Tareas:
+ F1.1 Cubrir con pruebas login/logout local, ventas al contado/crédito,
+      anulaciones, pagos y consultas principales.
+ F1.2 Implementar el guard de configuración de pushEstadoAMicroservicio:
+      retornar antes de consultar tokens o hacer HTTP cuando esté desactivado.
+ F1.3 Limitar conexión/respuesta de los clientes HTTP de autenticación y catálogo.
+ F1.4 Probar que el fallo externo no interrumpe el comportamiento local.
+ F1.5 Verificar almacenamiento/PDF/correo y programadores actuales sin regresiones.
+Entregables:
+ Ajuste PEND-001 y pruebas de regresión local.
+Aceptación:
+ Con los cuatro microservicios apagados, el modo local conserva las operaciones
+ verificadas y no realiza HTTP hacia esos servicios.
+ PEND-001 solo se marca completado después de esas pruebas.
+Nota:
+ Es una corrección del puente antiguo. No habilita fallback local en modo remoto.
+
+FASE 2 | Configuración dual y capa de adaptación
+Repositorio: backend. Depende: F1 y contrato F0.
+Tareas:
+ F2.1 Añadir config/architecture.php, validación de modo y .env.example.
+ F2.2 Extraer contratos por dominio y las implementaciones locales preservando
+      las reglas; resolver una implementación por configuración.
+ F2.3 Crear clientes HTTP remotos con timeout, autorización delegada, correlación
+      y traducción de respuestas. Evitar una cuenta administradora compartida.
+ F2.4 Mantener las rutas públicas conocidas; versionar cualquier ruptura necesaria.
+ F2.5 Aplicar el modo a comandos, tareas y trabajos en cola: local nunca contacta
+      los cuatro servicios, incluso si una variable antigua quedó activada.
+ F2.6 Mover env() de controladores/proveedores a config y verificar config:cache.
+ F2.7 Crear pruebas de selección de implementación, errores y contratos.
+Entregables:
+ Backend preparado para seleccionar implementaciones sin duplicar controladores.
+Aceptación:
+ Valores válidos seleccionan el proveedor correcto; configuración inválida se
+ detecta; no hay escrituras simultáneas en ambos orígenes ni fallback silencioso.
+
+FASE 3 | Identidad y autorización comunes
+Repositorios: backend, Seguridad; frontend solo para contrato/sesión.
+Depende: F2.
+Tareas:
+ F3.1 Local: conservar login Sanctum y los permisos locales.
+ F3.2 Remoto: Laravel utiliza Seguridad para login y devuelve al frontend un
+      contrato normalizado; el navegador continúa llamando a /api/login.
+ F3.3 Sustituir/endurecer JwtGuard con validación mantenida de firma, algoritmo
+      permitido, emisor, audiencia, exp obligatorio, nbf y reloj.
+ F3.4 Hacer explícito qué tokens admite cada modo. No permitir que un token
+      Sanctum antiguo eluda Seguridad cuando el modo sea microservicios.
+ F3.5 Resolver identidad por identificador externo estable y equivalencias.
+      No depender exclusivamente del correo, que puede cambiar.
+ F3.6 Normalizar usuario/roles/permisos para las pantallas y el middleware.
+ F3.7 Definir logout, vencimiento, revocación y cambios de contraseña/desactivación
+      en modo remoto. No limitar el logout a borrar datos del navegador.
+ F3.8 Adaptar perfil y contraseña al propietario real de la identidad.
+      Mantener independientes credenciales de buzón y acceso al sistema.
+ F3.9 Agregar permisos por operación en servicios y protección del recurso propio.
+      El portal del cliente no usará un token administrativo para consultar todo.
+ F3.10 Definir identidad de servicio con privilegios mínimos para trabajos
+       automáticos que no puedan utilizar un token de usuario vigente.
+Entregables:
+ Autenticación y autorización coherentes en ambos modos.
+Aceptación:
+ Login/me/logout/perfil funcionan; JWT incorrecto/expirado/emisor ajeno se rechaza;
+ un usuario no accede a la cartera, archivos ni cambios de otro usuario;
+ desactivar una identidad tiene el efecto de sesión definido.
+ La UI recibe un formato común de permisos en los dos escenarios.
+
+FASE 4 | Catálogo y disponibilidad segura de Propiedades
+Repositorios: backend, Propiedades y Comercial.
+Depende: F2/F3.
+Tareas:
+ F4.1 Adaptar CRUD de catálogo/propietarios/geografía/características/imágenes
+      preservando validaciones y respuestas de la interfaz.
+ F4.2 Añadir reserva atómica por propiedad con identificador de operación,
+      protección de concurrencia y rechazo de una segunda reserva.
+ F4.3 Añadir confirmación y liberación idempotentes de la reserva.
+      Solo la operación propietaria puede confirmar/liberar.
+ F4.4 Adaptar Comercial para utilizar su reserva y el precio autorizado,
+      evitando que el estado Reservado de su propia operación se rechace.
+ F4.5 Sustituir el PUT completo de propiedad del puente antiguo por operaciones
+      específicas de disponibilidad; evitar sobrescribir atributos ajenos.
+ F4.6 Aislar o retirar sincronizadores antiguos que hagan upsert por ID sobre
+      tablas que todavía tengan escritores locales.
+Entregables:
+ Catálogo remoto compatible y protocolo de reserva/confirmación/liberación.
+Aceptación:
+ Dos ventas simultáneas de una propiedad no se confirman; reintentos de la misma
+ operación no crean reservas duplicadas; una cancelación no libera otra reserva.
+ Las fotografías siguen accesibles con la política pública/privada correspondiente.
+
+FASE 5 | Comercial, Finanzas y operaciones distribuidas
+Repositorios: backend, Comercial, Finanzas; Propiedades para reservas.
+Depende: F3/F4.
+Tareas:
+ F5.1 Crear adaptadores para clientes/asesores/ventas/contratos/entregas y para
+      planes/cuotas/pagos/ingresos/egresos/comisiones/métodos/cuentas y sus mapeos.
+ F5.2 Establecer una tabla durable de operaciones e intentos y un coordinador
+      con estados consultables; persistir trabajos pendientes mediante outbox
+      o mecanismo durable equivalente. No depender de una cadena HTTP sin registro.
+ F5.3 Mantener el mismo identificador de operación en el navegador, Laravel
+      y cada paso remoto. Consultar el resultado tras respuestas perdidas.
+ F5.4 Implementar estados intermedios antes de dar una venta por confirmada:
+      reservar -> registrar venta pendiente -> preparar obligaciones financieras
+      -> confirmar disponibilidad y venta -> habilitar cobro -> completar.
+      Afinar el orden con los contratos de F0; impedir cobros antes de confirmación.
+ F5.5 Tratar fallos con reintento o compensación explícita y persistente:
+      cancelar obligaciones no cobradas, anular venta pendiente y liberar SU reserva.
+      Si una compensación no termina, dejar estado visible para recuperación.
+ F5.6 Coordinar la anulación para bloquear carreras con pagos, desembolsos y
+      entregas. No borrar historial ni revertir automáticamente dinero ya cobrado.
+ F5.7 Llevar a paridad las funciones críticas identificadas en F0:
+      pagos parciales/anticipados, reversos permitidos, condiciones de entrega,
+      gastos, comisiones y recargos, según lo que realmente exista/se acuerde.
+ F5.8 Preservar los planes históricos y su redondeo. No recalcular deuda antigua
+      con una fórmula nueva durante la importación.
+ F5.9 Mantener PDFs legales/comprobantes existentes o adaptar sus datos al
+      generador Laravel. El borrador nuevo no reemplaza el contrato firmado.
+ F5.10 Integrar la pasarela actual si forma parte del corte:
+       correlación y validación del callback, confirmación del proveedor,
+       idempotencia y autoridad financiera única. No confiar en el retorno del navegador.
+Entregables:
+ Operaciones comerciales/financieras coordinadas y reanudables.
+Aceptación:
+ Se prueba la caída del proceso antes/después de cada paso. El mismo comando
+ termina en una sola venta/obligación/cobro o una compensación comprobable.
+ No quedan ventas anunciadas como exitosas cuando sus pasos obligatorios fallaron.
+ No existe doble comisión, doble ingreso ni mezcla de monedas.
+ Cualquier brecha crítica de paridad está cerrada antes del corte productivo.
+
+FASE 6 | Consultas y frontend unificado
+Repositorios: backend y frontend; servicios para consultas faltantes.
+Depende: contrato F0/F2; integración final depende de F3-F5.
+Tareas:
+ F6.1 Crear rama frontend de integración basada en main y preservar referencia
+      de release/microservices. Recuperar cambios selectivamente.
+ F6.2 Conservar gestor de correo, validación de propiedades, destinatarios,
+      configuración de producción y demás mejoras de main.
+ F6.3 Sustituir las llamadas directas axiosSecurity/axiosPropiedades por clientes
+      de la API Laravel común. La UI no conocerá las direcciones internas.
+ F6.4 Unificar stores de sesión/permisos/cliente, errores y cierre de sesión.
+ F6.5 Conservar un UUID al reintentar una acción; mostrar procesos pendientes,
+      resultado conciliado y opciones de recuperación sin duplicar solicitudes.
+ F6.6 Adaptar dashboard, cinco reportes, exportaciones PDF/Excel y portal del
+      cliente a lectores locales/remotos o proyecciones explícitas.
+ F6.7 Probar totales por moneda y fecha, permisos de reportes, destinatarios y
+      datos propios del cliente. No consultar tablas locales desactualizadas.
+ F6.8 Añadir pruebas de componentes/E2E y probar el mismo frontend contra
+      las dos instancias backend de validación.
+Entregables:
+ Un frontend con cobertura de ambos modos y consultas generales correctas.
+Aceptación:
+ Las funciones de ambas ramas están inventariadas y conservadas/adaptadas;
+ las pantallas no dependen de las URL de microservicios;
+ se visualizan correctamente identidad, importes y estados en ambos modos.
+ No se retira release/microservices como referencia hasta demostrar paridad.
+
+FASE 7 | Migración y conciliación de datos
+Repositorios: backend, servicios y documentación.
+Depende: F0/F3/F4/F5; puede ensayarse antes de completar F6.
+Tareas:
+ F7.1 Crear herramientas repetibles de exportación/importación con ejecución
+      de prueba, lotes, manifiestos y equivalencias de identificadores.
+ F7.2 Definir orden: identidades/permisos -> catálogo -> clientes/asesores ->
+      ventas/contratos/entregas -> planes/cuotas/pagos/movimientos/comisiones.
+ F7.3 Preservar relaciones y vincular sub de Seguridad con referencias de negocio.
+      No asumir que un mismo número representa la misma entidad en todas las bases.
+ F7.4 Verificar hashes de contraseñas con fixtures conocidos antes de importarlos;
+      no generar contraseñas en claro ni conservar el viejo password local como
+      credencial alternativa en modo remoto.
+ F7.5 Conservar importes, monedas, fechas, estados, planes históricos, archivos
+      y auditoría. Evitar que importar una venta regenere pagos/planes ya importados.
+ F7.6 Copiar documentos e imágenes con manifiesto y checksum, conservando privacidad.
+      No renombrar buzones ni migrar correo como efecto de esta migración.
+ F7.7 Ensayar sobre copia aislada y comparar conteos, relaciones, saldos, capital
+      pendiente, cuotas, ingresos, egresos, comisiones y muestras documentales.
+ F7.8 Preparar corte con pausa de escrituras, copia final y verificación del delta.
+Entregables:
+ Importadores, equivalencias, manifiestos e informe de conciliación.
+Aceptación:
+ Reejecutar un lote no duplica registros; las diferencias están identificadas
+ y resueltas; existe un respaldo restaurable y no quedan relaciones huérfanas.
+
+FASE 8 | Validación integral y recuperación
+Repositorios: todos.
+Depende: F3-F7.
+Tareas:
+ F8.1 Ejecutar matriz completa en local y microservicios con datos aislados.
+ F8.2 Probar ambos con el mismo frontend y reglas/permisos equivalentes.
+ F8.3 En remoto, usar las cuatro APIs y bases reales de prueba, no solo dobles HTTP.
+ F8.4 Probar duplicados, concurrencia, timeout con confirmación remota perdida,
+      reinicios de workers y recuperación de coordinaciones pendientes.
+ F8.5 Validar cambios de perfil/correo, sesiones expiradas, baja de usuarios,
+      intentos de acceso a clientes/archivos ajenos y permisos insuficientes.
+ F8.6 Probar configuración cacheada, colas, tareas, archivos, correo y pasarela
+      de pruebas según las funciones que efectivamente dependan de ellos.
+ F8.7 Ensayar restauración y reversión con datos creados DESPUÉS del cambio de modo.
+Entregables:
+ Evidencias de pruebas y procedimiento de recuperación ejecutado.
+Aceptación:
+ Cero fallos críticos; saldos/documentos conciliados; pendientes recuperables;
+ modo local no necesita ninguno de los cuatro procesos .NET.
+
+FASE 9 | Preparación del VPS y publicación controlada
+Repositorios: backend, frontend, servicios, deployment y documentación.
+Depende: F7/F8 completos.
+Tareas:
+ F9.1 Reinspeccionar VPS, recursos, versiones, puertos, servicios y sitios actuales.
+      La situación anterior no se asume vigente.
+ F9.2 Validar plataforma/soporte de SQL Server y .NET, capacidad disponible
+      y convivencia con MySQL/PHP/correo y los demás proyectos.
+ F9.3 Preparar cuentas de sistema, bases/usuarios de ejecución y migración
+      limitados, directorios, almacenamiento y secretos privados.
+ F9.4 Ejecutar servicios internos en loopback: 5211/5212/5213/5214, verificando
+      que sigan libres. Publicar únicamente la API Laravel y el frontend.
+ F9.5 Configurar systemd, health/readiness, logs/correlación, colas, respaldos
+      y alertas de operaciones pendientes. No instalar plantillas a ciegas.
+ F9.6 Verificar en staging aislado, restaurar un respaldo y ensayar el corte.
+ F9.7 Realizar una ventana de publicación coordinada con el propietario:
+      pausar escrituras, drenar trabajos antiguos, respaldo final, importar delta,
+      validar datos, seleccionar modo remoto, renovar sesiones y reabrir.
+ F9.8 Verificar Tecnoweb, Electrocenter, Farmaclick, Northland, sus API y correo.
+ F9.9 Fusionar solo versiones verificadas a main y documentar commits/configuración.
+      Publicación manual; no configurar despliegue automático por Git.
+Aceptación:
+ Servicios sanos, datos conciliados, respaldos verificados y sitios existentes
+ disponibles; no hay escritores antiguos activos contra los datos migrados.
+
+7. PRUEBAS MÍNIMAS OBLIGATORIAS
+========================================
+Caso                              Local                    Microservicios
+Login/me/logout/perfil            Sanctum local            Seguridad vía Laravel
+Permisos/cliente/archivo propio   Verificados localmente   Verificados en ambas capas
+CRUD y venta contado/crédito      Transacción local        APIs y coordinación durable
+Registrar/anular venta            Sin HTTP a los 4 MS      Reserva, deuda y compensación
+Pago/reintento                    Un solo ingreso         Un solo ingreso por operación
+Cuotas/amortización/reprogramar   Saldos históricos        Mismos saldos y contratos
+Reportes/dashboard/portal         Fuente local vigente    Fuente remota/proyección vigente
+Servicios .NET apagados           Operación autónoma      Error acotado, sin escritura local
+Timeout tras confirmar           Reintento idempotente   Reconciliar antes de repetir
+Reinicio del proceso/worker       Datos consistentes      Reanudar o compensar
+Vencimiento/cambio de modo        Sesión correcta         Sesión correcta, sin bypass
+Restauración                     Recuperación ensayada    Recuperación multibase ensayada
+
+Herramientas previstas:
+- PHPUnit/Laravel: implementaciones, HTTP y contratos de backend.
+- xUnit: reglas y persistencia de los servicios; extender las 23 pruebas actuales.
+- Pruebas de contrato: formato real de cada API y normalización Laravel.
+- Componentes y E2E frontend: incorporar herramientas compatibles, por ejemplo
+  Vitest/Playwright, antes de convertirlas en requisito de fusión.
+- SQL Server/MySQL aislados para integración; dobles para fallos controlados.
+- En modo local, interceptar los clientes Guzzle además de Laravel HTTP:
+  un fake de Http:: por sí solo no cubre las llamadas Guzzle existentes.
+No usar producción como entorno para crear ventas/pagos de prueba.
+
+8. CAMBIO DE MODO Y RECUPERACIÓN
+========================================
+Antes de habilitar escrituras remotas:
+- Validar respaldos, manifiestos y destino de cada entidad.
+- Pausar el origen antiguo, drenar colas, aplicar delta y conciliar.
+- Seleccionar modo, invalidar sesiones incompatibles y reanudar con observación.
+
+Si el problema aparece antes de aceptar escrituras nuevas:
+- Se puede volver al despliegue anterior siguiendo el ensayo de recuperación.
+
+Si ya hubo ventas/pagos nuevos en los servicios:
+- NO basta cambiar APP_ARCHITECTURE=local ni restaurar únicamente el código.
+- Pausar operaciones afectadas, identificar resultados confirmados y pendientes,
+  conciliar, aplicar exportación inversa/delta si se decide volver y validar
+  saldos/identificadores antes de reabrir.
+- No eliminar cobros, cuotas ni documentos para forzar que coincidan conteos.
+- Cada procedimiento debe indicar quién decide, evidencias y comandos concretos
+  preparados para el entorno real, sin contraseñas en la documentación.
+
+9. ORDEN DE IMPLEMENTACIÓN Y ESTIMACIÓN
+========================================
+Camino principal:
+ F0 -> F1 -> F2 -> F3 -> F4 -> F5 -> F7 -> F8 -> F9
+F6 puede prepararse después del contrato F2; su validación final depende de F3-F5.
+La documentación y pruebas se actualizan en cada fase.
+
+Estimación inicial para una persona dedicada, expresada como esfuerzo orientativo:
+ F0: 1-2 días; F1: 2-3; F2: 3-4; F3: 3-5; F4: 3-5;
+ F5: 6-10; F6: 6-9; F7: 4-7; F8: 3-5; F9: 2-4.
+ Total aproximado: 33-54 días laborables.
+No es una fecha comprometida. Reestimar al terminar F0, especialmente por
+paridad de pagos/PDF/pasarela, calidad de datos y preparación de infraestructura.
+Trabajo con más personas solo reduce tiempo si las dependencias y contratos están
+cerrados; la estimación no supone migrar todo a la vez.
+
+10. CRITERIO DE TERMINACIÓN
+========================================
+[ ] Un frontend y API pública común conservan la funcionalidad acordada.
+[x] Backend local funciona sin procesos .NET ni HTTP hacia esos cuatro servicios.
+[ ] Backend remoto utiliza los responsables correctos de cada dato.
+[ ] Identidad, permisos y ciclo de sesión son coherentes en ambos modos.
+[ ] No hay escrituras dobles ni cambio automático de origen ante fallos.
+[ ] Ventas/pagos distribuidos tienen estado durable, idempotencia y recuperación.
+[ ] Reportes/portal/dashboard muestran datos vigentes y totales conciliados.
+[ ] Datos y documentos fueron migrados con equivalencias/manifiestos comprobados.
+[ ] Ambas configuraciones pasan pruebas automatizadas y E2E.
+[ ] Publicación/recuperación se ensayaron y respetan los demás proyectos del VPS.
+[x] Guías y PENDIENTES reflejan lo que se implementó, no solo lo planificado.
+
+11. REFERENCIAS DE DISEÑO
+========================================
+Migración gradual (Strangler Fig):
+https://learn.microsoft.com/en-us/azure/architecture/patterns/strangler-fig
+Adaptación entre contratos (Anti-Corruption Layer):
+https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer
+Operaciones compensatorias y recuperación:
+https://learn.microsoft.com/en-us/azure/architecture/patterns/compensating-transaction
+
+Registro de cambios del plan:
+1.0 - Plan inicial. Solo documentación; no ejecución de tareas ni cambios de ramas.
+
+
+ACTUALIZACIÓN DE EJECUCIÓN 04-11-2026
+Fases 0, 1 y 2 completadas en el alcance de infraestructura/piloto definido.
+Ver analisis/, contratos/, pruebas/ y operacion/ para resultados y límites.
+Fases 3 a 9 conservan su estado pendiente. No se migraron datos ni se desplegó.

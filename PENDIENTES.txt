@@ -1,0 +1,29 @@
+PENDIENTES DEL PROYECTO MULTILIDER
+
+PEND-001 | Modo autónomo: llamadas a microservicios en ventas
+Registro: 04-11-2026. Estado: COMPLETADO F1/F2, verificado en rama de trabajo.
+Backend: feature/fases-0-2-arquitectura-dual. Sin despliegue ni fusión a main.
+
+Resultado
+- APP_ARCHITECTURE=local predeterminado y prioritario sobre el flag antiguo.
+- Venta/anulación no construyen clientes, consultan token ni hacen HTTP en local.
+- Puente legado acotado a 2 s conexión/5 s solicitud, sin caché global de JWT,
+  sin reintentos ni registro de cuerpos/credenciales. Colaborador probado con fallos.
+- Modo remoto bloquea venta/anulación y demás rutas incompletas antes de tocar BD.
+- F2 retira ejecución manual/programada de los espejos antiguos en ambos modos;
+  evita upsert por ID/correo sobre negocio. Flag true no vuelve a habilitarlos.
+- Retornos repetidos de venta/anulación ahora cierran sus transacciones.
+- Login local/Sanctum y frontend main conservados; pruebas locales verificadas.
+
+Evidencia
+pruebas/RESULTADOS_F0_F2.txt
+pruebas/MATRIZ_PRUEBAS_F0_F2.csv
+operacion/ARQUITECTURA_DUAL_F0_F2.txt
+
+Pendientes siguientes, ya definidos en el plan general
+F3: autenticación delegada real, identidad estable, JWT/permisos, logout/perfil.
+F4: paridad completa Propiedades, mapeos/proyecciones y reserva atómica.
+F5/F6: Comercial/Finanzas, coordinación durable y paridad financiera/documental.
+F7/F8: agregaciones, correo/infraestructura y unificación del frontend con E2E.
+F9: migración/corte/despliegue y recuperación de producción autorizados.
+No activar modo remoto completo ni espejos antiguos para saltar estas fases.
