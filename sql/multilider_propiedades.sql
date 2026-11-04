@@ -14,7 +14,7 @@ GO
 -- ============================================================
 -- TABLAS
 -- ============================================================
-
+ 
 CREATE TABLE ciudades (
     id           INT IDENTITY(1,1) PRIMARY KEY,
     nombre       NVARCHAR(255) NOT NULL,
