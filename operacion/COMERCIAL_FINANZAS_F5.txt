@@ -40,8 +40,13 @@ CONFIGURACIÓN DE UN ENSAYO
    Operations__Peers__<rol>__ServerCertificateSha256 y
    Operations__Callers__<rol>__CertificateSha256 de cada interlocutor necesario.
    Los certificados deben tener el EKU correcto, nombre del servidor válido,
-   vigencia y pin SHA-256. Para rotar, preparar pines antiguo y nuevo separados por
-   coma, cambiar el certificado, verificar por rol y retirar el pin anterior.
+   vigencia y pin SHA-256. Para rotar los cuatro servicios, cargar en cada receptor
+   los pines de cliente anterior y nuevo. Cargar también ambos pines de servidor
+   en todos sus clientes. Reiniciar por servicio para aplicar la confianza doble
+   antes de presentar certificados nuevos. Cambiar cliente y servidor de un rol,
+   verificar una operación y repetir para el siguiente rol. Al terminar, retirar
+   los pines anteriores y comprobar que se rechazan. Incluir ambos workers
+   de Comercial en cada reinicio de ese rol.
 5. En Comercial, Operations__WorkerEnabled=true ejecuta ventas y perfiles.
    Conservar el expirador de reservas F4 en Propiedades. El worker puede recuperar
    una decisión ya autorizada sin guardar el JWT del usuario. Configurar los
@@ -119,7 +124,9 @@ RESPALDO Y RESTAURACIÓN
    Solo restaurar un conjunto coherente ya verificado, nunca un down destructivo.
 
 Reproducción en PowerShell 7, desde backend:
-  .\scripts\test-isolated.ps1 -Integration -Phase5 -BrowserTests -RecoveryTests -RestoreTests
+  .\scripts\test-isolated.ps1 -Integration -Phase5 -AcceptanceTests -BrowserTests -RecoveryTests -RestoreTests
+  .\scripts\test-isolated.ps1 -Integration -IntegrationOnly -Phase5 -RotationTests
+  .\scripts\test-isolated.ps1 -Integration -IntegrationOnly -Phase5 -CrashTests
 Usa fixtures privados, SQL Server local y MySQL en puerto de prueba. El runner
 para solo los procesos que inició. Respaldos sintéticos y manifiesto quedan en
 storage/framework/testing/f5-restore-<GUID>/, fuera de Git. No usar este runner

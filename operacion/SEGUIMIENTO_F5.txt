@@ -1,6 +1,8 @@
 SEGUIMIENTO F5 — 05-11-2026
 Implementación y aceptación comprobadas en ramas locales. Cierre E5-E pendiente
 según la cobertura registrada por escenario en la matriz.
+Rotación de cuatro servicios y 43 cortes del coordinador verificados en local.
+La matriz registra 77 de 106 escenarios verificados, 28 parciales y uno externo.
 Fuente vigente: pruebas/RESULTADOS_F5.txt y pruebas/MATRIZ_PRUEBAS_F5.csv.
 Contrato y operación: contratos/COMERCIAL_FINANZAS_F5_V1.txt y
 operacion/COMERCIAL_FINANZAS_F5.txt. No se han aplicado cambios al VPS ni a BD real.

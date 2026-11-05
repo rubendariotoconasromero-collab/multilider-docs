@@ -6,31 +6,58 @@ No se cambió APP_ARCHITECTURE en las instalaciones existentes ni se migraron
 bases reales; no hubo despliegue, cambios en el VPS, merge ni push.
 
 EVIDENCIA REPRODUCIBLE
-- Laravel: 106 pruebas y 605 aserciones en MySQL temporal privado. En Finanzas
-  pasaron 28 pruebas, incluida la persistencia fallida y el reenvío de callback.
-  La ejecución anterior también verificó Comercial 38, Propiedades 25 y
-  Seguridad 18. Comercial inyecta fallos antes y después de ocho pasos de venta;
-  esos fallos son simulados y no equivalen a matar un proceso en cada commit.
+- Laravel: 108 pruebas y 640 aserciones en MySQL temporal privado. En Finanzas
+  pasaron 29 pruebas, incluida la persistencia fallida y el reenvío de callback
+  y la edición de movimientos manuales. Comercial y Seguridad pasaron 38 y 18.
+  Se conserva la evidencia anterior de 25 pruebas de Propiedades.
 - Vue: 16 pruebas Node por variante y compilación de ambas variantes.
 - F3/F4: 82 comprobaciones online F3, 6 en caída y 3 en recuperación; 54 F4.
   12 recorridos de navegador sobre sesión, perfil, catálogo, galería y versión.
-- F5: 47 comprobaciones de API con los cuatro servicios y HTTPS/mTLS reales.
+- F5: 54 comprobaciones de API con los cuatro servicios y HTTPS/mTLS reales.
   Contado, crédito, cancelación segura, parciales/lote, alta/edición de cliente,
   alta con foto y desactivación de asesor, firma, acta, PDFs y comisiones.
   Tres casos negativos mTLS: sin certificado, scope ajeno y grant ausente.
-- Aceptación adicional: 145 aserciones. Revocación real antes y después de
+- Aceptación adicional: 155–156 aserciones según qué escritor gana la carrera.
+  Revocación real antes y después de
   confirmar, recuperación de identidad tras perder la respuesta, rechazo de
   colisiones, cobro y anulación en dos procesos Laravel, y ambos órdenes de
   cobro o desembolso frente al cierre de Finanzas. Se comprobaron parciales
   concurrentes, rollback de lote con mora, dos compradores por un inmueble,
   cambio de oferta y los dos órdenes de anulación y entrega. TLS real también
   rechazó un certificado no listado y el acceso técnico a rutas de usuario.
+- Finanzas y permisos: 51 aserciones adicionales. Se verificó paridad del
+  crédito con tasa positiva y redondeo, rechazo de cuotas ajenas y reemplazadas,
+  amortización USD, concurrencia de revisiones y cobro frente a reversión.
+  Un usuario con permiso exclusivo de venta puede elegir un cliente o asesor
+  sin acceder a su administración ni recibir los campos ajenos al selector.
+- Actualización de esquema: Comercial preservó una intención y su recibo
+  de F4. Finanzas preservó dos cuotas históricas con sus importes, fecha y estado.
+- Adjuntos locales: el PDF anterior de contrato o entrega se conserva si
+  falla la actualización de MySQL y se retira después del commit exitoso.
 - Navegador F5: seis pruebas. Venta desde Laravel local, Laravel remoto y
   cliente directo; además pérdida de la respuesta y consulta tras recargar,
   verificando una sola venta sin reenviar el POST. En Laravel remoto y cliente
   directo se comprobó el 401 real durante el seguimiento, un nuevo inicio de
   sesión y la consulta del mismo UUID sin recrear la venta.
-- Caídas reales: se detuvieron individualmente Finanzas, Propiedades, Seguridad,
+- Rotación: 40 sondas mTLS reales y cambio de los certificados cliente y servidor
+  de los cuatro roles. Se aceptaron ambas generaciones durante el solapamiento,
+  se rechazaron certificados vencidos y se comprobó el retiro de los anteriores.
+  Se ejecutaron altas de identidad, ventas y lectura local durante el cambio.
+- Caídas en los pasos del coordinador: 43 operaciones recuperadas, 199
+  aserciones de recuperación y comprobación adicional en SQL. Treinta cortes
+  verificaron antes y después de los commits del recibo en los 15 pasos de
+  venta, anulación y compensación. Dos cortes comprobaron la transacción de
+  venta y contrato. Once cortes descartaron acuses reales y reiniciaron
+  Comercial y la autoridad correspondiente. El recibo desapareció al hacer
+  rollback y sobrevivió al commit. No hubo ingresos anticipados, duplicación
+  de obligaciones o liberación de propiedad con una deuda cobrable.
+  Se verificó traspaso tras vencer el lease con el trabajador anterior vivo,
+  y reanudación auditada después de agotar el límite durante una caída real.
+  Seguridad ahora devuelve la decisión de aborto ya registrada al reintentar.
+  Si la reserva ya venció o se liberó, Comercial reconoce el estado de
+  Propiedades y completa la compensación. También se comprobó un único
+  ganador entre las decisiones concurrentes de confirmar y abortar.
+- Caídas individuales: se detuvieron Finanzas, Propiedades, Seguridad,
   los dos procesos de Comercial y Laravel remoto. Local siguió disponible.
   La operación se recuperó con su mismo UUID al volver la autoridad; los workers
   completaron la venta mientras el proceso Laravel remoto estaba detenido.
@@ -42,6 +69,11 @@ EVIDENCIA REPRODUCIBLE
   con un único registro y una sola obligación. Los comandos antiguos no
   resucitaron la venta cancelada ni soltaron la propiedad de la venta nueva.
   Laravel conservó el recibo manual y deduplicó un callback de prueba tardío.
+  Propiedades devolvió el recibo de la anulación anterior y rechazó un
+  comando nuevo con la generación antigua. La propiedad siguió vendida para
+  la operación posterior. El preflight de Comercial aceptó el esquema
+  compatible y rechazó el mismo esquema con una migración futura de prueba;
+  durante el rechazo Laravel local siguió disponible.
   En MySQL solo se normalizó la escritura redundante de CHARACTER SET antes
   de una colación equivalente; no se ignoraron cambios de datos o restricciones.
 - Visualización PDF: contrato de crédito (dos páginas) y comprobante de pago
@@ -65,10 +97,11 @@ REGLAS APROBADAS Y COMPROBADAS
    el UUID rechazado. Un cierre exitoso precede a la liberación del inmueble.
 
 LÍMITES DEL CIERRE
-De los 106 escenarios, 52 quedaron verificados, 53 tienen cobertura parcial
+De los 106 escenarios, 77 quedaron verificados, 28 tienen cobertura parcial
 y uno requiere sandbox externo. Los ocho originalmente PENDIENTE se probaron.
-Persisten, entre otros, la caída de proceso en cada paso del protocolo, la
-rotación integral de certificados y el ensayo con binario anterior incompatible.
+La rotación y las caídas de los pasos del coordinador tienen evidencia local.
+Entre las coberturas parciales, algunos reintentos recuperan el acuse con un
+POST idempotente y no consultan primero un endpoint independiente de recibos.
 En Libélula se verificaron autenticación, lectura y forma de respuesta. Falta
 verificar registro, retorno y callbacks con un sandbox autorizado del comercio.
 
@@ -81,15 +114,18 @@ EJECUCIÓN
 Desde backend con PowerShell 7:
   .\scripts\test-isolated.ps1 -Integration -BrowserTests
   .\scripts\test-isolated.ps1 -Integration -Phase5 -AcceptanceTests -BrowserTests -RecoveryTests -RestoreTests
+  .\scripts\test-isolated.ps1 -Integration -IntegrationOnly -Phase5 -RotationTests
+  .\scripts\test-isolated.ps1 -Integration -IntegrationOnly -Phase5 -CrashTests
+  .\scripts\test-isolated.ps1 -Integration -IntegrationOnly -Phase5 -AcceptanceTests -RotationTests -BrowserTests -RestoreTests
 Los artefactos se guardan en storage/framework/testing/ y frontend/.phase3/,
 fuera de Git. Ver operacion/COMERCIAL_FINANZAS_F5.txt para recuperación.
 
 RAMAS
-backend: feature/fase-5-comercial-finanzas-dual (a1b8734)
-Comercial: feature/fase-5-ventas-coordinadas (ff46826)
-Finanzas: feature/fase-5-obligaciones (0aa88ff)
+backend: feature/fase-5-comercial-finanzas-dual (7d2dae9)
+Comercial: feature/fase-5-ventas-coordinadas (279f42d)
+Finanzas: feature/fase-5-obligaciones (3fa2d57)
 Propiedades: feature/fase-5-reversion-confirmada (968d38c)
-Seguridad: feature/fase-5-autorizacion-operaciones (8501ed3)
+Seguridad: feature/fase-5-autorizacion-operaciones (9319709)
 frontend: feature/fase-5-operaciones (9b07898)
 frontend directo: feature/fase-5-operaciones-directo (c5244a1)
 documentación: docs/implementacion-fase-5
