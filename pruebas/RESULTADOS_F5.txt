@@ -57,6 +57,8 @@ EVIDENCIA REPRODUCIBLE
   Si la reserva ya venció o se liberó, Comercial reconoce el estado de
   Propiedades y completa la compensación. También se comprobó un único
   ganador entre las decisiones concurrentes de confirmar y abortar.
+  Tras corregir la compensación se repitieron sus tres cortes de liberación.
+  Los tres recuperaron el mismo UUID y pasaron la reconciliación SQL.
 - Caídas individuales: se detuvieron Finanzas, Propiedades, Seguridad,
   los dos procesos de Comercial y Laravel remoto. Local siguió disponible.
   La operación se recuperó con su mismo UUID al volver la autoridad; los workers
