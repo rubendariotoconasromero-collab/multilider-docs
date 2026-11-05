@@ -1,4 +1,5 @@
-PROPUESTA DE CONTRATOS F5 — NO IMPLEMENTADOS
+PROPUESTA HISTÓRICA DE CONTRATOS F5
+Versión operativa y decisiones del usuario: COMERCIAL_FINANZAS_F5_V1.txt.
 Fecha: 04-11-2026. Versión de propuesta: 1.0.
 Complementa PLAN_FASE_5.txt. No reemplaza IDENTIDAD_V1/CATALOGO_V2/RESERVAS_V1.
 Cerrar DTO/rutas exactos y decisiones de negocio en F5-01/02 antes de programar.

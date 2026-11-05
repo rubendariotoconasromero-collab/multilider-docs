@@ -1,0 +1,14 @@
+SEGUIMIENTO F5 — 05-11-2026
+Implementación y recorridos principales en ramas locales. Cierre E5-E pendiente.
+Fuente vigente: pruebas/RESULTADOS_F5.txt y pruebas/MATRIZ_PRUEBAS_F5.csv.
+Contrato y operación: contratos/COMERCIAL_FINANZAS_F5_V1.txt y
+operacion/COMERCIAL_FINANZAS_F5.txt. No se han aplicado cambios al VPS ni a BD real.
+
+Aprobaciones del usuario: reutilizar la configuración Libélula existente;
+Bs 0,20 por concepto como prueba sin liquidar la deuda; los pagos manuales
+parciales cubren primero interés y después capital.
+
+Pendiente externo: consulta autenticada de lectura al comercio activo. El script
+preparado se ejecutó solo en modo descripción, sin cargar la clave ni hacer HTTP.
+La revisión automática rechazó la ejecución externa por falta de autorización
+explícita para enviar la clave existente al proveedor. Ningún cobro fue realizado.

@@ -2,11 +2,14 @@ PLAN DETALLADO — FASE 5: COMERCIAL, FINANZAS Y OPERACIONES DISTRIBUIDAS
 Proyecto: MultiliderNew
 Fecha: 4 de noviembre de 2026, America/La_Paz
 Versión: 1.0
-Estado: PLANIFICADO. No implementado ni desplegado por esta entrega.
+Estado: código implementado en ramas; aceptación E5-E pendiente. Sin despliegue.
+Entrega y evidencia: pruebas/RESULTADOS_F5.txt. Contrato operativo: contratos/COMERCIAL_FINANZAS_F5_V1.txt.
+Decisiones aprobadas: parciales cubren interés antes de capital; Libélula cobra
+Bs 0,20 por concepto de prueba sin liquidar deuda real ni crear ingresos reales.
 Base comprobada: F4 terminada en ramas; analisis/BASELINE_F5.txt.
 Anexos: contratos/COMERCIAL_FINANZAS_F5_PROPUESTA.txt,
 analisis/PARIDAD_COMERCIAL_FINANZAS_F5.csv y pruebas/MATRIZ_PRUEBAS_F5.csv.
-Cobertura prevista: 30 familias de paridad y 106 escenarios, todos pendientes F5.
+Cobertura prevista: 30 familias de paridad y 106 escenarios; ver resultados por caso.
 
 1. OBJETIVO Y LÍMITES
 ============================================================
@@ -350,7 +353,7 @@ F5-13 | Libélula y confirmaciones de pago | 2–4 días
 Repos: Finanzas, backend y frontend de pago. Depende: F5-09/F5-10/F5-11.
 Tareas: validar contrato vigente del comercio y ambiente de pruebas; reutilizar
 URLs públicas Laravel como fachada; Finanzas dueño remoto de órdenes, callbacks
-durables, asignación a pagos y consulta de proveedor. En local usar implementación
+durables, selección de conceptos de prueba y consulta de proveedor. En local usar implementación
 Laravel equivalente. Nunca procesar el mismo evento en ambos almacenes.
 Retorno del browser solo consulta, no confirma. Verificar estado autenticado del
 proveedor, comercio, referencia, importe y moneda; inbox único para notificaciones,
@@ -360,7 +363,8 @@ garantía de idempotencia o API actual a partir de manuales públicos histórico
 Secretos en archivos/configuración privados; redacción de logs. Si falta sandbox
 o documentación del contrato activo, marcar la prueba externa BLOQUEADA; aislar
 esa capacidad y no afirmar paridad productiva completa de cobros públicos.
-Entregable: misma experiencia de pago con confirmación verificable y un ingreso.
+Entregable aprobado: prueba de Bs 0,20 por concepto con confirmación verificable;
+conserva intactos deuda, cuotas e ingresos reales.
 Aceptación: callback falso/retorno manipulado no cambian deuda; pérdida de respuesta
 no registra otra deuda externa a ciegas; anulación respeta cobro externo incierto.
 

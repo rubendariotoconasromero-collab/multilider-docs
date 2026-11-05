@@ -279,7 +279,8 @@ FASE 5 | Comercial, Finanzas y operaciones distribuidas
 Repositorios: backend, Comercial, Finanzas; Propiedades para reservas/reversión,
 Seguridad para autorización técnica y frontend para estados operativos mínimos.
 Depende: F3/F4.
-Estado: PLANIFICADA, no implementada. Desglose: PLAN_FASE_5.txt.
+Estado: implementación en ramas con pruebas aisladas. Cierre E5-E pendiente.
+Desglose: PLAN_FASE_5.txt; evidencia: pruebas/RESULTADOS_F5.txt.
 Tareas:
  F5.1 Crear adaptadores para clientes/asesores/ventas/contratos/entregas y para
       planes/cuotas/pagos/ingresos/egresos/comisiones/métodos/cuentas y sus mapeos.

@@ -1,0 +1,126 @@
+OPERACIÓN DE COMERCIAL Y FINANZAS — FASE 5
+Entorno verificado: ramas locales y bases sintéticas. Fecha: 05-11-2026.
+
+Laravel conserva ambos modos. El modo local usa MySQL, Sanctum y almacenamiento
+local; puede operar sin los cuatro microservicios. En remoto, Vue usa Laravel
+para las operaciones F5. Comercial coordina ventas y perfiles; Finanzas es dueño
+de las obligaciones y movimientos; Propiedades confirma o revierte reservas;
+Seguridad emite los permisos de ejecución. Cada servicio escribe su propia base.
+
+Empresa, perfil, correo, dashboard, reportes y portal siguen siendo módulos de
+Laravel. Empresa y branding tienen lectura propia en GET /api/empresa/datos.
+PDF de contratos y comprobantes conserva las plantillas de Laravel. Las vistas
+agregadas de dashboard, reportes, correo masivo y portal que dependen de datos
+remotos mantienen la guarda hasta sus adaptadores F6. No leen copias locales.
+
+CONFIGURACIÓN DE UN ENSAYO
+1. Usar bases y directorios distintos de los reales. MySQL separado para Laravel
+   y Seguridad; tres bases SQL Server independientes para Propiedades, Comercial
+   y Finanzas. Seguridad usa ASP.NET Core 8; los otros servicios .NET 10.
+2. Configurar la conexión privada de cada servicio y Migrations__DatabaseName con
+   el nombre explícito de su propia base. El comando de inspección, con el binario
+   de cada autoridad, es: dotnet <servicio>.dll --preflight-f5. Muestra base, dataset
+   e historial; rechaza discrepancias e historiales desconocidos. Guardar esa salida
+   en el expediente del ensayo. Configurar los certificados y credenciales por
+   inyección privada, fuera de repositorios y del directorio público.
+3. Después de revisar el respaldo y el historial, aplicar las migraciones de la
+   rama correspondiente en la instancia de ensayo:
+     Laravel:      php artisan migrate:status; php artisan migrate
+     Seguridad:    dotnet MSMultilider.Seguridad.dll --migrate-identity
+     Propiedades:  dotnet MSMultilider.Propiedades.dll --migrate-catalog
+     Comercial:    dotnet MSMultilider.Comercial.dll --migrate-commercial
+     Finanzas:     dotnet MSMultilider.Finanzas.dll --migrate-finance
+   Arrancar la API no aplica migraciones. Las migraciones F5 con recibos, perfiles
+   y obligaciones no admiten un down que borre esos registros.
+4. En remoto, usar el mismo Operations__Dataset para los cuatro servicios y los
+   valores de emisor/audiencia F3. Configurar Operations__ServerCertificatePath,
+   Operations__ServerCertificatePassword, Operations__ClientCertificatePath y
+   Operations__ClientCertificatePassword. Un certificado de cliente distinto por
+   rol. Configurar Operations__Peers__<rol>__Url HTTPS,
+   Operations__Peers__<rol>__ServerCertificateSha256 y
+   Operations__Callers__<rol>__CertificateSha256 de cada interlocutor necesario.
+   Los certificados deben tener el EKU correcto, nombre del servidor válido,
+   vigencia y pin SHA-256. Para rotar, preparar pines antiguo y nuevo separados por
+   coma, cambiar el certificado, verificar por rol y retirar el pin anterior.
+5. En Comercial, Operations__WorkerEnabled=true ejecuta ventas y perfiles.
+   Conservar el expirador de reservas F4 en Propiedades. El worker puede recuperar
+   una decisión ya autorizada sin guardar el JWT del usuario. Configurar los
+   cuatro SERVICE_URL y la identidad F3 en Laravel. Activar APP_ARCHITECTURE=
+   microservices y BUSINESS_MICROSERVICES_ENABLED=true solo en el ensayo listo.
+   Mantener una caché de configuración diferente por instancia.
+6. En local, APP_ARCHITECTURE=local y BUSINESS_MICROSERVICES_ENABLED=false son
+   suficientes; no configurar certificados, conexiones ni procesos .NET. Mantener
+   los mecanismos de correo y las tareas programadas que ya corresponden a Laravel.
+
+LIBÉLULA
+El importe de prueba es Bs 0,20 por cada concepto seleccionado. La confirmación
+queda como PAGADO_PRUEBA; no cambia pagos, cuotas, saldos ni ingresos reales.
+Los modos existentes de navegación (redirect, QR y popup) se conservan aparte
+de la disponibilidad del registro de pruebas. El retorno consulta la orden.
+Un callback se guarda una vez y requiere comprobación autenticada del proveedor.
+Si el registro queda incierto, no se crea otra orden a ciegas para la misma venta.
+
+La configuración existente de Laravel se reutiliza. No se incluye una clave
+nueva. El registro remoto está apagado por defecto. Tras comprobar el contrato
+activo, Finanzas usa Libelula__BaseUrl, Libelula__ApiKey, Libelula__CallbackBaseUrl,
+Libelula__FrontendUrl y PaymentTests__Enabled=true; en la fachada se habilita
+LIBELULA_REMOTE_TEST_PAYMENTS_ENABLED=true. El callback público sigue en Laravel.
+Solo el propietario del modo ejecuta conciliación. Local, opcional:
+  php artisan payments:reconcile-tests --reference=TEMP-<UUID>
+  LIBELULA_RECONCILIATION_ENABLED=true habilita la tarea local de cada minuto.
+Remoto: PaymentTests__ReconciliationEnabled=true habilita el worker de Finanzas.
+El script backend/scripts/verify-libelula-readonly.php sin argumentos describe
+la consulta y no carga la clave. --execute exige autorización para enviar la
+clave existente únicamente al endpoint de consulta del proveedor. No usarlo
+para registrar una deuda, cobrar, consultar todo un historial ni imprimir PII.
+
+INCIDENTES Y RECUPERACIÓN
+- Guardar UUID, hora, dataset y respuesta HTTP. Consultar GET /api/operaciones
+  y GET /api/operaciones/{uuid} con la sesión del propietario. 202 significa
+  pendiente; el éxito de venta exige reserva confirmada, Finanzas activa y
+  resultado Completada. Operación ajena no se consulta por conocer el UUID.
+- Conservar el mismo UUID y comando al perder respuesta. Reenviar el formulario
+  original tras una reautorización o para aportar la contraseña requerida.
+  No restaurar una contraseña desde logs, outbox o almacenamiento del navegador.
+- Antes del punto de confirmación, verificar reserva propia, generación y precio;
+  una compensación aborta Finanzas y libera solo esa retención. Después de la
+  decisión de confirmar, resolver hacia delante o llevar a revisión; no liberar
+  por timeout. El lease de venta es de 45 s y los recibos viven en SQL.
+- Para cancelar, Seguridad autoriza el cierre, Finanzas cierra la deuda y
+  Propiedades verifica ese cierre antes de revertir la reserva confirmada. Los
+  cobros/desembolsos, la entrega y el PSP incierto bloquean cuando corresponda.
+  Un rechazo queda registrado; después de resolver la causa se inicia otra
+  anulación con nuevo UUID. Un comando rechazado no se convierte en éxito tardío.
+- En RequiereRevision, confirmar primero la autoridad que falta. El propietario
+  con acceso_ventas puede POST /api/operaciones/{uuid}/reintentar; la reanudación
+  queda registrada. No modificar estados, leases, grants o pagos directamente.
+- Adjuntos de Comercial en Storage__Path y fotografías en Storage__PhotosPath,
+  directorios privados. Las revisiones y su SHA-256 se conservan. Con la admisión
+  pausada, --inspect-document-orphans revisa candidatos no referenciados de más
+  de 48 h. --remove-document-orphans elimina solo esos archivos, con la misma
+  selección explícita de base; ejecutarlo tras revisar el respaldo y candidatos.
+- Registrar conteos por estado, edad del pendiente más antiguo, reintentos y
+  orden externa incierta por dataset. Correlacionar UUID con ruta y status del
+  servicio. Mantener logs sin cuerpo de solicitud, bearer, clave ni contraseña.
+
+RESPALDO Y RESTAURACIÓN
+1. Detener admisión de escrituras y llevar cada operación a un punto durable
+   conocido; pausar los workers y registrar estados, UUID, versiones y dataset.
+2. Respaldar conjuntamente Laravel, Seguridad, Propiedades, Comercial, Finanzas,
+   archivos privados y archivos Laravel. Añadir manifiesto con revisiones Git,
+   migraciones, checkpoint UTC y SHA-256. Resguardar certificados y configuración
+   por separado; no poner secretos en el manifiesto.
+3. Restaurar a nuevas bases de prueba, sin sobrescribir. Validar tabla de
+   migraciones, órdenes, saldos, recibos, grants, fencing y hashes de archivos.
+   Conciliar los eventos Libélula posteriores al checkpoint antes de reabrir.
+   Restaurar SQL no revierte fondos externos ni permite repetir un registro.
+4. Si un binario anterior no interpreta las operaciones nuevas, conservar
+   el worker compatible y pausar admisión. No cambiar de modo como recuperación.
+   Solo restaurar un conjunto coherente ya verificado, nunca un down destructivo.
+
+Reproducción en PowerShell 7, desde backend:
+  .\scripts\test-isolated.ps1 -Integration -Phase5 -BrowserTests -RecoveryTests -RestoreTests
+Usa fixtures privados, SQL Server local y MySQL en puerto de prueba. El runner
+para solo los procesos que inició. Respaldos sintéticos y manifiesto quedan en
+storage/framework/testing/f5-restore-<GUID>/, fuera de Git. No usar este runner
+para respaldar ni restaurar bases reales. Evidencia y límites: pruebas/RESULTADOS_F5.txt.

@@ -1,0 +1,51 @@
+CONTRATO OPERATIVO F5 V1 — 05-11-2026
+Implementación en ramas locales. Este contrato actualiza la propuesta F5;
+IDENTIDAD_V1, CATALOGO_V2 y RESERVAS_V1 mantienen sus contratos existentes.
+
+Identidad de datos: (dataset, autoridad, entidad, id). Los perfiles vinculados
+usan (issuer, sub); correo o ID numérico igual no constituye un vínculo. Los
+perfiles F4 con vínculo no conciliado requieren importación explícita F7.
+
+Vue utiliza Laravel /api en los dos modos. En mutaciones F5 enviar
+Idempotency-Key: <command_id UUID>, y cuerpo operacion_id/command_id UUID.
+Un nuevo intento del mismo contenido reutiliza los dos identificadores. Un
+comando con el mismo UUID y otro contenido devuelve 409. Para multipart se
+verifican los bytes mediante SHA-256, además de los campos. El ID no autoriza
+consultas de otro actor. Los documentos binarios conservan descarga autorizada.
+
+Ejemplo de admisión de venta remota:
+POST /api/ventas
+  operacion_id, command_id, cliente_id, asesor_id, propiedad_id, fecha,
+  tipo_venta=CONTADO, monto_total, monto_liquido, descuento, expected_version.
+Respuesta 202: operacion_id, state=Pendiente, step. No representa venta cerrada.
+GET /api/operaciones/{uuid}: state=Completada y venta_id al concluir. Estados de
+fin adicionales: Rechazada, Compensada y RequiereRevision. El API de negocio
+mantiene Completada como estado público de una venta vigente; el dueño remoto
+la conserva como Activa. Las lecturas unen propiedad/partes y lecturas financieras
+en Laravel por referencias de autoridad; no escriben en su MySQL de negocio.
+
+Reglas: precio del catálogo y versión al reservar, comisión sobre el importe
+bruto y descuento de contado. No se confirma una oferta que cambió. Una venta
+preparada crea contrato y obligaciones pendientes sin ingresos. Las reservas se
+renuevan como máximo una vez por cada paso previo habilitado, con comando estable.
+Documentos legales toman partes y propiedad del snapshot, no de filas locales.
+
+Parciales aprobados: el cobro de una cuota cubre primero el interés pendiente y
+después el capital. Se calcula por centavos desde los cobros confirmados CUOTA;
+MORA y AMORTIZACION se registran aparte. Las respuestas operativas de cuota añaden
+monto_pagado, interes_pagado, capital_pagado, monto_pendiente, interes_pendiente y
+capital_pendiente. La amortización usa el capital restante, conserva cuotas ya
+cobradas en el historial y acredita intereses ya cobrados del mismo vencimiento.
+Las revisiones no regeneran cuotas históricas al instalar migraciones.
+
+Libélula de prueba: importe BOB 0.20 por concepto. Estados internos Registrando,
+Registrada, RegistroIncierto y PagadaPrueba. Estado público PAGADO_PRUEBA solo con
+prueba autenticada que coincida en referencia, moneda e importe. Respuesta pública
+es_prueba=true, monto_prueba y deuda_real_liquidada=false. La asignación de un
+cobro real a la deuda queda fuera de este contrato aprobado. El contrato vigente
+del proveedor externo se valida por separado; no se infiere desde un callback.
+
+En remoto, las rutas técnicas v1 de Seguridad, Comercial y Finanzas y v2 de
+reservas usan mTLS, dataset y autorización por operación/scope. La decisión de
+anulación se autoriza antes de cerrar; un cierre denegado tiene un recibo terminal.
+Los endpoints anteriores de registrar/anular una venta no saltan el coordinador.
