@@ -1,0 +1,12 @@
+BASELINE Y ALCANCE F4 — 04-11-2026 (UTC 05-11)
+Base: revisiones F3 documentadas en REVISIONES_F3.txt; plan da57f74.
+Ramas: backend feature/fase-4-catalogo-dual; Propiedades feature/fase-4-reservas;
+Comercial feature/fase-4-consumidor-reservas; frontend feature/fase-4-catalogo-local;
+worktree frontend/.worktrees/fase3-microservices feature/fase-4-catalogo-directo;
+docs docs/implementacion-fase-4. Seguridad y Finanzas conservan sus revisiones F3.
+Sin VPS, merge a main, push ni modificación de bases/.env/credenciales de trabajo.
+Solo bases nuevas GUID SQL Server, MySQL privado distinto de 3306 y archivos
+sintéticos/temporales propios. Errores de fixtures se corrigieron antes del cierre.
+Native SQL schema/storage/secretos no se adoptan ni siembran al iniciar HTTP.
+Resumen final y comandos: pruebas/RESULTADOS_F4.txt.
+Revisiones finales: analisis/REVISIONES_F4.txt.

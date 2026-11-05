@@ -1,0 +1,107 @@
+CATÁLOGO V2 — IMPLEMENTADO EN F4
+Fecha: 4–5 noviembre 2026. Revisión de código: analisis/REVISIONES_F4.txt.
+
+AUTORIDAD
+APP_ARCHITECTURE=local: Sanctum, MySQL y archivos Laravel; no clientes ni JWT MS.
+APP_ARCHITECTURE=microservices: identidad F3 y catálogo SQL Server/archivos propios
+Propiedades. El adaptador no consulta tablas de negocio Eloquent ni usa fallback.
+La instancia/variable selecciona el modo; Vue no lo decide. Actualizar componentes
+con las revisiones compatibles del manifiesto; no mezclar servidores F3 con
+escritores F4 ni habilitar dos autoridades para la misma base.
+
+RUTAS LARAVEL CONSERVADAS
+/api/propiedades, propietarios, ciudades, distritos, sectores-urbanos,
+caracteristicas, ubicaciones: GET colección/detalle, POST, PUT, DELETE; PATCH de
+resource Laravel se traduce a PUT .NET. DELETE conserva el toggle heredado salvo
+ubicaciones, que se elimina físicamente con FK SET NULL.
+POST /propiedades/{id}/caracteristicas/sync: caracteristica_ids; [] permite vaciar.
+POST /propiedades/{id}/imagenes: multipart imagenes[], 201 con imagenes[].
+DELETE /imagenes-propiedades/{id}, PATCH /{id}/principal. Equivalentes .NET bajo
+/api/propiedades/imagenes/{id}. El adaptador traduce expresamente ambas familias.
+
+CASOS DE USO NUEVOS
+GET /api/catalogo/opciones-propiedad?kind=propietarios|ciudades|distritos|sectores|
+caracteristicas&page=1&per_page=1000: {opciones:paginador,capabilities}.
+Permiso acceso_propiedades; propietario solo ID/tipo/nombres/estado, sin CI,
+contacto ni capacidad de administración. Ambos frontends recorren todas las páginas.
+GET /api/catalogo/operaciones/{UUID}: recibo del propio comando; permiso original
+vigente requerido, no basta conocer el UUID. Resultado {command_id,status,result,etag}.
+
+PERMISOS
+Propiedades/ubicaciones/imágenes/selectores: acceso_propiedades.
+Propietarios: acceso_propietarios; ciudades: acceso_ciudades; distritos/sectores:
+acceso_zonas; características: acceso_caracteristicas. Servidor Laravel y .NET
+comprueban permiso, además de la sesión F3. La migración no amplía roles.
+
+ESCRITURAS
+POST/PUT de propiedad admite ubicacion anidada opcional. La autoridad guarda
+ubicación, propiedad y pivotes en una transacción; un fallo no deja ubicación sola.
+Se conserva ubicacion_id para escritores anteriores. La ubicación es exclusiva.
+Omitir características preserva la asignación; [] la vacía; IDs inválidos/repetidos
+son 422. Omitir opcionales no los borra; null explícito permite limpiar nullable.
+CI nullable único; empresa exige nombre_empresa. Moneda BOB/USD; importes y medidas
+no negativos, dos decimales; sin conversión ni cálculos financieros en el adaptador.
+Precio SQL decimal(18,2), medidas decimal(10,2). Laravel conserva strings decimales.
+.NET añade decimal_values exactos; el cliente directo también los utiliza. No
+pasar precio por Number/float para construir una escritura. Reserva devuelve
+precio_venta_exacta además del decimal nativo.
+Código correlativo protegido con mutex/contador e índice único; no se renumeran
+códigos heredados ni se prometen correlativos sin huecos.
+
+CONCURRENCIA Y RECIBOS
+version/ETag fuerte aditivos. PUT remoto requiere If-Match: 428 sin cabecera y 412
+obsoleto, comprobado antes de validar referencias que puedan haber cambiado.
+Local admite clientes anteriores sin cabecera; si se suministra, la comprueba.
+Las UIs actualizadas la envían. Un replay se resuelve antes de revalidar ETag.
+Idempotency-Key UUID opcional para contratos anteriores y usado por escritores
+actualizados. Propiedad y recibo exitoso se confirman juntos en SQL. Huella por
+método/ruta/payload canónico, If-Match y hashes de contenido de archivos; otro
+payload con la misma clave 409. Solo almacena resultados propios de catálogo.
+Repetir toggle no alterna otra vez; repetir upload no duplica. Una petición antigua
+sin clave se ejecuta una vez y no recibe reintentos automáticos.
+Vue conserva UUID/huella en localStorage, por URL/issuer/sub (local por ID), sin
+Bearer ni contenido del formulario. Un nuevo login/cambio de correo no cambia
+al dueño; se consulta el recibo antes de reenviar. Borrador pendiente distinto se
+bloquea hasta reconciliar. No confundir clave de comando con clave de autorización.
+El mutex administrativo global es una decisión conservadora de F4. Todas las
+instancias comparten SQL, nunca una caché de exclusión en memoria. Optimizarlo
+requiere conservar los bloqueos, restricciones y pruebas de disponibilidad.
+
+ESTADO
+Local conserva el flujo autónomo de ventas. Remoto crea Disponible y el CRUD no
+puede alterar disponibilidad: 409 DISPONIBILIDAD_GESTIONADA. Retenida bloquea
+inactivación/precio/moneda. Confirmada no vuelve a Disponible por PUT ni expiración.
+capabilities.can_edit_estado=false remoto; la interfaz no publica controles para
+saltar reservas. La coordinación financiera completa sigue F5.
+
+MEDIOS
+JPEG/PNG/GIF, máximo 2048 KiB por archivo y 10 archivos por lote (20 MiB de imágenes,
+64 KiB de sobrecarga multipart .NET); transporte multipart 15 s, JSON 2/5 s por salto.
+.NET comprueba contenido completo con StbImageSharp, extensión y hasta 20 MP.
+Local usa validación image/mimes Laravel y nombres generados.
+Nuevas fotos locales en storage/app/catalog-media/objects, fuera de public; nuevas
+remotas en Catalog__StorageRoot/objects, fuera de release. Metadatos se publican
+solo después del commit. DELETE encola limpieza durable; huérfanos propios >24 h.
+GET /catalogo/media/{public_id}/{sha256} sirve foto promocional de propiedad activa
+(en main vía Laravel). Preview /api/catalogo/imagenes/{id}/contenido exige permiso,
+Bearer en Axios, Blob/ObjectURL, private,no-store y revocación al logout/desmontar.
+Nunca token en URL, host arbitrario ni descarga de una ruta del navegador.
+.NET público equivalente /api/public/catalogo/imagenes/{uuid}/{sha256}; sin static
+wwwroot ni /uploads. Validación de publicación en cada acceso, nosniff y
+public,no-cache,must-revalidate para promocionales. No configurar un CDN que omita
+esa revalidación. Las rutas locales /storage históricas siguen siendo públicas:
+no se consideran privadas por ocultar la propiedad. Inventariar y retirar esos
+alias/copias en una migración autorizada F7/F9; F4 no mueve ni borra fotos reales.
+
+PÚBLICO Y CAPACIDADES PENDIENTES
+/landing/propiedades, detalle/similares y geografía usan endpoints .NET específicos
+con DTO reducido, sin propietarios ni JWT administrador. Foto oculta/inactiva 404.
+El agregado /landing con empresa/asesores, dashboard, reportes, cartera, ventas,
+pagos y portal remoto que requieren proveedores pendientes continúan 503
+INTEGRATION_NOT_READY. Las pantallas/orquestación acordadas permanecen en Laravel.
+
+ERRORES
+401 sesión;403 permiso/actor;404 recurso;409 conflicto;412 ETag;428 versión requerida;
+422 validación por campo;413 exceso;429 límite;503 servicio no verificable o fase
+no terminada. Sin SQL, stack, Bearer ni cuerpo remoto crudo. Correlación en errores
+.NET y logs de adaptador con operación/estado/duración, sin cuerpos/credenciales.

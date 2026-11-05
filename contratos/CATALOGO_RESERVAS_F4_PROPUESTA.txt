@@ -1,3 +1,5 @@
+ARCHIVO HISTÓRICO DEL PLAN. Contratos cerrados: CATALOGO_V2.txt y RESERVAS_V1.txt.
+
 PROPUESTA DE CONTRATO — CATÁLOGO Y RESERVAS F4
 Fecha: 04-11-2026. Estado: DISEÑO, NO IMPLEMENTADO.
 Se cierra en F4-01 antes de programar. Referencia: ../PLAN_FASE_4.txt.

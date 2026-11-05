@@ -1,0 +1,90 @@
+RESULTADOS F4 — 04-11-2026 America/La_Paz / 05-11 UTC
+Estado: APROBADA en ramas de trabajo. Sin merge/push/VPS ni bases reales alteradas.
+Revisiones: analisis/REVISIONES_F4.txt. Límites por escenario: MATRIZ_PRUEBAS_F4.csv.
+
+EJECUCIÓN FINAL
+Laravel: 99 tests, 543 aserciones, cero fallos. Supera baseline F3 89/442.
+Propiedades: 25 tests, cero fallos/omitidos, incluidos SQL Server real.
+Comercial: 19 tests, cero fallos/omitidos, incluido SQL Server real.
+Seguridad: 18 tests, cero fallos/omitidos, código sin cambios F4.
+Finanzas: 20 tests, cero fallos/omitidos, incluido SQL Server, código sin cambios F4.
+Node: 5 sesión +6 comandos por checkout (22 entre ambos), cero fallos.
+Playwright: 12 casos en Chromium, tres variantes reales, cero fallos.
+Builds: ambos checkouts npm run build correctos. PHP lint/Pint y git diff --check.
+
+Integración F3 real: online 81, caída 6, recuperación 3 comprobaciones.
+Integración F4 real: 54 comprobaciones. Dos procesos de Propiedades, uno desde
+una release física distinta sin appsettings privados; dos procesos de Comercial;
+dos servidores Laravel locales y otro remoto, con cachés privadas por modo.
+Total HTTP/verificaciones integradas: 144.
+Las cuentas online F3 varían por cuántos logins ganan la carrera con cambio de
+contraseña: cada JWT emitido se verifica revocado, no se fija un total artificial.
+Caché: config:cache real local y microservices verificado; sin bootstrap/cache real.
+
+Métricas de esta ejecución aislada, no capacidad productiva:
+Catálogo por Laravel p95 cercano (5 muestras): 279.06 ms.
+Directo Propiedades: 12 muestras, concurrencia 4, p95 15.86 ms.
+Conexión/JSON 2/5 s; multipart 15 s. No se ampliaron esperas para ocultar fallos.
+
+EVIDENCIAS FUNCIONALES
+- Local sin MS/URLs válidas, incluso flag sync antiguo true: cero clientes/HTTP MS.
+- CRUD agregado MySQL/SQL, referencias, empresa/CI nullable, omisión vs vacío,
+  paginación, selectores mínimos, decimales exactos y versión obsoleta 412.
+- Autoridades con IDs/precios distintos; escritura remota no muta catálogo local.
+- Políticas y sesiones en ambas entradas; público sin propietarios ni JWT admin.
+- JPEG/PNG/GIF reales, 2048 KiB exactos y rechazo de exceso, lote 10 válido/11 inválido;
+  sin publicación parcial. Fotos principales concurrentes y fallo SQL inyectado.
+- Fotos nuevas locales/remotas fuera de public/release; inactiva deja de servir
+  contenido público, preview Blob con Bearer y revocación al logout en tres UIs.
+- Reserva única entre procesos SQL reales, confirmación/liberación/replay/TTL,
+  operación ajena, fencing antiguo y carreras renovar-confirmar-expirar en borde UTC.
+- mTLS real: certificado permitido + usuario; sin certificado/certificado ajeno/
+  cabecera forjada/certificado solo/JWT revocado rechazados. TLS nombre/fecha/pin.
+- Comercial persiste intención antes de HTTP sin transacción distribuida/Bearer;
+  respuestas de reservar/liberar perdidas después del commit recuperadas con dobles
+  HTTP, sin repetir efectos. Consulta de comando pendiente no se oculta por uno viejo.
+- Barrera del camino antiguo: no Activa/Contrato/cobro/firma/entrega F4 sin saga F5.
+  Caracterización financiera previa íntegra mediante gate exclusivo de pruebas.
+- Dos ventas locales compiten en MySQL: una sola alta; anulación compite: un efecto.
+- Baseline vacío/anterior sin historial, esquema incompatible rechazado, importación
+  de fotos por manifiesto y ensayo sintético completo reejecutable con IDs explícitos.
+- BACKUP/RESTORE SQL reales a base GUID diferente, foto/checksum, recibo y reserva
+  Confirmada conservados. Copia de binarios distinta conserva storage y foto real.
+- Maps conserva lat/lng y rechaza destinos privados/hosts no permitidos por salto,
+  DNS controlado y pin de IP. Sin resolver URLs externas desde las pruebas.
+
+CAMBIOS INTENCIONALES DE COMPATIBILIDAD
+Nuevo permiso servidor en catálogo; fixtures válidos reciben permiso explícito.
+Dos rutas antes pendientes dejan de esperar 503 y ahora autentican 401; no se
+eliminan aserciones de dinero, crédito, comisiones, documentos, correo ni sesiones.
+Remoto exige If-Match y estado gestionado; no trasladar un escritor viejo sin
+actualizarlo. Local acepta contratos sin If-Match y conserva su flujo autónomo.
+Máximo de lote cerrado en 10/20 MiB, documentado. Dos decimales sin redondeo oculto.
+Migraciones explícitas; HTTP no adopta ni siembra. Cachés por instancia/mode.
+
+ALCANCE Y LÍMITES
+La matriz traza 77 escenarios, algunos agrupados en una misma prueba/transacción.
+No es una certificación de corte. Los límites están anotados por fila; no se
+atribuyen a producción pruebas con dobles ni se afirma migración real terminada.
+URLs locales históricas /storage continúan públicas hasta su inventario/migración
+F7/F9; F4 no mueve ni borra fotos reales. Solo medios nuevos tienen la nueva ruta.
+No se habilita venta/finanzas distribuida completa; confirmación pública Comercial
+permanece bloqueada hasta F5. Agregaciones y unificación completa siguen F6.
+No carga sostenida, despliegue Linux/VPS, rotación productiva de certificados ni
+conciliación de datos reales; F7–F9 deben validarlos antes de abrir escrituras.
+Mutex global conservador; medir carga del entorno antes de optimizarlo.
+
+REPRODUCIR
+backend: .\scripts\test-isolated.ps1 -Integration -BrowserTests
+Propiedades: $env:MULTILIDER_SQLSERVER_TESTS='1'; dotnet test tests/MSMultilider.Propiedades.Tests/MSMultilider.Propiedades.Tests.csproj
+Comercial/Finanzas: $env:MULTILIDER_SQLSERVER_TESTS='1'; dotnet test
+Seguridad: dotnet test tests/MSMultilider.Seguridad.Tests/MSMultilider.Seguridad.Tests.csproj
+Ambos frontend: npm run test:session; npm run test:catalog; npm run build
+
+Versiones observadas: PHP8.2.29, MySQL8.0.46, Composer2.8.11, Node22.19/npm10.9,
+SDK.NET10.0.400/ASP.NET10.0.11; runtime privado8.0.33 para Seguridad8.
+Propiedades EF/Design8.0.33 y StbImageSharp2.30.16 fijados; Comercial EF10.0.14.
+Artefactos privados ignorados: backend/storage/framework/testing (JUnit, métricas,
+logs/cachés y TLS ficticio), frontend/.phase3 (resultados/trace), MS .artifacts.
+Bases SQL GUID y procesos propios eliminados al terminar; MySQL privado detenido.
+No credenciales ni certificados privados añadidos al repositorio.

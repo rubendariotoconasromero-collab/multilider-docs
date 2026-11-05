@@ -2,7 +2,8 @@ PLAN DETALLADO — FASE 4: CATÁLOGO Y DISPONIBILIDAD DE PROPIEDADES
 Proyecto: MultiliderNew
 Fecha: 4 de noviembre de 2026, America/La_Paz
 Versión: 1.0
-Estado: PLANIFICADO. No implementa ni activa F4.
+Estado: IMPLEMENTADO EN RAMAS DE TRABAJO. Sin activación del VPS.
+Evidencia: pruebas/RESULTADOS_F4.txt y analisis/REVISIONES_F4.txt.
 Base: revisiones F3 verificadas; ver analisis/REVISIONES_F3.txt.
 Anexos: contratos/CATALOGO_RESERVAS_F4_PROPUESTA.txt,
 analisis/PARIDAD_CATALOGO_F4.csv y pruebas/MATRIZ_PRUEBAS_F4.csv.
@@ -22,9 +23,8 @@ autorización se identificarán y probarán; no se cambiarán reglas financieras
 El despliegue híbrido actual conserva su revisión/configuración hasta un corte
 posterior validado. La instancia remota parcial F3 no lo reemplaza automáticamente.
 
-Esta entrega es SOLO planificación. No cambia código funcional, configuración
-privada, bases, cuentas, correo, DNS, certificados, servicios ni VPS. La futura
-implementación tendrá ramas propias, sin fusión/publicación/despliegue implícitos.
+Este documento conserva el plan aprobado. La implementación posterior está en
+ramas F4, sin fusión/publicación/VPS ni cambios en configuración y datos reales.
 
 2. MÓDULOS QUE PERMANECEN EN LARAVEL
 ============================================================
@@ -396,4 +396,5 @@ https://learn.microsoft.com/en-us/aspnet/core/security/authentication/certauth?v
 https://learn.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads?view=aspnetcore-10.0
 https://www.rfc-editor.org/rfc/rfc9110.html
 
-Estado de F4-01 a F4-12: PENDIENTE. No hay implementación ni activación de F4.
+Estado de F4-01 a F4-12: IMPLEMENTADO en ramas F4; ver resultados y límites.
+Sin migración productiva, corte ni activación del VPS. F5 continúa pendiente.

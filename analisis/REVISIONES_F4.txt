@@ -1,0 +1,46 @@
+REVISIONES DE ENTREGA F4 — 04-11-2026 America/La_Paz / 05-11 UTC
+Sin push, merge a main ni despliegue. Ramas de trabajo; ejecución local aislada.
+Documentación: commit de cierre en docs/implementacion-fase-4 (incluye este manifiesto).
+
+backend
+  rama: feature/fase-4-catalogo-dual
+  HEAD: 8d4c2914c44b9a1b7e38140e3d41d48b4615038f
+  main conservada: 1f30b8c7781458473be63b367fed956107ea7a81
+  estado: limpio
+
+multilider-ms-propiedades
+  rama: feature/fase-4-reservas
+  HEAD: a34de4a24e9e762961a232b1dd6c8e14eb021ce6
+  main conservada: 0f598c47e01b4718404ed7b4b3f5ecd7d2800f82
+  estado: limpio
+
+multilider-ms-comercial
+  rama: feature/fase-4-consumidor-reservas
+  HEAD: c009f309582d5cec29e4dd3eb2857ede5482dbac
+  main conservada: bdfb91e487d7906cbca6acdcba2f8ff6fcdcb67c
+  estado: limpio
+
+frontend
+  rama: feature/fase-4-catalogo-local
+  HEAD: afd4bc60c4ad684db1aaf552d90d7f39a82b95dc
+  main conservada: dd17e955c1dfe186a1ba9eca4b2f944647870611
+  estado: limpio
+
+frontend/.worktrees/fase3-microservices
+  rama: feature/fase-4-catalogo-directo
+  HEAD: d5d8da70b098345dc198d85b74fde8b97275f9eb
+  main conservada: dd17e955c1dfe186a1ba9eca4b2f944647870611
+  estado: limpio
+
+multilider-ms-seguridad
+  rama: feature/fase-3-sesiones-autorizacion
+  HEAD: 3e7ab44e40b4ca89192d3dd0a5dd12f82a673ddf
+  main conservada: a29dd6bbf0ba0dba8e899c3ebfa738b858443929
+  estado: limpio
+
+multilider-ms-finanzas
+  rama: feature/fase-3-autorizacion
+  HEAD: 642ebabd7dd5bcabc8dff9da1259f1b83a55417f
+  main conservada: fa12bc46cb720363a7572ee4d445c081dd69cd92
+  estado: limpio
+

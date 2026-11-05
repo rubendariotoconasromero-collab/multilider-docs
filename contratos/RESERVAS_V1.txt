@@ -1,0 +1,82 @@
+RESERVAS V1 — IMPLEMENTADO EN F4
+Fecha: 4–5 noviembre 2026. No constituye la saga comercial/financiera F5.
+
+CANAL E IDENTIDADES
+Solo Comercial -> Propiedades por HTTPS, certificado cliente SHA256 permitido
+(clientAuth, vigente) Y JWT usuario F3 vigente con acceso_ventas. Cada petición
+consulta estado en Seguridad. Sin certificado: 403; certificado ajeno: rechazo TLS
+o403; certificado solo:401; falta de configuración:503. No confiar en X-Service,
+X-Client-Cert ni cabeceras de certificados enviadas por el navegador.
+Permitir solamente loopback/red privada, bloquear /internal en proxy público.
+Servidor TLS con nombre/SAN válido; Comercial valida nombre, fecha, serverAuth y
+pin(es) SHA256. Pinning permite CA privada sin desactivar la identidad del servidor.
+Usar archivos privados, nunca certificados privados en frontend/repositorio.
+
+ENDPOINTS PROPIEDADES
+POST /internal/catalogo/v1/propiedades/{id}/reservas
+ {operacion_id,command_id,expected_version,precio_esperado?,moneda_esperada?}
+GET /internal/catalogo/v1/operaciones/{UUID}/reserva
+GET /internal/catalogo/v1/comandos/{UUID}
+POST /internal/catalogo/v1/reservas/{UUID}/renovar|confirmar|liberar
+ {operacion_id,command_id,fencing_token,price_version?}
+Confirmar exige price_version capturada; comprueba precio/moneda contra SQL actual.
+
+RESPUESTA
+reserva_id,operacion_id,propiedad_id,fencing_token,estado_reserva,estado_propiedad,
+expires_at_utc,version,precio_venta,precio_venta_exacta,moneda,price_version,replay.
+Replay conserva resultado_comando original y devuelve estado actual; consulta de
+comando: {resultado_comando,estado_actual}. Sin datos personales de propietarios,
+clientes ni documentos. El origen comercial y actor issuer/sub los deriva servidor;
+no se admiten en el payload. Nuevo jti del mismo actor puede recuperar; otro actor
+no se apropia por coincidir ID/email. No hay transferencia administrativa en F4.
+
+TRANSICIONES
+Disponible activa -> Retenida/Reservado, TTL 15 min, servidor acota 1..60.
+Retenida vigente propia -> renovar mediante OTRO command_id.
+Retenida vigente propia -> Confirmada/Vendido, vigente=true y no expira.
+Retenida vigente propia -> Liberada/Disponible, vigente=false.
+Retenida vencida -> Vencida/Disponible solo si siguen coincidiendo generación y
+propiedad Reservado. Confirmada no se libera; reversión autorizada corresponde F5.
+Terminal no revive por replay; intención nueva requiere operacion_id nuevo.
+
+PERSISTENCIA
+catalog_reservas: operación/origen únicos, actor, precio decimal/moneda/version,
+fencing creciente por propiedad y auditoría UTC. Índice único propiedad WHERE
+Vigente=1, checks de estados/vigencia/precio/moneda/fence y FK restrictiva.
+catalog_commands: dueño/command_id únicos, huella, resultado y permiso. Efecto y
+acuse en la misma transacción que bloquea mutex y fila de propiedad; ninguna
+transacción SQL se mantiene durante HTTP. Otra operación/huella con mismo UUID
+falla409. If-Match de oferta se comprueba dentro del bloqueo, no en memoria.
+No purgar historial/recibos sin política posterior que considere ventas y replays.
+
+EXPIRACIÓN
+Catalog__MaintenanceEnabled=true: tarea local cada minuto, lotes 100. Alternativa
+CLI --expire-reservations. UTC TimeProvider; no usa identidad de usuario en jobs.
+Reservar/consultar también comprueba vencimiento. Una inconsistencia de estado/
+fence produce AVAILABILITY_INCONSISTENT y requiere revisión, nunca liberar a ciegas.
+
+CONSUMIDOR COMERCIAL
+POST /api/disponibilidad/operaciones
+ {operacion_id,command_id,propiedad_id,cliente_id,asesor_id,expected_version,
+  precio_esperado?,moneda_esperada?}
+GET /api/disponibilidad/operaciones/{UUID}?command_id={UUID_opcional}
+POST /api/disponibilidad/operaciones/{UUID}/renovar|liberar
+ {command_id,reserva_id,fencing_token}
+Sesión y acceso_ventas. Intención/actor/payload/huella se guardan en su SQL ANTES
+ de HTTP. Validación de cliente/asesor activos, incluso antes de un nuevo envío.
+202 estado Pendiente / RESULTADO_INCIERTO: no es confirmación de reserva ni venta.
+Tras nuevo login del mismo actor se consulta comando/operación y reutiliza el
+mismo UUID. 200 estado Aplicado significa comando aplicado; estado_reserva indica
+Retenida/Confirmada/Liberada/Vencida. No guardar JWT ni reusar el último en jobs.
+La consulta prioriza comandos pendientes y permite seleccionar command_id; un
+acuse anterior no oculta una liberación pendiente. Si el comando es desconocido se reintenta explícitamente el mismo payload/UUID;
+no se genera otra operación ni se libera por timeout. Respuesta incoherente queda
+pendiente. No hay endpoint Comercial público para confirmar en F4.
+
+BARRERA F5
+POST venta, anulación, firma y actualización de entrega de la nueva revisión
+Comercial rechazan INTEGRATION_NOT_READY. La reserva no crea Venta Activa,
+Contrato, deuda, cobro ni entrega. GET históricos permanece. Las reglas financieras
+anteriores se caracterizan mediante un gate de pruebas inyectado, excluido de la
+compilación productiva; no existe flag operativo para saltar la barrera.
+La revisión híbrida anterior y el VPS permanecen congelados hasta su corte.

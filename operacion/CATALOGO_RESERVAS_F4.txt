@@ -1,0 +1,120 @@
+OPERACIÓN Y RECUPERACIÓN F4
+Estado: implementación en ramas de trabajo. Sin merge/push/VPS ni cambio de .env
+real. Ver revisiones y resultados. No autoriza el corte de producción F9.
+
+PREPARAR UNA INSTANCIA DE PRUEBA / RELEASE REVISADA
+1. Respaldar configuración y snapshot consistente de bases Y archivos. Usar copias
+   con usuarios SQL exclusivos. No apuntar herramientas aisladas a datos reales.
+2. Laravel: php artisan migrate (aditiva 2026_11_04_000002), config:cache y reinicio
+   de workers con entorno propio. Añade infraestructura/ledger y columnas de fotos
+   nullable, manteniendo URLs anteriores. No ejecuta seed/migrate:fresh productivo.
+3. Propiedades: crear BD vacía propia o copia F3; cargar entorno privado y ejecutar
+   dotnet MSMultilider.Propiedades.dll --migrate-catalog. Preflight exige dbo y
+   modelo F3 exacto (columnas, identidad, PK, índices/filtros y FK), sin tablas
+   inesperadas. Rechaza duplicados/largos incompatibles; no deduplica ni trunca.
+   Sin historial solo adopta baseline revisado; con historial ajeno/nuevo se detiene.
+   Normaliza únicamente variantes conocidas de Disponible/Reservado/Vendido;
+   estados desconocidos se conservan y no se reservan automáticamente.
+4. Fotos remotas anteriores: Catalog__LegacyRoot + Catalog__LegacyManifest y
+   --import-media. JSON {database,images:[{id,path,sha256}]}, cobertura completa,
+   paths relativos, sin symlinks, tipo/tamaño/contenido/hash comprobados. Repetible,
+   sin servir staging; conservar manifiesto y originales hasta validar el corte.
+5. Comercial: BD nueva exclusiva o historial F3 conocido, entorno privado y
+   Migrations__DatabaseName exacto; dotnet MSMultilider.Comercial.dll
+   --migrate-commercial. Rechaza BD distinta o esquema no vacío sin historial.
+   No usar el DesignTimeFactory para actualizar bases: es deliberadamente ficticio.
+6. Configurar mTLS privado según deploy/*.env.example; habilitar mantenimiento de
+   Propiedades cada minuto (Catalog__MaintenanceEnabled=true) o cron/oneshot con
+   --expire-reservations y --cleanup-media. No iniciar dos expiradores diferentes
+   que modifiquen estado sin ese protocolo. Procesos F4 usan el mismo SQL/storage.
+7. Actualizar juntos adaptadores/clientes compatibles. Revisar /health/ready,
+   catálogos y fotos, probar una intención y liberar con su mismo actor. No abrir
+   venta/pago remoto ni reactivar sync/LegacyPropertyStateBridge. F5 sigue pendiente.
+
+RUTAS Y SERVICIOS
+Local Laravel: MySQL propia y storage/app/catalog-media/objects para fotos nuevas;
+limpieza catalogo:limpiar-imagenes cada 15 min, solo local. Configuración/colas,
+reportes PDF/Excel, empresa, campañas, IMAP/SMTP, perfil y portal permanecen Laravel.
+Remoto Propiedades: SQL Server exclusivo y Catalog__StorageRoot/objects persistente.
+Ejemplo FUTURO, no instalado: /var/www/tecnoweb/ms-propiedades/current y
+/var/www/tecnoweb/shared/propiedades-media. Plantilla systemd en
+multilider-ms-propiedades/deploy/multilider-propiedades.service, usuario propio,
+filesystem de código de lectura y solo shared escribible. Confirmar rutas/puertos
+reales antes de F9. No atribuir estas rutas a una inspección del VPS.
+Comercial: SQL Server propio con AvailabilityIntents/AvailabilityCommands; no
+combina transacciones con Propiedades. Servicio existente plantilla en su deploy/.
+En main, Vue consume Laravel; el otro checkout consume Seguridad/Propiedades
+ directamente. La unificación completa y agregaciones siguen F6.
+
+SECRETOS Y CERTIFICADOS
+Ejemplos privados futuros: /etc/tecnoweb/propiedades.env, comercial.env,
+/etc/tecnoweb/certificados/*-server.pfx y *-client.pfx. Directorio 0700 y permisos
+mínimos de lectura al servicio correspondiente; entorno 0600 root. No valores
+reales en Git/chat, ni password en línea de comandos. Usar mecanismos privados
+existentes para cargar entorno/migrar. Credenciales de migración separadas de la
+cuenta runtime (DDL solo al operador; runtime CRUD del esquema propio).
+Certificado servidor: SAN del hostname/IP privado usado, EKU serverAuth; cliente:
+clientAuth. Propiedades acepta SHA256 de clientes permitidos, Comercial pines de
+servidor (listas separadas por coma para rotación). Mantener validación nombre,
+fecha y propósito. Rotar con solapamiento y después retirar pin antiguo/reiniciar.
+Windows usa DefaultKeySet para SslStream; Linux usa EphemeralKeySet. Limitación
+oficial: https://learn.microsoft.com/en-us/dotnet/core/extensions/sslstream-troubleshooting#handshake-failed-with-ephemeral-keys
+No modificar almacenes de confianza del equipo para ejecutar las pruebas.
+Bloquear /internal en Apache público; no aceptar certificados vía cabeceras.
+
+PRIVACIDAD Y ARCHIVOS ANTERIORES
+No servir el storage nuevo como alias estático. /catalogo/media verifica fila,
+publicación y propiedad activa cada vez; preview requiere sesión y permiso.
+Mantener no-cache/must-revalidate, sin caché CDN que prolongue publicación.
+.NET ya no expone wwwroot/uploads. URLs locales antiguas /storage siguen públicas;
+F4 no las declara privadas ni borra archivos reales. Antes de un corte que prometa
+privacidad, inventariar esos enlaces/copias, migrar con manifiesto, validar hash,
+retirar el alias anterior y vaciar cachés bajo autorización F7/F9.
+
+MAPAS / IMPORTACIÓN
+php artisan catalogo:mapas manifiesto.json valida sin escribir. --apply registra
+solo equivalencias approved, base exacta, dataset y procedencia; nunca copia
+negocio ni enlaza por coincidencia de ID/email. Reejecución idéntica no duplica;
+destino cambiado/ambiguo se rechaza. IDs son strings explícitos en el manifiesto.
+El importador tests/FixtureSetup/SyntheticCatalogImporter es SOLO sintético, con
+base nueva GUID y storage confinado. Ensaya geografía, propietario, ubicación,
+característica, propiedad, pivotes y foto con checksum. No es el ETL productivo F7.
+
+RESPALDAR Y RESTAURAR
+- Detener nuevas escrituras en API, esperar/conciliar solicitudes en vuelo y parar
+  servicios/worker/expirador. Congelar también Comercial y mantenimiento; cerrar
+  solo Vue no detiene escritores. Conservar intenciones pendientes conocidas.
+- Guardar versiones de código/config, historial de migraciones, hora UTC, SQL
+  BACKUP DATABASE con COPY_ONLY,CHECKSUM de cada SQL propio; snapshot MySQL Laravel,
+  shared storage y manifiesto de hashes. SQL backups en ruta accesible solo al
+  servicio SQL/operador. Copia cifrada externa según política del entorno.
+- Probar RESTORE VERIFYONLY y RESTORE en OTRA base/ruta, no sobrescribir por nombre
+  inferido. Restaurar archivos del MISMO punto, validar SHA256, FK/pivotes, IDs,
+  códigos, vigencia/fence, reservas Confirmadas y recibos. No liberar al restaurar.
+- Conciliar AvailabilityCommands/Intent con catalog_commands/catalog_reservas por
+  UUID/actor/fence. Snapshot de un servicio puede preceder al de otro: no asumir
+  consistencia distribuida por restaurar ambos. Mantener barrera de escritura hasta
+  resolver pendientes; no generar otra UUID ni compensar por falta de respuesta.
+- Restaurar configuración privada compatible; reiniciar trabajadores con el modo
+  correcto, validar ready, catálogo, medios y sesión. Abrir tráfico gradualmente.
+  Rollback después de usar F4 requiere snapshot/config/código coherentes; migration
+  down borraría historial/columnas nuevas y no es un procedimiento de recuperación.
+Ensayo automatizado incluido: BACKUP y RESTORE SQL reales a base GUID independiente,
+recibos/reserva Confirmada y foto con checksum. El ACL SQL se limita al directorio
+privado de ESE fixture y se elimina al limpiar, nunca a directorios de negocio.
+
+VIGILAR
+GET /health y /health/ready (autenticado), fallos 401/403/409/412/503, correlaciones,
+intenciones Pendientes, Retenidas vencidas, limpieza atrasada y huérfanos propios.
+Una inconsistencia de disponibilidad se investiga por operación/fence, sin UPDATE
+masivo a Disponible. No purgar comandos/reservas en F4. Latencias de pruebas en
+pruebas/RESULTADOS_F4.txt; el mutex global no es una garantía de carga productiva.
+
+REPRODUCIR
+Backend: .\scripts\test-isolated.ps1 -Integration -BrowserTests
+Propiedades: MULTILIDER_SQLSERVER_TESTS=1 y dotnet test tests/...Tests.csproj
+Comercial/Finanzas: MULTILIDER_SQLSERVER_TESTS=1 y dotnet test
+Seguridad: dotnet test tests/MSMultilider.Seguridad.Tests/...csproj
+Cada checkout frontend: npm run test:session; npm run test:catalog; npm run build.
+Runner privado: backend/storage/framework/testing; artefactos UI frontend/.phase3.
+Test SQLite solo complementa pruebas SQL Server reales, no las sustituye.
