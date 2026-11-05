@@ -1,8 +1,10 @@
 PLAN DE DESARROLLO: BACKEND DUAL Y FRONTEND UNIFICADO
 Proyecto: MultiliderNew
 Fecha: 4 de noviembre de 2026, America/La_Paz
-Versión del plan: 1.4
-Estado: F0–F4 IMPLEMENTADAS y verificadas en ramas de trabajo. F5–F9 PENDIENTES.
+Versión del plan: 1.5
+Estado: F0–F4 IMPLEMENTADAS y verificadas en ramas de trabajo.
+F5 PLANIFICADA en detalle; implementación F5–F9 PENDIENTE.
+Plan detallado siguiente: PLAN_FASE_5.txt (sin ejecución ni despliegue).
 Evidencias: pruebas/RESULTADOS_F0_F2.txt, RESULTADOS_F3.txt y RESULTADOS_F4.txt.
 No se ha desplegado ni habilitado el modo remoto completo.
 Alcance de este documento: diseño, secuencia y criterios de verificación.
@@ -92,8 +94,10 @@ En remoto:
   Propiedades: catálogo, propietarios, disponibilidad, reservas e imágenes.
   Comercial: clientes, asesores, ventas, contratos y entregas.
   Finanzas: obligaciones, planes, cuotas, pagos, ingresos, egresos, comisiones.
-Laravel conserva configuración empresarial, correo, coordinación y, si hacen
-falta, proyecciones de lectura y equivalencias de identificadores.
+Laravel conserva configuración empresarial, correo, fachada/orquestación de
+solicitudes y, si hacen falta, proyecciones de lectura y equivalencias de IDs.
+La propuesta F5 sitúa el coordinador durable de venta/anulación en Comercial;
+Laravel no ejecutará otra saga comercial paralela. Ver D5-01 en PLAN_FASE_5.txt.
 Ningún servicio escribe directamente en la base de otro.
 Los datos reflejados para consultas no serán un segundo origen de escritura.
 
@@ -109,7 +113,7 @@ No registrar contraseñas, JWT completos ni datos personales innecesarios.
 4. REPOSITORIOS Y RESPONSABILIDADES
 ========================================
 backend:
-  selección de modo, contratos/adaptadores, autenticación, coordinación,
+  selección de modo, contratos/adaptadores, autenticación, fachada de operaciones,
   consultas de reportes/dashboard/portal, equivalencias y pruebas de ambos modos.
 frontend:
   recuperar mejoras de ambas ramas, consumir una API común, unificar permisos,
@@ -121,7 +125,7 @@ multilider-ms-propiedades:
   reservas/confirmación/liberación atómicas, autorización y migración de catálogo.
 multilider-ms-comercial:
   integración real con reservas, estados de ventas, contratos/entregas,
-  idempotencia, consultas y paridad funcional.
+  idempotencia, consultas y paridad funcional; coordinador durable propuesto F5.
 multilider-ms-finanzas:
   inscripción financiera, estados coordinados, paridad de cobros/reversiones,
   pasarela si corresponde, consultas y conciliación.
@@ -149,6 +153,7 @@ multilider-docs:
 ========================================
 Fases 0–4 completadas en ramas de trabajo; fases 5–9 pendientes.
 Desglose operativo de fases 0 a 2: PLAN_FASES_0_2.txt.
+Desglose propuesto F5: PLAN_FASE_5.txt, contrato y matrices F5 adjuntos.
 La fase 2 entrega infraestructura y una consulta piloto; la activación funcional
 completa del modo remoto continúa en las fases 3 a 8.
 
@@ -271,8 +276,10 @@ Aceptación:
  Las fotografías siguen accesibles con la política pública/privada correspondiente.
 
 FASE 5 | Comercial, Finanzas y operaciones distribuidas
-Repositorios: backend, Comercial, Finanzas; Propiedades para reservas.
+Repositorios: backend, Comercial, Finanzas; Propiedades para reservas/reversión,
+Seguridad para autorización técnica y frontend para estados operativos mínimos.
 Depende: F3/F4.
+Estado: PLANIFICADA, no implementada. Desglose: PLAN_FASE_5.txt.
 Tareas:
  F5.1 Crear adaptadores para clientes/asesores/ventas/contratos/entregas y para
       planes/cuotas/pagos/ingresos/egresos/comisiones/métodos/cuentas y sus mapeos.
@@ -462,9 +469,10 @@ La documentación y pruebas se actualizan en cada fase.
 
 Estimación inicial para una persona dedicada, expresada como esfuerzo orientativo:
  F0: 1-2 días; F1: 2-3; F2: 3-4; F3: 3-5; F4: 3-5;
- F5: 6-10; F6: 6-9; F7: 4-7; F8: 3-5; F9: 2-4.
+ F5: 6-10 (preliminar sustituida por 37–60 en PLAN_FASE_5.txt);
+ F6: 6-9; F7: 4-7; F8: 3-5; F9: 2-4.
  Total preliminar original: 33-54 días; requiere reestimación con los desgloses
- de F3 y F4, que sustituyen sus rangos iniciales.
+ de F3, F4 y F5, que sustituyen sus rangos iniciales.
 No es una fecha comprometida. Reestimar al terminar F0, especialmente por
 paridad de pagos/PDF/pasarela, calidad de datos y preparación de infraestructura.
 Trabajo con más personas solo reduce tiempo si las dependencias y contratos están
@@ -513,3 +521,13 @@ Cierre F4: catálogo dual, medios nuevos controlados, reservas SQL/mTLS e intenc
 Comercial durable verificados. Módulos transversales continúan en Laravel. Las
 pruebas de catálogo/sesión de ambas configuraciones pasan; esto no marca terminados
 los criterios globales de ventas, reportes, migración o publicación F5–F9.
+
+Planificación F5 (04-11-2026): PLAN_FASE_5.txt detalla 16 paquetes, decisiones,
+dependencias y cinco puertas de aceptación; contrato propuesto, 30 familias de
+paridad y 106 escenarios de prueba todavía no ejecutados. Propone coordinador en
+Comercial, obligaciones/pagos en Finanzas, disponibilidad en Propiedades y Laravel
+como fachada dual/generador de documentos. Conserva los módulos acordados en Laravel.
+Esfuerzo orientativo F5 actualizado: 37–60 días laborables de una persona;
+sustituye la estimación preliminar de 6–10, pendiente de reestimar tras F5-01/02.
+No modifica código de aplicación, datos reales, configuración ni VPS. F5 sigue
+pendiente de implementación; F6–F9 conservan sus objetivos y límites.

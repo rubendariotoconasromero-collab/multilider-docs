@@ -24,7 +24,8 @@ Pendientes siguientes, ya definidos en el plan general
 F3: COMPLETADA en ramas de trabajo; contrato y sesiones locales/remotas verificados.
 Desglose y límites: PLAN_FASE_3.txt, pruebas/RESULTADOS_F3.txt y matriz F3.
 F4: IMPLEMENTADA en ramas de trabajo; ver pruebas/RESULTADOS_F4.txt y revisiones.
-F5: Comercial/Finanzas, coordinación durable y paridad financiera/documental.
+F5: PLANIFICADA en PLAN_FASE_5.txt; implementación pendiente. Comercial/Finanzas,
+coordinación durable y paridad financiera/documental.
 F6: consultas/agregaciones y unificación del frontend; módulos siguen Laravel.
 F7: migración/conciliación de datos. F8: validación integral y recuperación.
 F9: migración/corte/despliegue y recuperación de producción autorizados.
@@ -60,3 +61,30 @@ ensayos de copia y recuperación, ambos clientes y modo local autónomo.
 Quedan F5 venta/Finanzas y coordinación; F6 agregaciones/unificación; F7 datos
 reales y retirada de URLs históricas; F8 validación integral; F9 corte del VPS.
 Guía: operacion/CATALOGO_RESERVAS_F4.txt. Resultados: pruebas/RESULTADOS_F4.txt.
+
+PEND-004 | Comercial/Finanzas y coordinación F5
+Estado: PLANIFICADO EN DETALLE; no implementado ni desplegado.
+Documentación en docs/plan-fase-5, desde cierre F4 fa45242.
+Plan: PLAN_FASE_5.txt; 16 paquetes y cinco puertas E5-A a E5-E.
+Contrato propuesto: contratos/COMERCIAL_FINANZAS_F5_PROPUESTA.txt.
+Paridad: analisis/PARIDAD_COMERCIAL_FINANZAS_F5.csv (30 familias pendientes).
+Pruebas: pruebas/MATRIZ_PRUEBAS_F5.csv (106 escenarios PLANIFICADA; no ejecutados).
+Baseline y límites: analisis/BASELINE_F5.txt.
+
+Propuesta: Comercial coordina venta/anulación y perfil/identidad con decisiones
+durables; Finanzas es autoridad de deuda/cobros/movimientos; Propiedades conserva
+reserva/fence y añade reversión protegida de Confirmada. Laravel expone ambos modos
+y genera los documentos actuales. No duplicar sagas ni guardar JWT de usuario en jobs.
+
+Antes de activar: cerrar diferencias de precio/comisión, parciales, fechas,
+anulación/entrega y provisión de identidad; añadir canal técnico acotado y pruebas
+de caída/duplicados/carreras. El retorno Libélula del navegador solo debe consultar;
+confirmación efectiva requiere proveedor verificable y un solo ingreso. Corrección
+planificada, aún no aplicada. Sandbox/contrato activo deben verificarse en F5-13.
+
+Conservar modo local autónomo y bloqueo remoto por capacidad no terminada. Los
+módulos dashboard/reportes, configuración de empresa, correo masivo, gestor de
+correo, perfil y portal permanecen en Laravel. Sus agregados remotos siguen F6.
+Esfuerzo orientativo F5: 37–60 días laborables de una persona, sin F6–F9 ni esperas
+externas. Siguiente tarea al implementar: F5-01 y cierre del contrato F5-02.
+Sin cambios de código/BD real/.env/VPS, merge ni push por esta planificación.

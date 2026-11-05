@@ -1,0 +1,71 @@
+BASELINE PARA PLANIFICAR F5 — 04-11-2026 America/La_Paz
+Estado: inspección de código y documentación. Sin ejecución funcional nueva F5.
+Todos los repositorios de aplicación estaban limpios al comenzar este plan.
+Documentación creada en docs/plan-fase-5, desde fa45242 (cierre documental F4).
+
+REVISIONES INSPECCIONADAS
+backend: feature/fase-4-catalogo-dual; 8d4c291
+frontend: feature/fase-4-catalogo-local; afd4bc6
+frontend/.worktrees/fase3-microservices: feature/fase-4-catalogo-directo; d5d8da7
+Seguridad: feature/fase-3-sesiones-autorizacion; 3e7ab44
+Propiedades: feature/fase-4-reservas; a34de4a
+Comercial: feature/fase-4-consumidor-reservas; c009f30
+Finanzas: feature/fase-3-autorizacion; 642ebab
+Hashes completos y main conservadas: analisis/REVISIONES_F4.txt.
+Las ramas de implementación propuestas F5 no se crean por este documento.
+
+FUENTES LOCALES PRINCIPALES (rutas relativas a MultiliderNew)
+backend/app/Contracts/Architecture/CommercialGateway.php
+backend/app/Contracts/Architecture/FinanceGateway.php
+backend/app/Http/Middleware/EnsureArchitectureReady.php
+backend/app/Services/Remote/DisabledServiceIdentityProvider.php
+backend/app/Http/Controllers/Api/ClienteController.php
+backend/app/Http/Controllers/Api/AsesorController.php
+backend/app/Http/Controllers/Api/NotaVentaController.php
+backend/app/Http/Controllers/Api/PagoController.php
+backend/app/Http/Controllers/Api/PagoPublicoController.php
+backend/app/Http/Controllers/Api/ContratoController.php
+backend/app/Http/Controllers/Api/EntregaController.php
+backend/app/Services/PagoService.php
+backend/app/Services/AmortizacionService.php
+backend/app/Services/MoraService.php
+backend/app/Services/ReprogramacionService.php
+backend/routes/api.php
+multilider-ms-comercial/Controllers/CatalogosController.cs
+multilider-ms-comercial/Controllers/VentasController.cs
+multilider-ms-comercial/Controllers/DocumentosController.cs
+multilider-ms-comercial/Services/ComercialService.cs
+multilider-ms-comercial/Services/SaleActivationGate.cs
+multilider-ms-comercial/Services/AvailabilityService.cs
+multilider-ms-comercial/DTOs/Requests.cs
+multilider-ms-finanzas/Services/FinanzasService.cs
+multilider-ms-finanzas/Services/Amortizacion.cs
+multilider-ms-finanzas/Controllers/CobranzasController.cs
+multilider-ms-finanzas/Controllers/MovimientosController.cs
+multilider-ms-finanzas/DTOs/Requests.cs
+multilider-docs/contratos/RESERVAS_V1.txt
+multilider-docs/analisis/PARIDAD_FUNCIONAL.csv
+multilider-docs/pruebas/RESULTADOS_F4.txt
+
+LÍMITES DE LA EVIDENCIA
+Inspección estática, ramas y estado Git; no demuestra paridad financiera exhaustiva.
+No se ejecutó la matriz F5, no se verificó sandbox Libélula ni se generaron cobros.
+Los resultados F4 son evidencia previa, no nuevas pruebas F5 ni validación del VPS.
+No se accedió a bases reales, .env privados, servidor de correo ni VPS.
+La planificación modifica solo documentación; no corrige aún los riesgos encontrados.
+
+REFERENCIAS EXTERNAS
+Microsoft Saga: https://learn.microsoft.com/es-es/azure/architecture/patterns/saga
+AWS Outbox: https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html
+Libélula: https://libelula.bo/
+Consultadas 04-11-2026. Las dos primeras sustentan el patrón, no prueban esta app.
+La búsqueda localizó manuales Libélula antiguos; apertura PDF falló (timeout/404).
+No se atribuyen a esos manuales capacidades de la API vigente ni esquema de firma.
+
+VERIFICACIÓN DOCUMENTAL DE ESTA ENTREGA
+16 paquetes con dependencias/aceptación; suma de esfuerzos comprobada: 37–60 días.
+30 filas de paridad y 106 escenarios de prueba, IDs únicos y todos pendientes F5.
+Referencias de tareas en ambas matrices cubren los 16 paquetes, sin IDs inexistentes.
+Referencias a los archivos de código de este baseline comprobadas en el workspace.
+Archivos nuevos leídos como UTF-8; diff de documentación revisado sin errores.
+Esto valida coherencia del plan; no ejecuta ni certifica ninguna función nueva F5.

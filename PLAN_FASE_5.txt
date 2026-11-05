@@ -1,0 +1,501 @@
+PLAN DETALLADO — FASE 5: COMERCIAL, FINANZAS Y OPERACIONES DISTRIBUIDAS
+Proyecto: MultiliderNew
+Fecha: 4 de noviembre de 2026, America/La_Paz
+Versión: 1.0
+Estado: PLANIFICADO. No implementado ni desplegado por esta entrega.
+Base comprobada: F4 terminada en ramas; analisis/BASELINE_F5.txt.
+Anexos: contratos/COMERCIAL_FINANZAS_F5_PROPUESTA.txt,
+analisis/PARIDAD_COMERCIAL_FINANZAS_F5.csv y pruebas/MATRIZ_PRUEBAS_F5.csv.
+Cobertura prevista: 30 familias de paridad y 106 escenarios, todos pendientes F5.
+
+1. OBJETIVO Y LÍMITES
+============================================================
+Conectar Comercial y Finanzas a Laravel, usando las reservas F4 de Propiedades,
+sin perder el modo autónomo ni cambiar silenciosamente las reglas del negocio.
+Entregar ventas, contratos, entregas y operaciones financieras consultables,
+idempotentes y recuperables cuando fallen una respuesta, un proceso o un servicio.
+El éxito comercial solo se anuncia al terminar todos sus pasos obligatorios.
+
+LOCAL: Vue -> Laravel/Sanctum -> MySQL y archivos propios. No exige procesos,
+bases, certificados, claves ni llamadas a Seguridad/Propiedades/Comercial/Finanzas.
+MICROSERVICES: Vue -> Laravel -> autoridades Seguridad, Propiedades, Comercial y
+Finanzas. Cada servicio escribe solamente su base. Laravel conserva su MySQL para
+empresa, correo, infraestructura, vínculos explícitos y consultas que lo requieran.
+APP_ARCHITECTURE sigue siendo configuración de instancia, con local por defecto.
+No se cambia el modo por una caída. No se duplican escrituras como respaldo local.
+
+F5 es desarrollo en ramas y entornos aislados. El VPS y su versión actual siguen
+funcionando. No incluye migrar datos reales, fusionar main, publicar ni reiniciar
+servicios de producción. El corte y los otros proyectos del VPS corresponden F9.
+F6 completa lectores agregados/unificación del frontend; F7 migra/conciliará datos;
+F8 ensaya validación integral y recuperación; F9 realiza el corte autorizado.
+F5 completa lecturas operativas necesarias para sus pantallas, no los cinco
+reportes, dashboard y portal agregados que necesitan el trabajo de F6.
+
+2. MÓDULOS QUE PERMANECEN EN LARAVEL
+============================================================
+- Dashboard y reportes, generación PDF/Excel: Laravel; lectores por origen en F6.
+- Configuración de empresa y personalización: Laravel/MySQL. Métodos y cuentas
+  bancarias operativas pertenecen a Finanzas en remoto; no se mantienen dos altas.
+- Correo masivo: campañas, historial, colas y SMTP en Laravel.
+- Gestor de correo: Laravel/IMAP/SMTP; mensajes en el servidor de correo.
+- Perfil: pantalla y orquestación Laravel; identidad del proveedor elegido en F3.
+- Portal del cliente: Laravel; consulta Seguridad/Comercial/Finanzas mediante
+  vínculos explícitos y autorización propia. Sus lectores completos se hacen F6.
+No se crean microservicios adicionales para estos módulos. Sus consultas remotas
+no se habilitan leyendo tablas locales antiguas mientras falten sus adaptadores.
+Los PDF operativos de contratos/comprobantes se mantienen en Laravel en F5,
+recibiendo DTO del dueño del dato; no se sustituyen por los borradores .NET.
+
+3. ESTADO REAL ENCONTRADO
+============================================================
+1) F4 ya tiene reservas atómicas, precio/versiones, fencing, recibos por comando,
+   mTLS y usuario delegado; Comercial persiste intención/resultado incierto.
+   Retenida vence; Confirmada no vence y no admite liberar en el contrato F4.
+2) Comercial tiene clientes/asesores/ventas/contratos/entregas en SQL Server propio.
+   ISaleActivationGate bloquea crear/anular venta, firmar y actualizar entrega.
+   Su código anterior no constituye todavía una venta distribuida terminada.
+3) Finanzas tiene SQL Server propio, migración inicial, registro financiero,
+   cuotas/pagos/amortización/reprogramación y movimientos. RegistrarVenta consulta
+   Comercial y crea obligaciones; no existe aún preparar/activar con la saga.
+4) CommercialGateway/FinanceGateway Laravel son puntos mínimos de extensión;
+   remoto usa PendingDomainGateway. EnsureArchitectureReady bloquea esas rutas.
+   Extender métodos y guardas; no basta configurar URL ni quitar un bloqueo global.
+5) Crear cliente/asesor en Laravel también crea su usuario, rol/vínculo y, en el
+   asesor, fotografía. Comercial solo recibe UserId; no reproduce el alta integral.
+6) Laravel recibe monto_total/monto_liquido/saldo_credito; Comercial anterior
+   calcula precio de catálogo menos descuento. La comisión también difiere de base.
+   Esta discrepancia debe resolverse con caracterización y contrato de negocio.
+7) PagoController permite importes parciales y pagos múltiples; Finanzas actual
+   exige una cuota completa y orden anterior. También difieren estados/monedas,
+   fechas de amortización, redondeo final y condiciones de reversión/anulación.
+   PagoService antiguo usa 'Registrado'; no tomarlo como autoridad sin ver rutas.
+8) Contratos Laravel permiten adjuntar PDF y alternar firmado; el código/campo
+   de emisión no coincide con Comercial. Entregas tienen reglas diferentes.
+   No se encontró una regla uniforme que obligue saldo cero para toda entrega.
+9) PagoPublicoController.confirmarRetorno marca PAGADO con el identificador del
+   navegador. El callback también altera pagos sin una consulta de confirmación
+   visible en ese método. F5 corregirá esa confianza y probará ingresos asociados.
+   Es una corrección de integridad, no una nueva política de cobros o reembolsos.
+10) La identidad técnica para jobs no está habilitada: DisabledServiceIdentityProvider
+    lanza error. F4 depende de usuario vigente; no conservar su JWT en un outbox.
+
+La matriz de paridad nueva documenta las brechas; la matriz F0 es histórica y no
+prueba el cierre F4/F5. Revalidar rutas, permisos y hashes al iniciar implementación.
+
+4. DECISIONES DE DISEÑO PROPUESTAS
+============================================================
+D5-01 Autoridades y coordinador
+Comercial será el único coordinador durable del ciclo de venta/anulación porque
+ya posee venta e intención de reserva. Su SQL guardará pasos, decisiones y outbox.
+Laravel seguirá como fachada y adaptador; no ejecutará otra saga de venta paralela.
+Finanzas será autoridad única de obligaciones, planes, cuotas, pagos, movimientos
+y desembolsos. Propiedades seguirá siendo autoridad de disponibilidad/reserva.
+La orquestación transversal de alta de usuario/perfil será un flujo separado,
+propiedad de Comercial, con comandos acotados hacia Seguridad. Laravel lo expone.
+
+D5-02 Transporte recuperable
+Primera versión: HTTP interno con mTLS, outbox/inbox SQL y workers. No introducir
+RabbitMQ/Kafka para resolver F5. Confirmar estado + recibo + siguiente trabajo en
+la misma transacción local; enviar fuera de ella. Aceptar entrega repetida y hacer
+los efectos idempotentes con claves únicas, hash y versión. No prometer entrega
+exactamente una vez ni una transacción ACID entre las tres bases.
+
+D5-03 Autorización durable
+Usuario vigente y permisos por recurso para iniciar/consultar/cancelar. Para el
+worker: identidad técnica propia por servicio, mTLS y autorización acotada a la
+operación ya admitida, su actor y su payload. No reutilizar JWT vencidos ni usar
+un usuario administrador global. Contrato detallado en el anexo, sección 5.
+Revocar una sesión impide nuevas decisiones; no deshace una decisión comercial
+ya confirmada. Antes del punto de confirmación, una revocación lleva a abortar y
+compensar; si Seguridad no responde, queda pendiente. Después, solo se completa
+la decisión registrada; un operador autorizado podrá iniciar una anulación nueva.
+
+D5-04 Paridad de negocio antes de activar
+Usar fixtures de las rutas y pantallas vigentes como referencia. No reemplazar
+datos históricos por fórmulas nuevas. Conservar casos válidos de ambos modos;
+señalar y probar correcciones de seguridad/carreras/moneda por separado.
+Pendientes de resolución funcional en F5-01, con propuesta inicial:
+ a) Precio: snapshot/version de Propiedades como referencia y condición económica
+    explícita. Si hoy se permite negociar, modelar precio negociado/autorización;
+    no ignorar monto_total ni imponer catálogo silenciosamente. Derivar importes
+    coherentes en servidor; rechazar discrepancias antes de reservar/confirmar.
+ b) Comisión: mantener base/porcentaje del caso vigente aprobado y congelarlos
+    en la venta; Finanzas registra un solo egreso por esa revisión comercial.
+ c) Pagos parciales: conservarlos donde el flujo vigente los admite, con control
+    acumulado del saldo; no imponer la restricción actual .NET de pago completo.
+ d) Entrega y reversión de firma: preservar flujo actual válido; no introducir
+    saldo cero, bloqueo de desfirmado o reembolso sin una regla explícita.
+ e) Anular con cobros/comisión pagada/entrega: no liberar automáticamente ni
+    devolver dinero. Usar bloqueo y resolución autorizada; documentar la diferencia
+    con el comportamiento local inseguro antes de aplicar la corrección en ambos.
+ f) Credenciales de cliente: Laravel hoy usa CI como contraseña; Seguridad puede
+    exigir otra política. Definir alta compatible/activación en F5-01, sin guardar
+    CI o contraseñas en mensajes. No cambiar contraseñas de usuarios existentes.
+Si alguna regla sigue sin definirse, su capacidad remota permanece bloqueada;
+no declarar F5 completa ni dar paridad global. El plan no presupone esas decisiones.
+
+D5-05 Compatibilidad incremental
+Rutas públicas y contratos Vue vigentes continúan; agregar operación_id/estado y
+202 pendiente solo en comandos que realmente pueden quedar en curso. Un 202 no
+se traduce a 'Venta registrada'. Mantener idempotencia también en local con su
+transacción MySQL, sin exigir la saga ni los servicios remotos.
+Las guardas habilitan método/ruta/capacidad terminada, nunca un comodín comercial.
+
+5. SECUENCIA DE VENTA Y RECUPERACIÓN
+============================================================
+Flujo propuesto; estados técnicos separados de Activa/Anulada y PAGADO:
+Recibida -> Reservando -> Reservada -> VentaPreparada -> FinanzasPreparadas
+-> ConfirmandoPropiedad -> PropiedadConfirmada -> ActivandoFinanzas -> Completada.
+Estados laterales: Pendiente, Compensando, Compensada, Rechazada, RequiereRevision.
+Cada transición guarda expected_version, recibos, hash y decisión persistente.
+
+1. Admitir una intención única: actor, cliente, asesor, propiedad, condiciones,
+   operación/comando UUID y autorización. Guardar antes del primer HTTP remoto.
+2. Obtener SU reserva F4 por Comercial; recuperar el recibo tras timeout. Capturar
+   precio exacto, moneda, price_version, fencing_token y caducidad.
+3. Crear venta/contrato preparados en Comercial. No listarlos como venta completada
+   ni autorizar firma, entrega, pago o comprobante definitivo por esos registros.
+4. Finanzas prepara cuenta/plan/cuotas/pago pendiente/comisión con snapshot/hash
+   de la venta, en una transacción propia. No habilita cobros/desembolsos todavía.
+   No consulta circularmente 'venta Activa' para poder preparar una venta pendiente.
+5. Verificar aún permiso/estado del actor y vigencia de reserva; persistir intención
+   de confirmar. Confirmar Propiedades con reserva/fence/price_version de esa venta.
+   Ese resultado es el punto de no retorno automático: Confirmada nunca caduca.
+6. Comercial registra decisión de confirmar y publica activación de Finanzas.
+   Finanzas exige comprobante verificable de confirmación, op/venta/hash/versiones
+   coincidentes; nunca acepta un booleano 'confirmado' suministrado por el browser.
+7. Tras el recibo de Finanzas, Comercial completa la venta y emite su resultado.
+   Finanzas activa obligaciones y deja pago PENDIENTE_PAGO, no PAGADO. Que exista
+   una obligación activa no significa que se haya cobrado ni creado un ingreso.
+
+Antes del paso 5: si el rechazo es definitivo, cancelar preparación en Finanzas
+con marca terminal contra mensajes tardíos, anular preparación Comercial y liberar
+exclusivamente la reserva retenida de esa operación/fence. Confirmar cada efecto.
+Después del paso 5: recuperar hacia delante y completar. Si no se puede decidir,
+RequiereRevision con propiedad protegida; nunca liberar por timeout. Una anulación
+posterior usa el protocolo nuevo, no el liberar F4 ni editar estado con CRUD.
+Durante resultado incierto del paso 5 se consulta el recibo: no escoger compensar
+y confirmar a la vez. Todo mensaje tardío respeta la decisión/versión terminal.
+Una caída del browser, Laravel o el worker no pierde ni recrea la operación.
+
+Anulación de venta completada:
+Comercial bloquea firma/entrega y registra intención -> Finanzas cierra el acceso
+a cobros, pasarela, modificaciones de deuda y desembolsos en su transacción ->
+comprueba pagos, comisiones y órdenes externas inciertas -> devuelve recibo/version
+de cierre o rechazo -> Comercial registra decisión irreversible de anular ->
+Propiedades ejecuta nueva reversión de Confirmada, con reserva/fence/venta y prueba
+de cierre -> Comercial termina venta/contrato/entrega anulados con historial.
+El cierre no expira automáticamente mientras pueda llegar una liberación tardía.
+Si el cierre se rechaza, no sale una orden a Propiedades y la venta sigue activa.
+Para abortar un cierre se exige decisión opuesta terminal verificable; no reabrir
+Finanzas mientras haya una liberación incierta. Nunca reactivar por timeout.
+
+Pagos/reversos/amortizaciones/reprogramaciones y movimientos son transacciones
+locales de Finanzas, idempotentes y serializadas por cuenta/plan. No necesitan
+reconsultar la venta Comercial en cada pago; utilizan el estado financiero vigente.
+Firma/entrega y anulación se serializan en Comercial. Cualquier condición financiera
+aprobada para entrega exige versión/protocolo de exclusión, no GET saldo + PUT.
+
+6. PAQUETES DE IMPLEMENTACIÓN Y ACEPTACIÓN
+============================================================
+Cada paquete tendrá su commit/PR revisable y evidencia, sin fusionar main por
+esta planificación. Los días son esfuerzo de una persona, no fechas prometidas.
+
+F5-01 | Baseline y reglas de paridad | 2–3 días
+Repos: docs y lectura de todos. Depende: F4.
+Tareas: fijar revisiones, rutas/permisos/pantallas, formularios y servicios realmente
+usados; completar fixtures contado/crédito/negociación/comisión/parciales/mora/
+fechas/anulación/entrega; resolver D5-04 y clasificar correcciones explícitas.
+Entregable: matriz de paridad con fixtures/decisiones y cobertura por capacidad.
+Aceptación: ninguna fórmula ni restricción nueva queda como supuesto oculto;
+casos históricos con planes, documentos y monedas conservan su información.
+
+F5-02 | Contratos, IDs y snapshots | 2–3 días
+Repos: docs, backend, Comercial y Finanzas; Propiedades/Seguridad para referencias.
+Depende: F5-01.
+Tareas: versionar contratos propuestos; DTO snake_case públicos, tipos/fechas/
+monedas/paginación/errores; operación vs comando; campos de recuperación. Mapear
+dataset + servicio + tipo + ID, identidad por issuer/sub y vínculos explícitos.
+Capturar revisiones de propiedad, asesor/comisión, condiciones y plantilla.
+Entregable: contrato con ejemplos de éxito/202/replay/409/error y manifiesto de IDs.
+Aceptación: mismo ID/correo en bases diferentes no permite vincular o leer datos;
+un snapshot distinto con el mismo UUID da conflicto sin efectos parciales.
+
+F5-03 | Canal técnico y autorización de operaciones | 2–4 días
+Repos: Seguridad, Comercial, Propiedades, Finanzas, backend. Depende: F5-02.
+Tareas: completar identidad técnica/grants por operación, registro de autorización,
+audiencias/scopes, pinning/rotación, revocación y recuperación sin JWT del usuario
+guardado. Revalidar permiso vigente antes del punto de confirmación. Endpoint de
+progreso solo propio o permiso explícito de operación; ID UUID no concede acceso.
+Entregable: canal worker autorizado, emisión/rotación y pruebas negativas reales.
+Aceptación: mTLS solo/usuario solo/scope ajeno/actor distinto/servicio equivocado
+no ejecutan comandos técnicos. Worker puede completar una decisión ya confirmada
+tras expirar sesión; no puede iniciar una venta nueva ni cambiar sus importes.
+
+F5-04 | Adaptadores Laravel con dos implementaciones | 2–3 días
+Repos: backend. Depende: F5-02.
+Tareas: extender CommercialGateway/FinanceGateway o dividir interfaces por función;
+extraer lógica local existente sin reescribir cálculos; crear clientes HTTP y DTO
+remotos; autorización/validación según origen, sin exists:tabla_local en remoto.
+Aplicar idem/recibo MySQL atómico a comandos mutantes reintentables locales.
+Inventariar dependencias Eloquent en políticas/formularios/middleware/documentos;
+definir capabilities y timeouts, sin activar rutas incompletas ni sincronizadores.
+Entregable: proveedores seleccionados por contenedor/configuración cacheable.
+Aceptación: local completo con URLs vacías y cuatro MS apagados; sync antiguo
+true no hace HTTP. Remoto falla explícito sin consultar/escribir negocio local.
+
+F5-05 | Clientes, asesores y su usuario | 2–4 días
+Repos: Comercial, Seguridad, backend; ambos clientes para compatibilidad mínima.
+Depende: F5-03/F5-04 y mecanismo durable F5-06.
+Tareas: búsqueda/filtros/paginación/CRUD, CI único, activo, comisión, foto, vínculos
+de usuario. Preparar perfil y alta/vinculación idempotente de identidad; completar
+rol y activación al verificar el vínculo. No conceder roles administrativos por
+aceptar UserId del cliente. No escribir usuarios espejo en MySQL remoto.
+Secretos solo hacia Seguridad en solicitud autorizada, nunca outbox/log; ante
+resultado perdido consultar por UUID; si hace falta reingreso, mostrarlo sin
+guardar contraseña. Compensación solo sobre la identidad creada por esa operación;
+no borrar cuentas previas ni asumir que un correo coincidente permite apropiación.
+Actualizaciones/desactivación de perfil e identidad quedan coordinadas y visibles.
+Entregable: alta/edición integral, selectores mínimos para vender y fotos propias.
+Aceptación: respuesta perdida y reintento no duplican usuario/perfil; fallo parcial
+no deja una cuenta operativa sin vínculo; cambios de rol/correo preservan ownership.
+
+F5-06 | Operaciones, outbox/inbox y workers | 3–4 días
+Repos: Comercial, Finanzas y Propiedades; backend para fachada/recibos locales.
+Depende: F5-02/F5-03.
+Tareas: migraciones aditivas Operations/Steps/Attempts/Outbox/Inbox o equivalentes;
+reutilizar AvailabilityIntents/Commands F4, no crear reserva paralela; índices
+únicos por emisor/comando y operación/agregado; hash canónico con versión.
+Worker con lease, fence/CAS, orden por agregado, backoff/jitter, reintentos acotados,
+consulta de resultado incierto, bandeja de revisión y reanudación auditada. Validar
+que un proceso cuyo lease venció no puede sobreescribir el nuevo dueño.
+Entregable: progreso y recuperación persistentes sin broker ni secreto de usuario.
+Aceptación: dos procesos, redelivery, crash después de commit y fallo de escritura
+del outbox no pierden comandos ni duplican efectos; SQL/HTTP no comparten transacción.
+
+F5-07 | Preparar, activar y cerrar obligaciones | 3–5 días
+Repos: Finanzas y Comercial. Depende: F5-01/F5-06.
+Tareas: endpoints internos preparar/consultar/activar/abortar/cerrar con recibos;
+cuenta/plan/cuotas/pago inicial/comisión por venta/version. Estados Preparada,
+Activa, Cerrando/Anulada y marca terminal; sin cobros/desembolsos preparados.
+Eliminar dependencia circular de RegistrarVenta sobre venta ya Activa. La ruta
+antigua no puede saltarse preparación ni activar por su cuenta.
+Entregable: registro financiero repetible y prueba verificable para activación.
+Aceptación: crash/replay genera un plan, un pendiente y una comisión; nunca ingreso
+antes de cobro. Preparar/activar después de abortar no resucita la operación.
+
+F5-08 | Venta coordinada contado/crédito | 3–4 días
+Repos: Comercial, Propiedades, Finanzas y backend. Depende: F5-05/F5-06/F5-07.
+Tareas: implementar secuencia sección 5; precio/version/fence, renovación acotada
+de reservas, respuestas perdidas, cambio de actor/permiso y confirmación tardía;
+contrato preparado y resultado público completo. Sustituir gate por comprobaciones
+reales de capacidades/estado; nunca un flag para saltar invariantes.
+Entregable: venta coordinada con progreso y efectos completos verificables.
+Aceptación: competencia por propiedad gana una sola operación; ninguna venta
+completada sin confirmación/Finanzas; una venta Confirmada se recupera hacia delante.
+
+F5-09 | Anulación, compensación y concurrencia | 2–4 días
+Repos: Comercial, Finanzas y Propiedades; backend local. Depende: F5-08.
+Tareas: protocolo de cierre/reversión descrito; impedir pago/desembolso/entrega
+concurrente; token/version de cierre financiero; reversión dedicada de Confirmada
+sin permitir liberar F4. Mantener documentos/historial, tombstones y auditoría.
+Clasificar venta entregada, pago confirmado, comisión pagada y pasarela incierta
+como bloqueos/revisión según reglas aprobadas. Corregir en local las mismas carreras
+sin añadir HTTP ni cambiar datos anteriores mediante una migración automática.
+Entregable: anulación reanudable y comandos administrativos de revisión acotados.
+Aceptación: no existe propiedad Disponible con deuda cobrable o pago desconocido;
+mensajes tardíos no afectan otra reserva/nueva venta. No hay reembolsos automáticos.
+
+F5-10 | Paridad de cobros y planes | 3–5 días
+Repos: Finanzas, backend local/adaptador. Depende: F5-01/F5-07/F5-09.
+Tareas: pendiente inicial/contado, parciales y acumulados, cuotas múltiples,
+anticipos existentes, mora, amortización/reprogramación e historial, reversos
+permitidos. Distinguir capital/interés/mora; cuota/venta/cliente propios y activos;
+un movimiento de ingreso por cobro, con método/cuenta/moneda válidos.
+Definir orden de bloqueos para pago/reversión/reprogramación y actualización de
+saldo; no calcular deuda restando todos los pagos al saldo ya reducido.
+Mantener planes importados sin regeneración; fórmulas/redondeos/versiones para
+planes nuevos según F5-01, fixtures de fin de mes/bisiesto/tasa cero y último centavo.
+Entregable: comportamiento financiero equivalente y correcciones explícitas.
+Aceptación: mismos resultados aprobados en PHP/.NET, suma de importes conciliada;
+repetir no genera ingreso ni recalcula dos veces; reversión conserva trazabilidad.
+
+F5-11 | Métodos, cuentas, ingresos, egresos y comisiones | 2–3 días
+Repos: Finanzas, backend. Depende: F5-04/F5-10.
+Tareas: CRUD/filtros/permisos, cuenta por moneda, método/cuenta predeterminada,
+saldos y movimientos manuales; proteger automáticos frente a edición/borrado;
+desembolso de comisión una sola vez; comprobante/lecturas operativas.
+Sustituir referencias bancarias de configuración Laravel por adaptador Finanzas
+en remoto, conservando empresa/branding local. No sumar Bs/BOB y USD/$ juntos.
+Entregable: APIs y DTO financieros para pantallas actuales, incluidas relaciones.
+Aceptación: doble click/concurrencia/anulación no duplica egreso ni altera cuenta
+ajena/inactiva/otra moneda. No recalcular saldos con datos locales desactualizados.
+
+F5-12 | Contratos, firma, entregas y documentos | 2–3 días
+Repos: Comercial, backend y frontend mínimo. Depende: F5-05/F5-08/F5-09/F5-10.
+Tareas: filtros/estados/código contractual/firma-desfirma/agenda/entrega aprobados;
+snapshots versionados de partes, inmueble/propietarios, condiciones y empresa.
+Laravel renderiza plantilla actual de contrato y comprobantes desde DTO, sin
+consultas Eloquent remotas. Adjuntos/actas oficiales en almacenamiento privado de
+Comercial; Laravel sirve descarga autorizada. Guardado temporal, checksum, commit
+de metadatos, sustitución versionada y limpieza segura de huérfanos tras fallos.
+Conservar nombres/MIME/límites, importes/letras y contenido legal vigente. No
+llamar 'firma digital' al registro de firmado o carga de un documento escaneado.
+Entregable: PDFs actuales adaptados, adjuntos propios y transiciones coordinadas.
+Aceptación: no hay firma/entrega en venta incompleta/anulada ni descarga ajena;
+una carrera con anulación no deja entrega completada de propiedad liberada.
+
+F5-13 | Libélula y confirmaciones de pago | 2–4 días
+Repos: Finanzas, backend y frontend de pago. Depende: F5-09/F5-10/F5-11.
+Tareas: validar contrato vigente del comercio y ambiente de pruebas; reutilizar
+URLs públicas Laravel como fachada; Finanzas dueño remoto de órdenes, callbacks
+durables, asignación a pagos y consulta de proveedor. En local usar implementación
+Laravel equivalente. Nunca procesar el mismo evento en ambos almacenes.
+Retorno del browser solo consulta, no confirma. Verificar estado autenticado del
+proveedor, comercio, referencia, importe y moneda; inbox único para notificaciones,
+evento antes de respuesta, repetidos/desordenados y conciliación tras timeout.
+Mantener método de validación definido realmente por Libélula: no inventar HMAC,
+garantía de idempotencia o API actual a partir de manuales públicos históricos.
+Secretos en archivos/configuración privados; redacción de logs. Si falta sandbox
+o documentación del contrato activo, marcar la prueba externa BLOQUEADA; aislar
+esa capacidad y no afirmar paridad productiva completa de cobros públicos.
+Entregable: misma experiencia de pago con confirmación verificable y un ingreso.
+Aceptación: callback falso/retorno manipulado no cambian deuda; pérdida de respuesta
+no registra otra deuda externa a ciegas; anulación respeta cobro externo incierto.
+
+F5-14 | UI mínima de operaciones y compatibilidad de clientes | 2–3 días
+Repos: frontend principal y worktree directo; backend. Depende: F5-04/F5-08/F5-10.
+Tareas: UUID por intención y comando, recuperación tras reload, estados de operación
+202/pending/review, errores por campo y permiso; bloquear repetición con UUID nuevo,
+permitir consultar/reintentar con el mismo. Polling acotado y reanudación por API,
+sin guardar tokens/payloads privados en los nuevos datos de recuperación.
+Crear adaptador mínimo Laravel para comandos Comercial/Finanzas en ambas variantes;
+no añadir axios directo a esos servicios. Conservar F3/F4 del cliente directo sin
+duplicar login ni mezclar ID/token de instalaciones. No fusionar ramas completas.
+Entregable: recorrido operativo utilizable, sin alterar correo/perfil/propiedades.
+Aceptación: ambas variantes muestran pendientes y resultado real; main local
+continúa autónomo; main frente al BFF remoto ejecuta los mismos casos de prueba.
+La retirada de axiosSecurity/axiosPropiedades y la unificación final siguen en F6.
+
+F5-15 | Integración real y fallos inyectados | 3–5 días
+Repos: todos los afectados. Depende: F5-05 a F5-14.
+Tareas: extender test-isolated.ps1/integration-f3.ps1 con suites F5; MySQL privado,
+SQL Server real por servicio/dataset GUID, HTTPS/mTLS real, dos workers y procesos
+separados. Crash antes/después de cada commit/HTTP/acuse y después de perder lease;
+apagar por separado Seguridad, Propiedades, Comercial, Finanzas y Laravel.
+Fixtures sintéticos, sin usar credenciales/cobros/BD de producción; pasarela fake
+para fallos y sandbox para conformidad externa. E2E local y remoto, más compatibilidad
+directa; comparar SQL final, recibos y archivos, no solo códigos de respuesta.
+Entregable: matriz ejecutada con evidencia exacta, entorno y límites de cada caso.
+Aceptación: cero brechas críticas, sin skips de concurrencia SQL ni falsas pruebas
+de caída basadas solo en mocks. Regresión F3/F4 intacta o sustitución justificada.
+
+F5-16 | Operación, recuperación y cierre | 2–3 días
+Repos: docs, scripts/configuraciones de prueba de cada proyecto.
+Depende: F5-15.
+Tareas: migraciones con preflight, revisión exacta de BD y esquema; runbooks de
+workers, colas y consulta/reanudación; métricas de antigüedad por estado, recibos
+inciertos, reintentos y revisión; backup/restauración con manifiesto común de
+dataset, versiones, watermarks y archivos. Ensayar restaurar y reconciliar antes
+de reactivar escrituras. No borrar tombstones/recibos mientras puedan llegar mensajes.
+Para la copia consistente de ensayo: cerrar admisión, llevar trabajos a un punto
+durable conocido, pausar workers y registrar versiones/watermarks antes de respaldar
+las bases y archivos del conjunto. Tras restaurar, conciliar recibos y pagos del
+proveedor antes de reanudar. Restaurar SQL no revierte fondos externos ni permite
+repetir registros/cobros antiguos. Ensayar también la llegada de callbacks tardíos.
+Guía de rollback compatible con datos nuevos; si binario viejo no los entiende,
+pausar admisión/seguir worker compatible o restaurar conjunto de prueba verificado,
+no alternar APP_ARCHITECTURE ni hacer down destructivo como recuperación.
+Entregable: RESULTADOS_F5, revisiones, guía operativa y pendientes F6–F9 actualizados.
+Aceptación: operador puede seguir una operación por UUID y recuperarla desde otro
+proceso sin alterar SQL a mano, ni leer la BD ajena desde un servicio.
+
+7. ORDEN DE TRABAJO Y PUERTAS DE ENTREGA
+============================================================
+Secuencia: 01 -> 02 -> (03 y base 04) -> 06 -> 05/07 -> 08 -> 09 -> 10
+-> 11/12 -> 13 -> cierre 14 -> 15 -> 16. Preparar UI/fixtures en cuanto haya contrato.
+La numeración identifica paquetes, no permite saltar sus dependencias.
+
+Correspondencia con las tareas F5 del plan general:
+ F5.1 -> F5-02/04/05/10/11/12 (adaptadores y paridad de módulos).
+ F5.2 -> F5-03/06 (autorización técnica y coordinación durable).
+ F5.3 -> F5-02/06/14 (UUID, consulta y recuperación de intención).
+ F5.4 -> F5-07/08 (preparación, confirmación y activación).
+ F5.5 -> F5-06/08/09 (reintento, compensación y decisión terminal).
+ F5.6 -> F5-09/10/11/12/13 (anulación y escritores concurrentes).
+ F5.7 -> F5-01/10/11/12 (reglas reales y correcciones explícitas).
+ F5.8 -> F5-01/10/16 (planes históricos y recuperación).
+ F5.9 -> F5-02/12 (snapshots y documentos actuales en Laravel).
+ F5.10 -> F5-13 (pasarela verificable). F5-15/16 verifican y cierran todos.
+
+E5-A: F5-01/02, reglas y contratos cerrados; fixtures de paridad aprobados.
+E5-B: F5-03/04/05/06, canal técnico, CRUD integral y autonomía local verificados.
+E5-C: F5-07/08/09, venta y anulación con fallos/replay/concurrencia reales.
+E5-D: F5-10/11/12/13/14, cobros, documentos, pasarela y UI con paridad demostrada.
+E5-E: F5-15/16, matriz completa, recuperación, versiones/guía y límites publicados.
+Solo E5-E permite declarar F5 terminada en ramas; no autoriza un corte productivo.
+Una capacidad con prueba externa pendiente se declara pendiente, no 'probada con
+mocks'. En integración se pueden validar otras capacidades sin desactivar su guarda.
+
+Esfuerzo orientativo: 37–60 días laborables de una persona dedicada (aprox. 8–12
+semanas). Suma de los rangos de paquetes; incluye desarrollo y verificación, no
+esperas por decisiones/sandbox, migración real, trabajo F6–F9 ni despliegue.
+Sustituye los 6–10 días preliminares F5 del plan general; reestimar al cerrar E5-A.
+
+8. RAMAS, CONFIGURACIÓN Y DATOS
+============================================================
+Partir de las revisiones F4 verificadas, no de main anterior a esas mejoras.
+Ramas propuestas: backend feature/fase-5-comercial-finanzas-dual;
+Comercial feature/fase-5-ventas-coordinadas; Finanzas feature/fase-5-obligaciones;
+Propiedades feature/fase-5-reversion-confirmada;
+Seguridad feature/fase-5-autorizacion-operaciones;
+frontend feature/fase-5-operaciones y worktree feature/fase-5-operaciones-directo;
+docs docs/implementacion-fase-5. Son propuestas, no ramas creadas por este plan.
+La documentación de esta entrega se guarda en docs/plan-fase-5.
+Comercial y Finanzas ya tienen Git; continuar sus historiales, no reinicializarlos.
+Conservar main y release/microservices como referencias hasta revisión/integración F6.
+
+Usar dos instancias Laravel con mismo código, configuración/cache/almacenamiento
+separados y bases aisladas; cuatro servicios solo en entorno remoto. Trabajos y
+sesiones ligados a dataset/origen; cambiar modo exige drenar/reconciliar trabajos,
+reiniciar workers, invalidar sesiones y verificar datos. No sirve como failover.
+Migraciones aditivas hacia bases existentes; nunca EnsureCreated sobre una BD
+antigua, ni cambio de conexión, credenciales o motor como parte de este plan.
+Los fixtures/importadores de ensayo preservan IDs mediante mapa y planes por fila;
+la importación productiva y el retiro de URLs públicas históricas siguen F7/F9.
+Archivos privados fuera del repositorio y secretos redactados en las evidencias.
+
+9. CRITERIOS DE CIERRE Y PRÓXIMO PASO
+============================================================
+Para cerrar F5 se requiere evidencia de todas estas condiciones:
+- Local conserva login/CRUD/ventas/pagos/documentos sin MS ni HTTP remoto.
+- Remoto usa únicamente cada autoridad; no existen espejos escribibles ni fallback.
+- Caída/replay/revocación/duplicados no producen doble venta, plan, ingreso o comisión.
+- Pago y reversión son atómicos en Finanzas; no hay mezclas de moneda ni recálculo
+  silencioso de deuda histórica. Descuentos y redondeos tienen casos aprobados.
+- Anulación no libera una venta cobrable, entregada o con resultado externo incierto.
+- Autorización vigente al iniciar y grants acotados para recuperación; lectura propia.
+- PDFs legales y documentos privados conservan contenido y permisos por origen.
+- Browser informa pendiente/confirmado con precisión y recupera la misma intención.
+- Matriz ejecutada, backup/restauración/reconciliación ensayados y guía reproducible.
+- Dashboard/reportes/empresa/correo/perfil/portal permanecen en Laravel; las consultas
+  agregadas pendientes conservan su bloqueo remoto hasta F6.
+
+Siguiente paso tras aprobar la implementación: ejecutar F5-01 (caracterización y
+decisiones), después cerrar contrato F5-02. No empezar quitando SaleActivationGate
+ni habilitando todas las rutas remotas. Esta entrega solo prepara ese desarrollo.
+
+10. REFERENCIAS
+============================================================
+Evidencia local: archivos/revisiones en analisis/BASELINE_F5.txt; contratos F3/F4;
+pruebas/RESULTADOS_F4.txt. Son la referencia del comportamiento de este proyecto.
+Diseño consultado el 04-11-2026, no obligación de usar un proveedor cloud:
+- Saga/orquestación y punto de no retorno (Microsoft):
+  https://learn.microsoft.com/es-es/azure/architecture/patterns/saga
+- Outbox e idempotencia de consumidores (AWS):
+  https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html
+- Libélula oficial: https://libelula.bo/
+  Se localizaron manuales públicos históricos; no fue posible abrir los PDF en
+  esta revisión. No prueban el contrato vigente del comercio. F5-13 debe verificarlo
+  con documentación y sandbox activos antes de implementar confirmación externa.

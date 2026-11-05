@@ -1,0 +1,254 @@
+PROPUESTA DE CONTRATOS F5 — NO IMPLEMENTADOS
+Fecha: 04-11-2026. Versión de propuesta: 1.0.
+Complementa PLAN_FASE_5.txt. No reemplaza IDENTIDAD_V1/CATALOGO_V2/RESERVAS_V1.
+Cerrar DTO/rutas exactos y decisiones de negocio en F5-01/02 antes de programar.
+
+1. PROPIEDAD Y LÍMITES DE TRANSACCIÓN
+============================================================
+Local: una transacción MySQL Laravel por comando de negocio + recibo idempotente.
+No hay orquestador remoto, grants técnicos ni reserva .NET para operar localmente.
+Remoto: Comercial coordina su venta/anulación y alta de perfil/identidad; Finanzas
+escribe obligaciones/planes/cuotas/pagos/movimientos; Propiedades escribe reserva/
+disponibilidad. Seguridad escribe identidad, permisos y autorización técnica.
+Cada base conserva su outbox/inbox/recibos en su transacción de negocio.
+Laravel es entrada estable, adaptador de contratos y generador de documentos.
+No hay transacciones SQL compartidas ni lectura directa de la BD de otro dominio.
+
+2. IDENTIFICADORES E IDEMPOTENCIA
+============================================================
+operacion_id: UUID de una intención completa (vender, anular, dar de alta perfil).
+command_id: UUID de una orden concreta dentro de esa intención. Renovar/liberar,
+preparar/activar y un nuevo cobro usan comandos diferentes; redelivery usa el mismo.
+correlation_id: diagnóstico; no autentica ni sustituye las claves anteriores.
+causation_id: comando/evento que originó el paso, conservado para auditoría.
+actor: issuer/sub verificado, separado de ID de cliente/asesor/usuario numérico.
+scope/dataset_id: instalación y conjunto de datos, no un valor libre del browser.
+reserva_id/fencing_token/price_version: emitidos exclusivamente por Propiedades.
+venta_id: Comercial; cuenta_venta_id/plan_id/pago_id: Finanzas. IDs locales se
+resuelven por contrato de origen; igualdad numérica no prueba equivalencia.
+
+Unicidad receptora: servicio_emisor + command_id dentro del dataset. Vincular
+operacion_id, actor/origen y hash canónico del comando. Un hash diferente con la
+misma clave retorna409; nunca actualizar el payload original en un reintento.
+Canonización versionada: importes decimales exactos, fechas ISO, null/ausente,
+orden estable de campos y colecciones; no depender del orden JSON del browser.
+Índices adicionales: una venta activa por propiedad, una cuenta/plan de una
+revisión de venta, una comisión de esa revisión, un ingreso por pago/concepto,
+un evento externo por comercio/referencia/evento según contrato real del proveedor.
+
+Guardar mutación + recibo + outbox en el mismo commit. Un duplicado puede devolver
+el recibo original y el estado_actual, incluso si la operación ya fue anulada.
+No describir ese replay como activación actual. Un comando terminal no revive.
+Tombstones de cancelación sobreviven a preparar/activar tardíos y restauraciones.
+Una cuota/pago financiero puede tener varios cobros parciales con UUID diferentes;
+el índice de idempotencia no debe prohibir esa función ni permitir sobrepago.
+
+3. CONTRATO PÚBLICO LARAVEL
+============================================================
+Conservar las rutas existentes de clientes, asesores, notas de venta, contratos,
+entregas, planes/cuotas/pagos, métodos/cuentas, ingresos/egresos y comisiones.
+Extraer método/URI/permiso exactos de backend/routes/api.php y rutas-f0.json, y
+actualizar la instantánea versionada. La ruta actual de NotaVentaController es
+/api/ventas; conservarla, sin deducir la URI del nombre de la clase o tabla.
+Propuesta de extensión común:
+ POST ruta de comando existente
+   campos de negocio existentes + operacion_id + command_id + expected_version
+ GET /api/operaciones/{operacion_id}
+   progreso autorizado por actor/recurso, con recibos públicos redactados
+ POST /api/operaciones/{operacion_id}/reintentar
+   nuevo comando de recuperación, conservando la intención/payload anteriores;
+   requiere permiso, versión y decisión compatible, no ejecuta un SQL arbitrario.
+No habilitar reintentar para corregir datos o revertir una decisión terminal.
+Un alta rechazada por validación sin efectos puede corregirse como intención nueva;
+si hay resultado incierto primero se recupera la intención anterior.
+
+Ejemplo de solicitud (importes ilustrativos, reglas por cerrar en F5-01):
+ {
+   "operacion_id":"<uuid-venta>","command_id":"<uuid-alta>",
+   "cliente_id":12,"asesor_id":4,"propiedad_id":8,"fecha":"2026-11-04",
+   "tipo_venta":"CONTADO","monto_total":"100000.00",
+   "descuento":"1000.00","monto_liquido":"99000.00",
+   "expected_version":3
+ }
+No pedir al navegador precio/fence técnico como fuente autoritativa; el adapter
+obtiene/valida el snapshot y traduce las versiones públicas según el contrato F4.
+
+Respuesta pendiente: HTTP202, Retry-After y Location a la consulta pública.
+ {
+   "operacion_id":"<uuid-venta>","estado_operacion":"Pendiente",
+   "paso":"ConfirmandoPropiedad","resultado_incierto":true,
+   "puede_reintentar":false,"message":"Se está verificando el resultado."
+ }
+Respuesta terminada: conservar envoltura vigente, data y relaciones necesarias,
+agregar operacion_id/estado_operacion; alta201, consulta/replay200. Si la operación
+se ejecuta asíncrona, GET de progreso retorna200 con resultado terminal, no201.
+Nunca responder éxito comercial por un200 de disponibilidad 'Aplicado' de F4.
+
+Errores: 401 sesión inválida;403 permiso/ownership;404 recurso no visible según
+política;409 versión/hash/estado incompatibles;422 campos inválidos;503 capacidad
+no terminada/dependencia inaccesible antes de aceptar;202 si ya hay intención
+aceptada con resultado en curso/incierto. No ocultar una intención durable con
+un error que invite a recrearla. No exponer host interno, JWT, SQL ni datos ajenos.
+Validar y autorizar antes de recuperar un recibo; UUID no es credencial.
+Los comandos antiguos sin UUID se actualizarán en los clientes. Si se permite una
+transición de compatibilidad, el servidor genera ID y lo devuelve, pero no promete
+deduplicar intenciones independientes enviadas sin clave. Bloquearlo antes del corte.
+
+DTO públicos: snake_case, importes como string decimal exacto, moneda canónica
+BOB/USD interna y adaptación Bs/$ solo de presentación; fechas de negocio YYYY-MM-DD
+en America/La_Paz; intentos/leasing/expiración UTC. Separar saldo capital, interés,
+mora, total exigible y total pagado; no mezclar estados de cuota/pago/movimiento.
+Respuestas no incluyen bearer, certificado, grant ni pruebas internas firmadas.
+
+4. ENDPOINTS INTERNOS PROPUESTOS
+============================================================
+Métodos/rutas a confirmar en F5-02, bajo versión nueva y política interna dedicada.
+Usan commands/recibos + mTLS/identidad técnica/grant; no confiar en X-Service.
+Comercial:
+ POST /internal/comercial/v1/operaciones/{op}/ventas/preparar
+ GET  /internal/comercial/v1/operaciones/{op}
+ GET  /internal/comercial/v1/comandos/{cmd}
+ POST /internal/comercial/v1/operaciones/{op}/anulacion
+ POST /internal/comercial/v1/operaciones/{op}/perfiles/preparar
+Los comandos públicos validados se convierten a pasos internos por el coordinador,
+sin permitir que el browser invoque endpoints internos o emita sus propios pasos.
+
+Finanzas:
+ POST /internal/finanzas/v1/operaciones/{op}/preparar
+ GET  /internal/finanzas/v1/operaciones/{op}
+ GET  /internal/finanzas/v1/comandos/{cmd}
+ POST /internal/finanzas/v1/operaciones/{op}/activar
+ POST /internal/finanzas/v1/operaciones/{op}/abortar-preparacion
+ POST /internal/finanzas/v1/ventas/{venta_id}/cerrar
+ POST /internal/finanzas/v1/ventas/{venta_id}/resolver-cierre
+Preparar recibe snapshot inmutable económico/partes + venta/version + digest.
+Activar exige prueba de Propiedades y decisión de Comercial que lo vincule.
+Cerrar serializa contra todos los escritores financieros, incluidas callbacks y
+reversos. Devuelve recibo terminal de cierre o rechazo con blockers verificables.
+Resolver-cierre no permite reabrir ante un resultado incierto de Propiedades.
+Pago manual sigue siendo comando de usuario de Finanzas, delegado por Laravel;
+una credencial técnica de saga no puede cobrar ni desembolsar dinero arbitrario.
+
+Propiedades:
+ Conservar todos los endpoints/estados RESERVAS_V1. No modificar liberar para
+ aceptar Confirmada. Añadir bajo v2 o extensión explícita:
+ POST /internal/catalogo/v2/reservas/{reserva_id}/revertir-confirmacion
+ Vincula op de anulación, venta, reserva/fence original, decisión irrevocable de
+ Comercial y recibo/version de cierre Finanzas. No permite revertir otra reserva,
+ una venta más nueva ni un cambio por CRUD. Guarda recibo y fence en SQL propio.
+ La respuesta y el estado pueden consultarse por op/cmd con la misma autorización.
+ Confirmar F4 podrá invocarse mediante la política técnica nueva solo para la
+ operación admitida, conservando los controles existentes del flujo delegado F4.
+
+Seguridad:
+ Endpoints de admisión/consulta de autorizaciones de operación y emisión de
+ credenciales técnicas acotadas; alta/perfil idempotente con recibo consultable.
+ Las rutas de admin F3 no se reutilizan con un usuario privilegiado global.
+ No adoptar UserId numérico sin comprobar issuer/sub y vínculo registrado.
+
+5. IDENTIDAD TÉCNICA Y PRUEBAS ENTRE SERVICIOS
+============================================================
+Propuesta por concretar en F5-03:
+1) Registrar servicio por certificado propio/mTLS y audiencia/acciones permitidas.
+2) Usuario con sesión vigente autoriza operación/payload/recurso; Seguridad guarda
+   autorización acotada (grant_id, actor, dataset, scopes, hash y decisión/versión).
+3) Worker usa certificado para obtener credencial corta propia ligada a ese grant;
+   no almacena JWT del usuario ni contraseña. Emisor/algoritmo/audiencia/expiración
+   del esquema técnico quedan fijos y separados del bearer de usuario F3.
+4) Receptor verifica servicio+certificado, credencial, grant/payload, actor y estado
+   permitido. No acepta un token técnico en endpoints de usuario/administración.
+5) Antes de confirmar, Seguridad serializa admisión de esa decisión contra la
+   revocación del actor/permiso. La autorización de confirmar tiene ID/version y
+   ventana acotada. No se promete atomicidad con una revocación posterior en otra BD:
+   se define el orden por esa admisión verificable. Si expira sin confirmación,
+   consultar el recibo antes de emitir otra autorización o decidir compensación.
+6) Tras confirmación irreversible solo están autorizados completar y recuperar;
+   una revocación del usuario impide nuevos comandos de negocio. Una cancelación
+   nueva exige actor vigente. Limpieza/compensación autorizada de preparaciones
+   puede ejecutarse aunque ya no tenga sesión el solicitante original.
+7) Si Seguridad está caído y no se puede verificar/renovar la credencial, pausar;
+   no degradar validaciones ni convertir el token del usuario a técnico. Operaciones
+   con propiedad Confirmada permanecen protegidas y recuperables al volver el canal.
+
+Pruebas de cierre/confirmación entre autoridades: recibos consultables por canal
+autenticado o comprobantes firmados verificables con claves de servicio separadas,
+audiencia/dataset/operación/recurso/versión/digest y rotación. Elegir y fijar un
+mecanismo en F5-02/03; un JSON pasado por Comercial no prueba por sí solo que lo
+emitió Finanzas/Propiedades. Si se firma, no usar una clave simétrica compartida
+que permita a un participante suplantar al otro. No incluir secretos en repositorio.
+
+6. ESTADOS, ORDEN Y CONCURRENCIA
+============================================================
+Venta preparada no es Activa comercial. Cuenta preparada no es cobrable. Pago
+pendiente no es ingreso. Comisión preparada no es desembolsable. No se autoriza
+entrega/firma final a partir de una proyección desactualizada.
+Comercial guarda intención previa a HTTP y cada resultado; confirmar propiedad
+es pivote. Después se completa hacia delante, nunca se suelta por TTL ni timeout.
+Finanzas guarda abortos/cierres aunque llegue primero el cancelar y después preparar.
+Un worker viejo no escribe si su lease/fence/expected_version ya cambió.
+
+Para anular: cierre financiero terminal contra pagos, amortizaciones,
+reprogramaciones, comisiones y órdenes Libélula en tránsito; intención de entrega
+serializada con anulación Comercial; reversión dedicada Propiedades; cierre final.
+Un recibo de cierre no es solo un GET saldo_cero: es una decisión durable que
+bloquea escritores financieros hasta una resolución terminal válida.
+La marca Cerrada no caduca sola. Reapertura exige prueba de que la reversión fue
+rechazada/abortada y no puede aplicarse luego; sellar esa decisión en Propiedades
+antes de reabrir. Si la propiedad ya se liberó, no reabrir la vieja cuenta/venta.
+Si una nueva venta usa la propiedad, mensajes de la anterior no coinciden en fence.
+
+Plan/pago/egreso: transacción por agregado financiero, orden de locks estable,
+índices/rowversion o CAS y recibo atómico. Probar dos procesos SQL reales, no locks
+en memoria. Actualizar disponibilidad y recibo en una transacción Propiedades.
+No mantener transacciones SQL abiertas durante HTTP, carga de archivo o generación PDF.
+
+Outbox: payload mínimo, versión de esquema, cmd/op/cause, next_attempt_utc,
+attempts, lease_until/owner/fence, estado, error_code redactado y timestamps.
+Consulta de comando incierto antes de repetir; mismo UUID. Reintento con backoff
+y jitter acotados por SLA/reserva. Revision manual al agotar presupuesto; la fila
+no se borra ni cambia a éxito. Expiración F4 solo de retenidas propias.
+Retención de recibos/tombstones cubre restauraciones y mensajes tardíos; no purgar
+por un TTL corto. Fijar plazo con política real de respaldos/replay antes del corte.
+
+7. DINERO, DOCUMENTOS Y PASARELA
+============================================================
+Las reglas aprobadas/fixtures F5-01 prevalecen sobre ejemplos de este contrato.
+Usar decimal exacto a escala definida; validar rangos/tasas, conversión de monedas
+solo si existe regla aprobada. No sumar BOB/USD ni inferir moneda desconocida=BOB.
+Importar planes por fila/revisión y saldos verificables; no regenerar cuotas antiguas.
+Conservar desglose capital/interés/mora, acumulados de parciales, historial de
+reprogramación y vínculo de reversión. Un reverso no elimina el pago original ni
+equivale a devolver fondos del proveedor. No añadir contabilidad/reglas fiscales.
+
+Contrato/comprobante generado en Laravel desde DTO verificado y plantilla vigente;
+snapshot/version/fecha/digest para reproducibilidad, branding/empresa en Laravel.
+Comercial almacena adjuntos oficiales privados con versión/checksum, sin URL de
+disco público. Subir -> preparar metadatos -> commit de documento -> limpieza de
+temporal/huérfanos; no borrar el documento anterior antes de garantizar reemplazo.
+Una modificación posterior no cambia silenciosamente un contrato/documento firmado.
+Paridad legal/visual mediante casos representativos, no igualdad binaria de PDF.
+
+Libélula: Laravel conserva URL pública; remoto reenvía al inbox durable de Finanzas.
+Si no pudo persistir, responder fallo según protocolo para que pueda reintentarse;
+no devolver200 falso. Evento durable puede aceptarse según contrato del proveedor
+antes de la conciliación, sin marcar PAGADO hasta verificación efectiva.
+Guardar evento/ref/orden y validación de importe/moneda/comercio/estado del proveedor.
+Si proveedor no garantiza registro idempotente, no repetir /registrar tras timeout
+con otra referencia: consultar/conciliar o dejar revisión. No inventar endpoint,
+firma o garantía no comprobados en la documentación activa.
+Callback temprano antes del alta de referencia queda pendiente de conciliación;
+no se descarta por no hallar pagos aún. Duplicados/desorden no revierten terminales.
+Retorno del browser solo consulta estado. Pago confirmado + ingreso + aplicación
+a cuota quedan atómicos en Finanzas (Laravel/MySQL en modo local).
+
+8. COMPATIBILIDAD Y ACTIVACIÓN
+============================================================
+Migraciones aditivas; preflight de esquema/BD exacta. Reutilizar registros de
+intención/recibos F4 existentes: compatibilidad de versiones y reservas en curso.
+No activar endpoints antiguos alternativos que eludan coordinator/ownership.
+Propiedades F4 sigue aceptando cliente F4; las extensiones requieren versión nueva.
+Ambas variantes frontend usan Laravel para comandos nuevos; UI conserva UUID,
+consulta pendientes y muestra error de sesión sin perder intención reanudable.
+No unificar las ramas ni retirar contratos históricos hasta F6.
+Rutas agregadas Laravel siguen bloqueadas hasta lectores F6, aunque F5 cierre.
+Contrato definitivo y ejemplos se publicarán solo con evidencia F5, no por este plan.
