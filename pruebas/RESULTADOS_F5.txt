@@ -1,17 +1,16 @@
 RESULTADOS F5 — 05-11-2026
 
-Implementación en ramas locales. Los recorridos principales de negocio y de
-recuperación se verificaron con datos sintéticos. El cierre formal E5-E sigue
-pendiente: matriz de aceptación incompleta y validación externa de Libélula.
+Implementación y aceptación en ramas locales con datos sintéticos. El cierre
+formal E5-E sigue pendiente según el resultado por escenario en la matriz.
 No se cambió APP_ARCHITECTURE en las instalaciones existentes ni se migraron
 bases reales; no hubo despliegue, cambios en el VPS, merge ni push.
 
 EVIDENCIA REPRODUCIBLE
-- Laravel: 105 pruebas y 590 aserciones en MySQL temporal privado.
-- Servicios .NET: Comercial 38, Finanzas 27, Propiedades 25 y Seguridad 18;
-  108 pruebas, sin omisiones, con los casos de SQL Server habilitados donde
-  corresponden. Comercial inyecta fallos antes y después de ocho pasos de venta;
-  esos fallos son simulados, no equivalen a matar un proceso en cada commit.
+- Laravel: 106 pruebas y 605 aserciones en MySQL temporal privado. En Finanzas
+  pasaron 28 pruebas, incluida la persistencia fallida y el reenvío de callback.
+  La ejecución anterior también verificó Comercial 38, Propiedades 25 y
+  Seguridad 18. Comercial inyecta fallos antes y después de ocho pasos de venta;
+  esos fallos son simulados y no equivalen a matar un proceso en cada commit.
 - Vue: 16 pruebas Node por variante y compilación de ambas variantes.
 - F3/F4: 82 comprobaciones online F3, 6 en caída y 3 en recuperación; 54 F4.
   12 recorridos de navegador sobre sesión, perfil, catálogo, galería y versión.
@@ -19,9 +18,18 @@ EVIDENCIA REPRODUCIBLE
   Contado, crédito, cancelación segura, parciales/lote, alta/edición de cliente,
   alta con foto y desactivación de asesor, firma, acta, PDFs y comisiones.
   Tres casos negativos mTLS: sin certificado, scope ajeno y grant ausente.
-- Navegador F5: cuatro pruebas. Venta desde Laravel local, Laravel remoto y
+- Aceptación adicional: 145 aserciones. Revocación real antes y después de
+  confirmar, recuperación de identidad tras perder la respuesta, rechazo de
+  colisiones, cobro y anulación en dos procesos Laravel, y ambos órdenes de
+  cobro o desembolso frente al cierre de Finanzas. Se comprobaron parciales
+  concurrentes, rollback de lote con mora, dos compradores por un inmueble,
+  cambio de oferta y los dos órdenes de anulación y entrega. TLS real también
+  rechazó un certificado no listado y el acceso técnico a rutas de usuario.
+- Navegador F5: seis pruebas. Venta desde Laravel local, Laravel remoto y
   cliente directo; además pérdida de la respuesta y consulta tras recargar,
-  verificando una sola venta sin reenviar el POST.
+  verificando una sola venta sin reenviar el POST. En Laravel remoto y cliente
+  directo se comprobó el 401 real durante el seguimiento, un nuevo inicio de
+  sesión y la consulta del mismo UUID sin recrear la venta.
 - Caídas reales: se detuvieron individualmente Finanzas, Propiedades, Seguridad,
   los dos procesos de Comercial y Laravel remoto. Local siguió disponible.
   La operación se recuperó con su mismo UUID al volver la autoridad; los workers
@@ -29,6 +37,11 @@ EVIDENCIA REPRODUCIBLE
 - Checkpoint: restauración a nuevas bases de prueba de las cinco autoridades.
   SQL Server comparó nueve huellas de tablas críticas; MySQL comparó ambos dumps
   lógicos completos. Se verificó SHA-256 de los archivos privados copiados.
+  En la aceptación posterior se arrancaron los servicios sobre esas copias.
+  El worker recuperó el mismo UUID de venta después de expirar el lease,
+  con un único registro y una sola obligación. Los comandos antiguos no
+  resucitaron la venta cancelada ni soltaron la propiedad de la venta nueva.
+  Laravel conservó el recibo manual y deduplicó un callback de prueba tardío.
   En MySQL solo se normalizó la escritura redundante de CHARACTER SET antes
   de una colación equivalente; no se ignoraron cambios de datos o restricciones.
 - Visualización PDF: contrato de crédito (dos páginas) y comprobante de pago
@@ -38,7 +51,9 @@ REGLAS APROBADAS Y COMPROBADAS
 1. Libélula: 0.20 BOB por concepto, estado PAGADO_PRUEBA al verificar. Sin cambio
    de pago/cuota/saldo ni ingreso real. Se probaron callback falso, confirmación
    temprana, acuse perdido, moneda incorrecta y sobreprecisión del importe con
-   respuestas simuladas. No se consultó el comercio activo ni se cobró dinero.
+   respuestas simuladas. La consulta externa anterior del 4 de noviembre
+   devolvió HTTP 200 y 13 registros con los campos esperados. En aceptación
+   se usa una clave ficticia, sin conexión al comercio ni cobro real.
 2. Parciales: primero interés, luego capital. Ejemplo común PHP/.NET: de 900 de
    capital y 9 de interés, pagar 5 deja capital 900; pagar 25 adicionales reduce
    capital a 879. Amortizar 79 deja 800 y preserva la cuota original y recibos.
@@ -50,14 +65,12 @@ REGLAS APROBADAS Y COMPROBADAS
    el UUID rechazado. Un cierre exitoso precede a la liberación del inmueble.
 
 LÍMITES DEL CIERRE
-La matriz de 106 escenarios registra 32 VERIFICADA, 65 PARCIAL, 8 PENDIENTE y
-1 BLOQUEADA EXTERNA. La evidencia parcial no certifica la aceptación del caso.
-Faltan, entre otros, carreras específicas entre solicitudes reales, revocación
-en el punto exacto del pivot, rotación completa de certificados y reactivación
-integrada del conjunto restaurado con replay tardío. El contrato externo de
-Libélula requiere prueba con la configuración existente; revisión automática
-impidió la consulta de lectura porque envía la clave al proveedor y exigió
-autorización explícita. El script se verificó sin ejecutar el envío.
+De los 106 escenarios, 52 quedaron verificados, 53 tienen cobertura parcial
+y uno requiere sandbox externo. Los ocho originalmente PENDIENTE se probaron.
+Persisten, entre otros, la caída de proceso en cada paso del protocolo, la
+rotación integral de certificados y el ensayo con binario anterior incompatible.
+En Libélula se verificaron autenticación, lectura y forma de respuesta. Falta
+verificar registro, retorno y callbacks con un sandbox autorizado del comercio.
 
 Las agregaciones remotas de dashboard/reportes/portal y lectores de correo
 masivo siguen F6. La conciliación de datos reales, aceptación integral y corte
@@ -67,16 +80,16 @@ apagada por defecto. El entorno existente sigue intacto.
 EJECUCIÓN
 Desde backend con PowerShell 7:
   .\scripts\test-isolated.ps1 -Integration -BrowserTests
-  .\scripts\test-isolated.ps1 -Integration -Phase5 -BrowserTests -RecoveryTests -RestoreTests
+  .\scripts\test-isolated.ps1 -Integration -Phase5 -AcceptanceTests -BrowserTests -RecoveryTests -RestoreTests
 Los artefactos se guardan en storage/framework/testing/ y frontend/.phase3/,
 fuera de Git. Ver operacion/COMERCIAL_FINANZAS_F5.txt para recuperación.
 
 RAMAS
-backend: feature/fase-5-comercial-finanzas-dual (4582c45)
-Comercial: feature/fase-5-ventas-coordinadas (8d239a5)
-Finanzas: feature/fase-5-obligaciones (dee1eab)
+backend: feature/fase-5-comercial-finanzas-dual (a1b8734)
+Comercial: feature/fase-5-ventas-coordinadas (ff46826)
+Finanzas: feature/fase-5-obligaciones (0aa88ff)
 Propiedades: feature/fase-5-reversion-confirmada (968d38c)
 Seguridad: feature/fase-5-autorizacion-operaciones (8501ed3)
-frontend: feature/fase-5-operaciones (eae00df)
+frontend: feature/fase-5-operaciones (9b07898)
 frontend directo: feature/fase-5-operaciones-directo (c5244a1)
 documentación: docs/implementacion-fase-5
