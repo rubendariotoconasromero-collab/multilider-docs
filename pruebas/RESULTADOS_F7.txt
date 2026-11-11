@@ -1,0 +1,66 @@
+FASE 7 | RESULTADOS DEL ENSAYO AISLADO
+
+Revisiones
+
+Backend       4d2f4ee9d5531ab29bb9c720a2b7af230f7f16bd
+Seguridad     f030ee6d964fb5d9a194d0d45554896c1f0b5a6c
+Comercial     80ead8b6c991449062448632eed1ab28fddbd5e9
+Finanzas      737985a5541318f69624bc1c1b426403fd120cc9
+Propiedades   e18a81e4827b20ef01d49706a8893d196e2230c4
+Frontend      b5c07c0c8956e0af68b4d519bcf3212aa6f53159
+
+Copia real db_multilider
+
+- 32 tablas y 210 filas capturadas. Se restauró el respaldo en MySQL
+  aislado y se reprodujeron los hashes de las tablas y los tres archivos.
+- 227 filas de destino verificadas. Seguridad 138, Propiedades 60,
+  Comercial 15 y Finanzas 14. El total incluye vínculos y marcadores
+  de historial que permiten operar sobre las ventas migradas.
+- Cero incidencias bloqueantes en la conciliación. La repetición
+  confirmó cero inserciones, actualizaciones y bajas adicionales.
+- Dos contratos PDF y una foto de asesor recuperados de una copia
+  local, cotejados por SHA-256 y conservados en el respaldo.
+- Respaldos de los tres SQL Server restaurados con CHECKSUM y huellas
+  de tablas, más restauración del MySQL de Seguridad. Se verificaron
+  otra vez las 227 equivalencias y los tres archivos.
+- 10 comprobaciones de API pública en los dos modos y 4 con las
+  autoridades detenidas sobre la copia restaurada.
+- Se asignó BOB a ambas cuentas en la copia según la indicación del
+  usuario. El informe detecta pagos pendientes en USD sin una cuenta
+  activa de esa moneda. Esta diferencia de configuración sigue abierta
+  para la operación posterior. La captura preserva la moneda histórica.
+
+Ensayo sintético
+
+- 112 pruebas de Laravel y 673 aserciones aprobadas.
+- 103 aserciones de aceptación por API con los dos modos y otras 39
+  con los cuatro servicios apagados. El fixture ejercitó la misma
+  contraseña bcrypt con otro ID, documentos privados, reportes, el
+  portal, una campaña simulada y las operaciones posteriores a la carga.
+- Playwright verificó 12 rutas Laravel en cada modo con una sola
+  compilación del frontend. Los cinco reportes devolvieron sus formatos
+  PDF y Excel y sus indicadores conciliaron sobre el conjunto sintético.
+- La integración base de F5 volvió a aprobar sus 54 comprobaciones
+  de ventas nuevas, cobros, contratos y coordinación de servicios.
+- Se rechazó una colisión contra una identidad nativa. La pausa antes
+  del commit revirtió la escritura. La pausa posterior dejó 12 filas
+  registradas y la siguiente ejecución continuó desde ese punto.
+- La carga del delta añadió una ciudad, actualizó la geografía y el
+  estado de una identidad, retiró una asignación y una imagen, y dejó
+  intactas las instantáneas históricas. La segunda carga fue idempotente.
+
+Evidencia y alcance
+
+La copia y el manifiesto de respaldos se guardaron bajo
+backend/storage/framework/testing/f7-8784319101294b038f61bdc62ac03106.
+El archivo checkpoint-autoridades.json contiene las huellas del respaldo
+MySQL de origen, el respaldo de Seguridad, los tres BAK y los archivos.
+origen-primera-carga.json, origen-verify.json y origen-apply.json contienen
+la primera carga, la verificación restaurada y la repetición.
+Los archivos con datos reales se mantienen fuera de Git.
+
+La aceptación detallada está en MATRIZ_PRUEBAS_F7.csv. La prueba externa
+de Libélula F5-P10 queda pendiente. Los pagos de ensayo no se enviaron a
+la pasarela ni afectaron la base original. El corte del VPS y la prueba
+de reversión después de nuevas escrituras pertenecen a F9 y F8,
+respectivamente.

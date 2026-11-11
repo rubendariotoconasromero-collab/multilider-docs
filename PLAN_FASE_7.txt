@@ -1,0 +1,357 @@
+PLAN DE DESARROLLO DE LA FASE 7
+Migración y conciliación de datos
+Estado del documento | Propuesta de desarrollo
+
+1. OBJETIVO Y ALCANCE
+============================================================
+Preparar herramientas repetibles para trasladar datos desde una copia
+consistente del sistema hacia las bases de los microservicios. Conciliar
+registros, permisos, saldos y archivos antes de habilitar escrituras en
+el destino de ensayo. Entregar el procedimiento para capturar y comprobar
+los cambios posteriores a la primera copia.
+
+La base de trabajo son las revisiones registradas en
+pruebas/RESULTADOS_F6.txt. F6 verificó ambos modos con datos de prueba.
+F7 empieza con datos sintéticos y sigue con una copia de datos reales
+autorizada, aislada y protegida. Los volúmenes, las versiones de los
+esquemas y la autoridad de cada dato se confirman en el inventario inicial.
+Se toma MySQL de Laravel como origen inicial propuesto. Si un servicio ya
+contiene operaciones reales, se registra su procedencia y se concilia
+antes de cargar ese dominio.
+
+  local          Vue -> Laravel -> MySQL y archivos de Laravel
+  microservices  Vue -> Laravel -> Seguridad, Propiedades, Comercial y Finanzas
+
+Laravel conserva dashboards, los cinco reportes y sus exportaciones,
+configuración y branding de empresa, correo masivo, historial y colas de
+campañas, gestor IMAP/SMTP, perfil, portal del cliente y portada pública.
+En modo remoto consulta las autoridades acordadas. En modo local opera
+con los cuatro servicios apagados. Una instalación mantiene un solo
+origen de escritura por dominio. El modo lo elige la configuración del
+servidor y una caída remota conserva ese origen.
+
+F7 termina con la migración y conciliación ensayadas. F8 cubre la validación
+integral y la recuperación después de aceptar nuevas escrituras. F9 cubre
+la publicación y el corte real en el VPS. F5-P10 queda pendiente del
+sandbox externo de Libélula. Las pruebas de F7 usan el simulador de pagos
+y transporte de correo de prueba. Bs 0,20 sigue siendo un importe de
+prueba separado de la deuda real.
+
+2. DATOS, AUTORIDAD Y ORDEN DE CARGA
+============================================================
+Orden | Destino en modo microservices | Datos y dependencias
+
+1 | Seguridad (MySQL independiente)
+  Usuarios, estados, roles, permisos y sus asignaciones. Registrar el
+  sujeto nuevo de Seguridad y el emisor configurado para cada identidad.
+  Comprobar permisos efectivos, incluidas bajas y asignaciones inactivas.
+  Cada modo inicia sus propias sesiones. Excluir tokens de Sanctum,
+  sesiones remotas, revocaciones de otros entornos y restablecimientos
+  vigentes del paquete de importación.
+
+2 | Propiedades (SQL Server y almacenamiento de catálogo)
+  Ciudades, distritos, sectores urbanos, propietarios, ubicaciones y
+  características preceden a propiedades, relaciones e imágenes. Preservar
+  códigos, estado, visibilidad, moneda, precio, geografía, orden de fotos
+  e imagen principal. Conciliar disponibilidad con Comercial antes de
+  habilitar operaciones de venta.
+
+3 | Comercial (SQL Server y almacenamiento de documentos)
+  Clientes y asesores se vinculan a Seguridad por emisor y sujeto a partir
+  de su relación de origen con users. Cargar ventas con las equivalencias
+  de cliente, asesor e inmueble. Luego cargar contratos, entregas, fotos
+  de asesores, PDFs firmados, actas y las revisiones que existan. Preservar
+  códigos, fechas, estados y las condiciones históricas de la venta.
+
+4 | Finanzas (SQL Server)
+  Métodos, cuentas bancarias y asociaciones de cuenta predeterminada
+  preceden a las cuentas por venta, planes, reprogramaciones, cuotas,
+  pagos, ingresos, egresos y comisiones. Verificar que cada referencia a
+  venta, cliente y asesor apunte a Comercial. Preservar historial de
+  anulaciones, reversión de pagos y auditoría. Mantener una referencia
+  revisada al actor de origen cuando el destino requiera una identidad.
+
+5 | Laravel (MySQL y almacenamiento Laravel)
+  Conservar empresa y sus archivos, campañas, destinatarios e historial
+  con su origen, dataset y actor. Mantener el respaldo de las tablas
+  operativas locales para validar el modo autónomo. Los paneles y reportes
+  se regeneran con los lectores F6. Los buzones, contraseñas del correo,
+  DNS y mensajes IMAP conservan su gestión actual.
+
+  El respaldo de recuperación conserva el estado de los trabajos del
+  entorno original. El destino de ensayo inicia sus colas, sesiones y
+  programadores con su propia configuración. Cualquier campaña pendiente
+  se revisa con su historial y su estado de entrega antes de reanudarla en
+  el origen correspondiente. Un envío incierto requiere conciliación.
+
+3. EQUIVALENCIAS Y REGLAS DE TRANSFORMACIÓN
+============================================================
+Identificadores e identidad
+
+- Registrar por conjunto de datos, origen, entidad e ID de origen la
+  autoridad, ID destino, huella de datos, versión de transformación,
+  estado de revisión, procedencia y ejecución. Mantener unicidad en ambas
+  direcciones para los vínculos uno a uno. Tratar una fusión histórica
+  como resolución explícita con trazabilidad a cada fila original.
+- Reusar catalog_identity_maps y las equivalencias de identidad cuando
+  coincidan con el dataset y el vínculo esté aprobado. Verificar las
+  equivalencias existentes antes de extenderlas a otros dominios.
+- Resolver colisiones por evidencia. Dos IDs numéricos iguales pueden
+  representar entidades distintas. Un correo, CI o código coincidente
+  puede identificar un candidato a revisión. Registrar conflictos por
+  mayúsculas, acentos, espacios, claves duplicadas, nulos, referencias
+  huérfanas y valores incompatibles con longitud o precisión del destino.
+- Caracterizar los formatos de hashes de Laravel en forma agregada y
+  verificar su compatibilidad con el validador de Seguridad usando
+  cuentas sintéticas. Transferir hashes compatibles en un canal privado.
+  Los incompatibles pasan por el flujo de restablecimiento de Seguridad
+  que se defina y pruebe. Confirmar login, baja y permisos sin credenciales
+  de usuarios reales en la evidencia. La contraseña del buzón sigue
+  siendo independiente.
+
+Ventas históricas y coordinación
+
+- Definir una tabla de estados por entidad con significado y origen.
+  Validar, por ejemplo, el significado de una nota local Completada
+  frente a Activa en Comercial. Separar ventas vigentes y anuladas de
+  operaciones preparadas, en compensación o pendientes de revisión.
+- Diseñar una carga histórica específica para completar las referencias
+  de venta que usa F5, incluidos snapshots, relación con la cuenta de
+  Finanzas y control de disponibilidad de Propiedades. Las relaciones
+  históricas comprobadas deben permitir operaciones posteriores válidas.
+  Cuando falte evidencia para reconstruirlas, documentar la brecha e
+  implementar la compatibilidad necesaria antes de habilitar escrituras.
+- Para inmuebles vendidos o con reserva vigente, cotejar la venta o
+  reserva que justifica el estado. Verificar la propiedad activa única
+  y el control de generación de reserva usado por F5. Probar que anular
+  una venta importada libera únicamente su propia generación. Los grants,
+  recibos y operaciones históricas deben representar hechos verificados.
+  Las coordinaciones pendientes se resuelven o aíslan en su origen antes
+  de consolidar el lote.
+- Importar las filas históricas con un mecanismo interno que valide el
+  esquema y las relaciones. La API ordinaria de venta, cobro y contrato
+  genera efectos de negocio. La carga conserva las obligaciones, cuotas,
+  documentos y asientos ya registrados.
+
+Finanzas y fechas
+
+- Normalizar Bs y $ a BOB y USD donde corresponda. Conservar monto y
+  moneda originales en la evidencia privada. Cuando una venta local
+  carezca de moneda histórica, buscar contrato, recibo o asiento
+  relacionado. Una moneda actual de la propiedad sirve como indicio.
+  Una moneda histórica sin resolver queda bloqueada para la carga
+  operativa de esa obligación.
+- Conservar fechas de venta, vencimiento, pago, anulación, emisión y
+  desembolso como hechos distintos. Usar America/La_Paz para días de
+  negocio y guardar el checkpoint de extracción en UTC. Comparar con
+  decimales exactos o centavos enteros y agrupar por moneda.
+- Importar planes y cuotas con sus revisiones, importes originales,
+  redondeo, amortizaciones y pagos parciales. Aplicar la regla de F5 al
+  verificar saldos, con interés pendiente primero y capital después.
+  Una cuota reemplazada mantiene su historial y queda fuera de la mora
+  y del saldo vigente. Comparar el saldo registrado y el derivado cuando
+  difieran y resolver el caso con evidencia antes de cargarlo.
+- Conciliar el nexo pago-ingreso, la venta asociada, el método, la cuenta
+  y su moneda. Conservar estados pagado, pendiente y revertido. Distinguir
+  movimientos manuales, comisiones y ajustes históricos para aplicar
+  las reglas correctas de unicidad. Escalar duplicados financieros,
+  importes incompatibles o diferencias de un centavo para revisión.
+- Inventariar referencias históricas de Libélula para trazabilidad y
+  detección de duplicados. Separar órdenes de prueba de la cartera real.
+  Una referencia ambigua o pendiente queda aislada para revisión.
+  La importación desactiva registro, conciliadores y callbacks externos.
+
+Archivos
+
+- Registrar entidad, identificador, revisión, disco, ruta de origen
+  permitida, destino, tamaño, tipo y SHA-256. Verificar contenido y
+  propiedad del archivo antes de publicar su referencia. Cargar primero
+  a almacenamiento temporal y completar el vínculo cuando los bytes
+  estén verificados. Reconciliar faltantes, archivos huérfanos y fotos
+  principales duplicadas.
+- Publicar imágenes según la visibilidad del inmueble. Servir contratos
+  firmados, actas y comprobantes por las rutas autorizadas de Laravel,
+  incluso si la copia histórica se obtuvo de un disco público. Preservar
+  originales y revisiones. Los faltantes se documentan sin sustituir
+  documentos firmados por PDFs regenerados.
+
+4. HERRAMIENTAS Y ETAPAS DE TRABAJO
+============================================================
+F7-01 | Inventario y respaldo inicial | 2 a 4 días
+  Revisar las seis revisiones de código de F6, migraciones aplicadas,
+  versiones de esquema, conteos, tamaños de archivos, estado de colas y
+  diferencias entre las bases de partida. Clasificar datos de ensayo,
+  operativos e históricos. Inventariar orígenes, responsables de
+  conciliación y exclusiones. Reusar la inspección de esquema F5 para
+  contrastar los destinos. Restaurar MySQL, los destinos y archivos
+  de referencia en rutas y bases exclusivas de ensayo. Proteger las
+  copias reales durante transferencia, uso y almacenamiento.
+  Entrega. Inventario fechado, checkpoint y copia restaurada verificable.
+
+F7-02 | Diccionario y reglas de equivalencia | 3 a 5 días
+  Documentar tabla y columna de origen y destino, relación, estados,
+  precisión, nulos, valores derivados, evidencia y regla de conflicto.
+  Verificar compatibilidad de hashes, restricciones únicas y relación
+  venta-reserva-cuenta. Identificar modificaciones mínimas de esquema
+  o adaptación requeridas por los datos históricos. Versionar las reglas
+  y preparar fixtures de colisiones, datos incompletos y duplicados.
+  Entrega. Diccionario, equivalencias aprobadas y lista de brechas.
+
+F7-03 | Extracción, simulación y registro de lotes | 3 a 5 días
+  Construir exportación consistente con paginación por clave estable,
+  manifiesto de esquema y checkpoint, conteos, tamaños y checksums.
+  La simulación valida y emite incidencias sin escribir en las tablas
+  operativas ni activar servicios externos. Preparar importación en
+  lotes con transacciones por autoridad, checkpoints durables, huellas
+  y reanudación. El checkpoint se confirma junto con el lote o se
+  reconstruye a partir de sus recibos si hay un corte. La misma clave
+  y huella se reconoce como repetición. Una huella cambiada requiere
+  un delta autorizado o revisión.
+  Entrega. Herramientas CLI de exportación, simulación y ejecución
+  con prueba de corte antes y después del commit de un lote.
+
+F7-04 | Carga de identidad, catálogo y documentos | 3 a 5 días
+  Ejecutar la cadena Seguridad -> Propiedades -> perfiles de Comercial.
+  Verificar vínculos, permisos efectivos, archivos, fotos públicas y
+  privacidad. Integrar las ventas, contratos y entregas con sus
+  equivalencias. Mantener el dataset inactivo para las escrituras
+  de negocio hasta conciliarlo con Finanzas y Propiedades.
+  Entrega. Carga repetible de los dominios y manifiesto de archivos.
+
+F7-05 | Carga financiera y continuidad operativa | 4 a 7 días
+  Cargar saldos, planes históricos, pagos, libro y comisiones en el orden
+  del diccionario. Verificar relaciones, estados terminales y precisión.
+  Probar cobro parcial, reversión, amortización, reprogramación y
+  anulación sobre ventas importadas en una copia desechable. Comprobar
+  que se conserva una sola obligación por venta y que sus importes
+  iniciales coinciden antes de realizar los movimientos de ensayo.
+  Entrega. Carga financiera, pruebas de continuidad y diferencias
+  investigadas hasta su resolución o bloqueo.
+
+F7-06 | Conciliación de datos y pantallas | 3 a 5 días
+  Comparar la copia de Laravel en modo local contra el dataset remoto
+  equivalente. Usar el mismo frontend, corte, moneda, filtros, estado y
+  alcance de permisos. Contrastar tablas y API antes de revisar los
+  dashboards, cinco reportes, PDF y Excel, portal del cliente, portada
+  y destinatarios. Confirmar sesión y operación local con servicios
+  apagados. Probar que un cliente de otro origen no puede acceder a
+  pagos o documentos por coincidencia de ID.
+  Entrega. Informe con cantidades, diferencias por dominio y evidencias
+  sintéticas o redactadas para revisión.
+
+F7-07 | Delta, restauración y entrega a F8 | 2 a 4 días
+  Ensayar pausa de escrituras, copia final, aplicación del delta y nueva
+  conciliación. Medir extracción, transferencia, carga, validación y
+  restauración para estimar la ventana de F9. Documentar recuperación
+  por lote y restauración de un checkpoint completo. Preparar para F8
+  las versiones, herramientas, bases y escenarios de reversión posterior
+  al corte, junto con los casos fuera del alcance de F7.
+  Entrega. Ensayo del delta, respaldo restaurable y guía de operación.
+
+Los intervalos son orientativos para una persona. El total estimado es
+de 20 a 35 días de trabajo. Se ajusta con los tamaños y las brechas
+medidos en F7-01 y F7-02. F7-03 y el diccionario pueden avanzar en paralelo
+cuando se conozcan los esquemas y el formato de manifiesto.
+
+Contratos mínimos de las herramientas
+
+- Exportar con acceso de solo lectura al origen. Verificar en preflight
+  las identidades de servidor, base, esquema y dataset. Usar cuentas de
+  carga limitadas a los destinos de ensayo y rutas de archivos explícitas.
+  Rechazar una configuración que apunte a un destino ajeno al ensayo.
+- El manifiesto identifica origen, destino, ejecución, corte, versiones,
+  tablas, cantidades, archivos y huellas. El recibo de cada lote agrega
+  rango de claves, resultado, errores y referencia al checkpoint. Los
+  diagnósticos utilizan IDs y códigos de incidencia sin exponer hashes de
+  contraseñas, datos personales ni credenciales.
+- Simular y conciliar tienen resultados separados de aplicar. Una
+  incidencia bloqueante produce una salida de error y un resumen.
+  Reanudar una carga parcial requiere el mismo manifiesto y reglas.
+  Los lectores F6 consultan el destino de ensayo una vez aprobado
+  el conjunto de datos dependiente.
+
+5. CONCILIACIÓN Y CRITERIOS DE ACEPTACIÓN
+============================================================
+Para cada entidad, registrar filas de origen, importadas, excluidas con
+regla, bloqueadas y reusadas por equivalencia. Los totales deben explicar
+todo el universo del corte. Cotejar relaciones entre servicios por sus
+equivalencias, además de las claves internas de cada base. Comparar
+conteos, distribuciones por estado y valores de control por período.
+
+La conciliación financiera se calcula por venta, cuota, moneda y período.
+Comparar capital, interés, mora, pagos confirmados, ingresos, egresos,
+comisiones y saldos por cuenta. Verificar importes con una consulta o
+cálculo independiente del importador. Exigir cero diferencias monetarias
+sin resolver y cero referencias obligatorias huérfanas. Las exclusiones
+aprobadas deben quedar visibles, con su impacto, y no pueden alterar
+derechos, saldos, disponibilidad ni el acceso a documentos vigentes.
+
+ID      Caso verificable
+------- ----------------------------------------------------------------
+F7-A01  Respaldos restaurados con esquemas, datos y archivos verificados.
+F7-A02  Simulación descubre conflictos y deja las tablas operativas intactas.
+F7-A03  Repetición de lote y reinicio tras corte mantienen filas y relaciones.
+F7-A04  Colisiones se aíslan y los cambios de huella tienen trazabilidad.
+F7-A05  Login, estados y permisos efectivos coinciden por identidad mapeada.
+F7-A06  Geografía, propietarios, imágenes y disponibilidad concilian.
+F7-A07  Ventas, contratos y entregas conservan historia y referencias.
+F7-A08  Archivos importados coinciden por SHA-256 y se protege su acceso.
+F7-A09  Cuotas, revisiones y pagos parciales concilian capital e interés.
+F7-A10  Cobro, reversión, amortización, reprogramación y anulación funcionan.
+F7-A11  El libro y las comisiones concilian por moneda, cuenta y estado.
+F7-A12  Los reportes y el portal concilian sobre el mismo corte en ambos modos.
+F7-A13  Laravel local opera con los cuatro servicios apagados.
+F7-A14  El delta recoge altas, modificaciones y bajas y se puede repetir.
+F7-A15  Restaurar un checkpoint conserva mapas, saldos y archivos.
+F7-A16  Correo y trabajos del ensayo quedan aislados por modo y dataset.
+F7-A17  Los pagos de prueba permanecen separados de la deuda real.
+
+Una diferencia financiera, de permisos, de disponibilidad o de integridad
+documental sin resolver impide aprobar el conjunto afectado. Los casos
+sin evidencia suficiente se entregan con propietario, impacto y siguiente
+acción. El informe registra qué se verificó en datos sintéticos y qué
+se comprobó con la copia real autorizada. F5-P10 conserva su estado
+externo pendiente.
+
+6. DELTA, RECUPERACIÓN Y TRASPASO
+============================================================
+1. Guardar el corte inicial y el inventario de filas y archivos con
+   huellas. Para el delta, usar un registro de cambios que cubra altas,
+   modificaciones y bajas. Si el origen no ofrece uno fiable, comparar
+   una nueva extracción completa con el manifiesto inicial. El máximo
+   ID o updated_at por sí solos no acreditan cambios ni eliminaciones.
+2. En el ensayo, pausar escrituras de los dominios afectados, revisar
+   operaciones en curso y detener o drenar sus trabajadores. Capturar
+   datos y archivos en el mismo punto lógico. Probar que un cambio de
+   contrato, una imagen retirada y una baja de usuario llegan al delta.
+3. Validar el manifiesto final, cargar el delta en orden de dependencias,
+   repetirlo para probar idempotencia y conciliar otra vez. Registrar
+   la hora del corte, estado de colas, duración y resultado de cada
+   control. Traducir las bajas a la regla del dominio que corresponda,
+   incluida la desactivación con historial. Revisar los archivos retirados
+   y sus referencias antes de publicar el conjunto. El origen conserva su
+   estado y el destino queda disponible para la validación de F8.
+4. Ante un fallo de carga, mantener el destino fuera de servicio.
+   Reanudar desde el último lote confirmado si coinciden mapa, huella
+   y versiones. Si el checkpoint es incompatible, restaurar el conjunto
+   completo de bases, archivos, equivalencias y metadatos. Repetir los
+   controles de conciliación antes de continuar.
+5. Para F8, preparar dos ejercicios de recuperación. Antes de aceptar
+   escrituras en el destino, la recuperación usa el checkpoint del
+   origen. Después de aceptar escrituras, se requiere pausar, inventariar
+   y conciliar los cambios del destino, y ensayar su retorno o recuperar
+   el propio destino antes de reabrir. Cambiar APP_ARCHITECTURE por sí
+   solo no traslada esas operaciones.
+
+Entregables a F8
+
+- Importadores, exportadores, simulación, pruebas y versión exacta de
+  cada repositorio. El frontend solo requiere ajustes si se demuestra
+  una brecha de contrato o visibilidad.
+- Diccionario, mapa de equivalencias, manifiestos, checkpoints y
+  evidencias de restauración. Copias, hashes de contraseñas, registros
+  personales y documentos reales quedan en almacenamiento privado.
+- Matriz ejecutada, informe por dominio, incidencias resueltas y
+  bloqueos abiertos. Guía para repetir el ensayo y plan de corte para F9.
+- Registro explícito de F5-P10 pendiente y de las verificaciones
+  completadas con el simulador.

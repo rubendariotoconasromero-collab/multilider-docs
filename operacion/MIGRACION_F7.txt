@@ -1,0 +1,137 @@
+FASE 7 | IMPORTACIÓN, CONCILIACIÓN Y RECUPERACIÓN
+
+Ejecutar en una copia aislada
+
+Las herramientas se encuentran en backend. El runner usa PowerShell 7,
+PHP con PDO MySQL y PDO SQL Server, las instancias locales de ensayo y
+las migraciones de los cuatro microservicios. El puerto de MySQL de
+ensayo es dinámico. Las bases SQL Server y los certificados son
+temporales. Las conexiones y destinos se comprueban antes de importar.
+
+  pwsh -NoProfile -File scripts/test-isolated.ps1 -Integration -Phase5 -MigrationTests
+
+El ensayo sintético crea sus propias bases y archivos, prueba
+repeticiones y simula una pausa antes y después de confirmar una fila.
+Carga un delta con alta, modificación, baja de usuario, retiro de
+permiso e imagen retirada. Arranca los dos modos de Laravel con una
+compilación de Vue y verifica los flujos posteriores de negocio. Las
+pruebas de pago operan dentro del fixture. El correo usa memoria.
+
+Copia local autorizada
+
+Preparar un directorio f7-UUID bajo storage/framework/testing y asignarlo
+en MULTILIDER_F7_ROOT. Desde backend, los siguientes comandos toman el
+origen db_multilider en Laragon y lo capturan en modo de solo lectura.
+La ruta final del comando capture-local es la raíz del disco público
+que contiene los archivos referenciados.
+
+  php scripts/migrate-data.php capture-local multilider-local origen db_multilider "<raíz de archivos>"
+  php scripts/migrate-data.php archive-local multilider-local respaldo db_multilider
+
+El primer comando genera un manifiesto y archivos JSONL. El segundo
+genera respaldo.sql y respaldo.sql.json con su SHA-256. Para este ensayo,
+los tres archivos se recuperaron de system_multilider. Sus bytes
+coinciden con la segunda copia local de multilider_microservices.
+
+Cuando una nota o una cuenta carezca de moneda acreditada, agregar en
+el paquete, si corresponde, sale-currencies.json o account-currencies.json.
+Cada entrada usa el ID de origen y contiene moneda BOB o USD y una
+descripción de la evidencia. La simulación compara la decisión con los
+movimientos relacionados y reporta sus huellas.
+
+  pwsh -NoProfile -File scripts/test-isolated.ps1 -Integration -IntegrationOnly -Phase5 -MigrationTests -ApplyMigrationSource -MigrationSource "<directorio f7-UUID>"
+
+El runner verifica el respaldo y restaura la base original en el MySQL
+aislado. Compara tablas, esquema y archivos con la captura, y aplica las
+migraciones Laravel a esa copia. Simula, importa, verifica y repite el
+paquete. Después restaura los respaldos de las autoridades en nuevas
+bases, verifica las equivalencias y comprueba rutas públicas de la copia
+en los dos modos. Cierra los procesos y elimina las bases SQL temporales
+al terminar. Los paquetes y respaldos quedan en el directorio privado.
+
+Uso de las herramientas en el runner
+
+  capture      Exporta el origen del runner a un directorio nuevo.
+  plan         Valida el paquete, calcula sus cambios y emite incidencias.
+  apply        Repite el plan y confirma filas y equivalencias juntas.
+  verify       Compara los campos de destino con la transformación.
+  verify-source Comprueba que MySQL restaurado reproduce tablas y archivos.
+
+Cada comando recibe dataset y nombre de paquete. Para un delta, plan,
+apply y verify reciben también el nombre del paquete previo. Código 0
+indica comprobación exitosa, 2 indica incidencias de conciliación y 1 un
+fallo de ejecución o integridad. La pausa de ensayo retorna 75.
+
+Equivalencias y fuentes
+
+Seguridad
+  users, roles, permisos y ambas tablas de relaciones se copian con sus
+  estados. El vínculo del cliente o asesor usa el emisor configurado y
+  el ID asignado por Seguridad. Se conservan los hashes bcrypt compatibles.
+  Un hash incompatible o una identidad coincidente sin equivalencia
+  explícita se reportan para resolución. Las sesiones y tokens del
+  origen quedan fuera del paquete de importación.
+
+Propiedades
+  Se cargan ciudades, distritos, sectores, propietarios, ubicaciones,
+  características, inmuebles, pivotes e imágenes. Los IDs de las
+  relaciones se resuelven mediante equivalencias. Las coordenadas se
+  cotejan a la precisión de las columnas originales al convertirlas a
+  float de SQL Server. La disponibilidad de una venta vigente exige
+  un inmueble vendido y una sola venta que lo justifique.
+
+Comercial
+  Se cargan perfiles, ventas, contratos y entregas. El snapshot se
+  construye con los datos disponibles en el corte de la importación.
+  Las repeticiones y deltas reutilizan ese snapshot. Las imágenes y
+  documentos referenciados conservan los bytes y su SHA-256.
+  La descarga de PDFs firmados usa el archivo original y el permiso
+  de la ruta Laravel. La marca histórica es terminal y permite que una
+  anulación nueva autorizada apunte a la venta y su generación.
+
+Finanzas
+  Métodos, cuentas y asociaciones preceden a la cuenta de cada venta.
+  Luego se cargan planes, revisiones, cuotas, pagos y movimientos.
+  Bs y $ se normalizan a BOB y USD. La conciliación monetaria se
+  calcula en centavos. Las cuotas reemplazadas mantienen su historia.
+  Los campos históricos de proveedor y pagador que carecen de destino
+  operacional se conservan en el respaldo y la captura privada.
+  Un movimiento histórico sin actor conserva esa condición como
+  marcador técnico 0 en el campo obligatorio del esquema destino.
+
+Laravel
+  La copia MySQL y el almacenamiento contienen la configuración de
+  empresa y las campañas. Dashboard, reportes, portal, perfil, portada
+  y gestor de correo conservan la arquitectura F6. Los destinatarios
+  de campañas remotas se resuelven desde Comercial y la campaña
+  permanece en Laravel con su dataset. El ensayo excluye tráfico
+  real de SMTP, IMAP y la pasarela externa.
+
+Recuperación y límites
+
+1. Mantener el origen y el destino fuera del tráfico de escritura
+   durante el ensayo. Verificar el manifiesto y volver a ejecutar el
+   mismo paquete para reanudar. Cada fila tiene un recibo en
+   f7_import_rows con la equivalencia y las huellas de origen y destino.
+2. Un delta requiere el paquete anterior. Las bajas ensayadas se
+   procesan según su dominio. Las relaciones admitidas se retiran y
+   los usuarios e imágenes conservan su historial desactivado.
+   Una baja financiera o de documentos requiere resolución explícita.
+3. Si el destino cambió después de aceptar escrituras, la importación
+   reporta divergencia. Restaurar los cinco respaldos y archivos en un
+   nuevo entorno aislado, usando checkpoint-autoridades.json para
+   comprobar las huellas. Volver a ejecutar verify y las lecturas de
+   aceptación. El traspaso o reversión de escrituras nuevas corresponde
+   a F8.
+4. Conservar la evidencia privada. Los SQL, BAK, JSONL, credenciales
+   y documentos no forman parte de los commits. Los informes públicos
+   de la fase usan conteos, estados y resultados de prueba.
+
+Resultado pendiente para la preparación operativa
+
+En la copia real se registraron las dos cuentas como BOB según la
+indicación del usuario. Hay pagos pendientes de ventas históricas en
+USD y el destino carece de una cuenta activa en esa moneda. Se debe
+resolver esa configuración antes de operar esos cobros en remoto.
+El monto y la moneda de las ventas históricas se conservaron.
+F5-P10 queda pendiente de Libélula externo.

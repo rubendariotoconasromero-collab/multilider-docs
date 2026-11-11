@@ -1,0 +1,20 @@
+id,escenario,estado,evidencia
+F7-A01,Restaurar esquemas datos y archivos,Verificado,Restauración MySQL de db_multilider y de los cuatro destinos con huellas
+F7-A02,Simulación sin escrituras operativas,Verificado,Plan detecta una identidad coincidente y el siguiente paquete válido se aplica en bases aisladas
+F7-A03,Repetición y recuperación del lote,Verificado,Pausas antes y después de confirmar seguidas por reanudación sin registros duplicados
+F7-A04,Colisiones y cambios de huella,Verificado,Colisión de identidad con registro nativo y rechazo del delta sin paquete previo
+F7-A05,Identidades y permisos,Verificado,Login con bcrypt preservado e ID distinto y baja que impide volver a iniciar sesión
+F7-A06,Catálogo y disponibilidad,Verificado,Equivalencias de geografía e inmuebles y retiro de imagen más lectura de catálogo de la copia real
+F7-A07,Historia comercial,Verificado,Ventas contratos entregas y generación de reserva compatibles con anulación
+F7-A08,Archivos y autorización,Verificado,Tres archivos reales cotejados por SHA-256 y acceso a PDF denegado a un usuario sin permiso en la prueba
+F7-A09,Saldos y revisiones,Verificado,Crédito sintético con pago parcial y cuotas reemplazadas preserva capital pendiente de Bs 195
+F7-A10,Operaciones posteriores a la carga,Verificado en ensayo sintético,Cobro reversión amortización reprogramación y anulación por API con la venta importada
+F7-A11,Libro y comisiones,Verificado,Filas e importes cotejados por moneda y estado y cinco reportes conciliados en el fixture
+F7-A12,Reportes y portal en ambos modos,Verificado en ensayo sintético,JSON PDF Excel y cartera sobre el mismo corte con la misma compilación Vue
+F7-A13,Autonomía de Laravel,Verificado,Pruebas de Laravel y Playwright con los cuatro servicios apagados más rutas públicas de la copia real restaurada
+F7-A14,Delta de altas cambios y bajas,Verificado en ensayo sintético,Alta y edición de ciudad y desactivación de usuario más retiro de permiso e imagen y repetición sin cambios
+F7-A15,Restauración de checkpoint,Verificado,Relectura de las 227 equivalencias en las bases restauradas y manifiesto de los respaldos y archivos
+F7-A16,Correo y aislamiento de campañas,Verificado en ensayo sintético,Campaña en memoria sobre destinatarios migrados y acceso 404 desde el otro modo
+F7-A17,Separación de pagos de prueba,Verificado,El ensayo desactiva la pasarela y conserva los pagos pendientes y sus importes originales
+F7-OP01,Cuenta de cobro para USD,Pendiente operativo,Las dos cuentas de la copia son BOB y los dos pagos pendientes históricos corresponden a ventas USD
+F5-P10,Libélula externo,Pendiente externo,Registro retorno y callback en el sandbox del comercio quedan pendientes
