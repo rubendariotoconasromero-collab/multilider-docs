@@ -1,0 +1,358 @@
+PLAN DE DESARROLLO DE LA FASE 6
+Consultas agregadas en Laravel y frontend unificado
+Estado del documento | Propuesta de desarrollo
+
+1. OBJETIVO Y PUNTO DE PARTIDA
+============================================================
+Entregar un frontend Vue que utilice la API pública de Laravel en los dos
+modos. Completar en Laravel las consultas para dashboard, reportes, correo
+masivo, portal del cliente y portada pública. Mantener las funciones y los
+contratos operativos de las fases 3 a 5 durante la transición.
+
+El cierre local de F5 registra 105 escenarios verificados. F5-P10 conserva
+su estado externo pendiente. F6 usa datos sintéticos y un proveedor de pagos
+simulado. El importe de prueba sigue siendo Bs 0,20 por concepto. La orden de
+prueba y la obligación financiera conservan sus estados separados.
+
+Situación que debe caracterizar F6-01
+- El frontend principal ya consulta Laravel. La variante directa todavía
+  llama a Seguridad y Propiedades en login, administración y catálogo.
+- EnsureArchitectureReady bloquea agregados remotos de dashboard, reportes,
+  destinatarios, correo masivo, mi cartera y /landing. Empresa, perfil, gestor
+  de correo y rutas operativas de F5 tienen sus propios contratos habilitados.
+- ReporteController y DashboardController consultan modelos Eloquent. El portal
+  local identifica al cliente por user_id. CorreoMasivoController resuelve
+  grupos con tablas locales y su trabajador admite el modo local.
+- Las mejoras del cierre F5 existen en las ramas de trabajo, incluidas
+  modificaciones pendientes de commit. Identificar el punto de partida con
+  esas mejoras antes de crear las ramas de F6.
+
+Alcance posterior
+- F7 cubre importación, equivalencias y conciliación de datos reales.
+- F8 cubre validación integral y ensayo de recuperación para la publicación.
+- F9 cubre el corte autorizado y la publicación manual en el VPS.
+- F5-P10 cubre registro, retorno y callback con el sandbox externo de Libélula.
+
+2. RESPONSABILIDADES Y FUENTES
+============================================================
+Modo local
+  Vue llama a Laravel. Sanctum, MySQL y los archivos de Laravel sostienen la
+  operación con los cuatro microservicios apagados. Correo conserva su
+  integración IMAP/SMTP. La selección de origen ocurre en Laravel.
+
+Modo microservices
+  Vue llama a la misma API pública Laravel. Laravel valida la sesión,
+  comprueba permisos y compone respuestas usando las APIs de los responsables
+  de cada dato. Cada servicio accede a su propia base. Si falta una fuente
+  requerida, Laravel responde con el error de disponibilidad del contrato.
+
+Módulo en Laravel                Fuente local                 Fuente remota
+------------------------------   --------------------------   ---------------------------
+Dashboard admin y asesor         Ventas, cartera y libro      Comercial, Finanzas y
+                                 financiero de Laravel       Propiedades según indicador
+Reportes y PDF/Excel             Consultas MySQL vigentes     APIs de los dominios
+                                 y plantillas Laravel        y las mismas plantillas
+Empresa y personalización        Empresa y archivos Laravel  Empresa y archivos Laravel
+Métodos y cuentas operativas     MySQL de Laravel            Finanzas
+Correo masivo                    Clientes y ciudades locales Comercial y Propiedades para
+                                 más campañas Laravel        el público de la campaña
+Destinatarios de informes        Usuarios activos locales    Usuarios activos de Seguridad
+Gestor de correo                 IMAP/SMTP y sesión Laravel  IMAP/SMTP y sesión Laravel
+Perfil                           Identidad de Laravel        Identidad de Seguridad vía Laravel
+Portal del cliente               Cliente y cartera locales   Vínculo de Comercial y saldos
+                                                             de Finanzas vía Laravel
+Portada pública                  Empresa, inmuebles y        Empresa en Laravel, catálogo
+                                 asesores visibles locales   de Propiedades y ficha pública
+                                                             de asesores de Comercial
+
+Las campañas, historial, colas, plantillas, generación de documentos y
+orquestación de pantallas siguen en Laravel. F6 reutiliza los cuatro servicios
+existentes. Las escrituras de venta, reserva, anulación, cobro, plan y comisión
+siguen en sus rutas y responsables de F5.
+
+3. CONTRATO DE LECTURA Y AUTORIZACIÓN
+============================================================
+API pública
+- Caracterizar método, URL, forma JSON, filtros, orden, paginación, errores,
+  nombre de archivo y permisos de cada pantalla antes de cambiar su lector.
+  Los campos nuevos son aditivos y se documentan con ejemplos en ambos modos.
+- Reutilizar los clientes HTTP y la selección de implementación local/remota
+  del contenedor de Laravel. Agregar lecturas específicas o por lote en cada
+  servicio cuando sus rutas F5 carezcan de filtros, alcance o agregados.
+- Mantener una lista explícita de rutas listas en EnsureArchitectureReady.
+  Habilitar cada familia después de integrar y probar su lector y autorización.
+  Las rutas agregadas usan las reglas de permisos en servidor, incluso en
+  descarga, exportación y envío de informes.
+- Conservar 401 para sesión inválida, 403 para permisos insuficientes,
+  404 según el contrato de recurso, 422 para filtros inválidos y 503 para una
+  fuente requerida sin respuesta. Una consulta vacía válida conserva su
+  respuesta vacía. Los documentos financieros requieren datos completos.
+
+Identidad y límites
+- Obtener el actor desde la sesión vigente. Resolver cliente o asesor remoto
+  por el vínculo aprobado de emisor y sujeto de Seguridad, con su referencia
+  en Comercial. Verificar pertenencia de ventas, cuotas, pagos y archivos en
+  el proveedor. Un vínculo ausente o ambiguo se registra como caso de
+  conciliación. Los IDs del navegador sirven como filtros dentro del alcance
+  autorizado del actor.
+- Usar delegación con los permisos del usuario en las lecturas ya compatibles.
+  Diseñar lecturas acotadas para portal, destinatarios o agregados que la
+  requieran. Si una lectura técnica necesita mTLS, validar también actor,
+  propósito y conjunto de datos. Mantener las credenciales fuera de colas,
+  reportes, metadatos de reintento del navegador y registros de diagnóstico.
+  La sesión de Vue conserva su flujo de autenticación con Laravel.
+- Validar límites de página, rango de fechas y tamaño de lote. Comparar cada
+  agregado con todas las filas de su filtro y paginar el detalle por separado.
+  Evitar una llamada por venta. Reintentar de forma acotada solo lecturas
+  seguras y propagar un identificador de correlación.
+
+Importes y fechas
+- La nota de venta aporta sus condiciones y moneda históricas. Finanzas aporta
+  cobros confirmados, reversiones, saldos, revisiones y comisiones. Propiedades
+  aporta disponibilidad y atributos del inventario vigente.
+- Normalizar BOB y USD con precisión decimal. Mostrar totales por moneda y
+  conciliar las reglas de redondeo con F5. Definir por indicador la fecha que
+  filtra, como fecha de venta, cobro, vencimiento o desembolso. Aplicar la zona
+  America/La_Paz y probar los límites del período.
+- El dashboard actual tiene sumas monetarias sin separación por moneda. En
+  F6-01 documentar qué campos consumen las pantallas. En F6-04 incorporar el
+  desglose y adaptar las vistas preservando el contrato aplicable. Revisar
+  también la diferencia entre los estados de cartera local y remota.
+- Fijar una fecha de corte y filtros comunes para cada consulta. JSON, PDF,
+  Excel e informe por correo usan el mismo cálculo y las mismas reglas de
+  acceso. Comparar formatos sobre datos congelados. Cada solicitud nueva
+  puede reflejar cambios posteriores de las fuentes.
+
+4. ENTREGAS Y ORDEN DE DESARROLLO
+============================================================
+F6-01 | Inventario y caracterización | 2 a 3 días
+  Repositorios. Backend, frontend y documentación.
+  1. Registrar revisiones, diferencias de ramas y cambios F5 por preservar.
+  2. Inventariar pantallas, rutas, permisos, consultas y archivos que usan
+     axiosSecurity, axiosPropiedades o URLs de medios específicas del origen.
+  3. Construir casos de referencia en Laravel local para cada indicador,
+     reporte, segmento de correo y estado del portal. Revisar en particular
+     el filtro por ciudad de la campaña, que hoy depende de una relación local.
+  4. Documentar campos obligatorios, filtros, monedas, fórmulas y permisos por
+     tipo de actor. Identificar las lecturas disponibles en los servicios y
+     las brechas que exigen un contrato nuevo.
+  Entrega. Inventario de rutas y funcionalidades, ejemplos JSON/PDF/Excel y
+  matriz de paridad con resultados de referencia para cada familia.
+
+F6-02 | Base de frontend común | 2 a 4 días
+  Repositorios. Frontend y backend.
+  Depende de F6-01.
+  1. Preparar una rama de integración basada en main e incorporar
+     selectivamente el trabajo de feature/fase-5-operaciones y de la variante
+     directa. Conservar main, origin/release/microservices y el worktree
+     directo como referencias durante la validación.
+  2. Pasar login, me, logout, permisos y administración a la API Laravel.
+     Unificar stores e interceptores de sesión, errores y reautenticación.
+  3. Pasar catálogo, galería, referencias y medios a rutas Laravel. Conservar
+     validaciones, If-Match, versiones, cargas y descargas autorizadas.
+  4. Mantener la URL pública de Laravel como única configuración API de Vue.
+     Probar el mismo código contra las dos instancias de Laravel. Para ensayar
+     el mismo artefacto, usar una URL relativa en el entorno de prueba y un
+     proxy que dirija cada ejecución a su instancia.
+  5. Conservar UUID e Idempotency-Key de F5 y recuperación por consulta. Mostrar
+     operación pendiente ante 202 y éxito tras confirmación del estado.
+  Entrega. Rama integradora con el catálogo y la sesión funcionales en ambos
+  modos. El navegador se comunica con Laravel en todas las rutas migradas.
+
+F6-03 | Lectores Laravel y contratos de servicio | 3 a 5 días
+  Repositorios. Backend y servicios que requieran lecturas adicionales.
+  Depende de F6-01. Puede avanzar junto con F6-02.
+  1. Separar lectura y presentación de las consultas existentes. Implementar
+     adaptadores locales y remotos con resultados normalizados reutilizables
+     por las pantallas y sus exportaciones.
+  2. Reutilizar catálogo y disponibilidad de Propiedades, ventas de Comercial
+     y las lecturas financieras F5. Añadir filtros, proyecciones de lectura o
+     lecturas por lote donde falten. Definir claves de relación explícitas.
+  3. Acordar los permisos de cada contrato y aplicar autorización en Laravel
+     y en la autoridad. Incluir pruebas de acceso directo a la API, filtros
+     fuera del alcance y credenciales de otro entorno.
+  4. Incorporar timeout, correlación y errores acotados. Definir presupuestos
+     de latencia y volumen con datos de ensayo. Usar lecturas directas por
+     defecto. Si se justifica una proyección local de lectura, documentar
+     origen, frescura, reconciliación y comportamiento cuando esté vencida.
+  Entrega. Contratos y pruebas por fuente, respuestas de ejemplo y mapa de
+  correspondencias para ventas, propiedades, clientes, asesores y movimientos.
+
+F6-04 | Dashboards y cinco reportes | 4 a 6 días
+  Repositorios. Backend y frontend. Extensiones de lectura en los servicios
+  solo si F6-03 identifica una brecha.
+  Depende de los lectores de F6-03.
+  1. Dashboard admin. Ventas y ranking de Comercial, cobros, cartera, mora y
+     comisiones de Finanzas, e inventario de Propiedades donde corresponda.
+     Dashboard asesor. Mismas reglas con el alcance del asesor autenticado.
+  2. Ventas y cobros. Relacionar venta confirmada con sus cobros y reversiones.
+     Separar la fecha de venta de la fecha de cobro y los totales por moneda.
+  3. Cartera en mora. Usar vencimiento y saldo pendiente autorizado, respetar
+     pagos parciales y planes reprogramados, y conservar los tramos de mora
+     con una fecha de corte reproducible.
+  4. Comisiones. Separar pendientes, pagadas y anuladas por moneda y asesor,
+     y conservar el vínculo con el movimiento financiero y su venta.
+  5. Desempeño de asesores. Conciliar conteos, importes, períodos y ranking.
+     Los montos de monedas distintas se presentan separados.
+  6. Inventario de propiedades. Aplicar filtros de estado, tipo, moneda,
+     ubicación y precio. Usar disponibilidad vigente y validar totales con
+     reservas y ventas confirmadas.
+  7. Reutilizar el conjunto de resultados en tabla, gráficos, PDF, Excel y
+     adjunto de informe. Conservar branding Laravel, formatos y permisos.
+     Probar reportes sin filas, paginación y exportación con varias páginas.
+  Entrega. Los dos dashboards y los cinco reportes con sus formatos y pruebas
+  de conciliación en local y remoto.
+
+F6-05 | Portal del cliente y portada pública | 3 a 5 días
+  Repositorios. Backend y frontend. Seguridad, Comercial, Finanzas o
+  Propiedades para las lecturas acotadas necesarias.
+  Depende de F6-03. Puede avanzar junto con F6-04.
+  1. Adaptar GET /api/mi-cartera conservando la forma cliente/ventas. En local,
+     partir de la identidad Sanctum. En remoto, partir del vínculo de Comercial
+     y consultar sus ventas, planes, cuotas, saldos y comprobantes autorizados
+     en las fuentes responsables.
+  2. Verificar clientes con datos, cartera vacía y vínculo ausente. Probar
+     solicitudes de otro cliente, enlaces a comprobantes y sesiones revocadas.
+     Exponer solo los campos propios que necesita la pantalla.
+  3. Componer /api/landing con empresa de Laravel, catálogo público de
+     Propiedades y perfiles públicos de asesores de Comercial. Limitar la
+     ficha pública a sus campos visibles y respetar publicación de fotos,
+     propiedades destacadas y recientes. Mantener las rutas de catálogo público
+     F4 y la configuración de pagos de prueba.
+  Entrega. Portada y cartera utilizables en los dos modos, con enlaces a
+  recursos propios y cobertura de acceso cruzado.
+
+F6-06 | Informes por correo y campañas | 2 a 4 días
+  Repositorios. Backend y frontend. Lectores acotados de Seguridad, Comercial
+  y Propiedades según F6-03.
+  Depende de F6-03. El adjunto por correo depende de F6-04.
+  1. Resolver destinatarios de informes en usuarios activos con correo válido
+     del origen vigente. Preservar el contrato usuario_ids y, donde aplique,
+     resolver asesor_ids antiguos por su vínculo explícito. Validar selección
+     y permisos al enviar, deduplicar y adjuntar el informe del mismo lector.
+  2. Resolver segmentos de correo masivo para todos, activos, inactivos,
+     ciudad y selección manual. Reutilizar el mismo criterio en conteo,
+     previsualización y confirmación. Verificar los IDs de ciudad y cliente
+     contra sus responsables. Si cambia el conjunto tras previsualizar,
+     indicar el cambio antes de encolar o exigir una nueva confirmación.
+  3. Mantener campaña, historial y progreso en Laravel. Asociar la auditoría
+     de actor remoto mediante origen e identidad explícitos. Conservar la
+     lectura de campañas locales antiguas sin interpretar un subject remoto
+     como un user_id local.
+  4. Registrar campaña y destinatarios aprobados antes del despacho. Adaptar
+     el trabajador que hoy admite solo local para reconocer modo y dataset.
+     Probar reintentos de lotes y destinatarios, resultado SMTP incierto y
+     contadores de progreso. Evitar duplicados de despachos confirmados.
+  5. Verificar gestor de correo del perfil, mostrar/ocultar contraseña y
+     separación de la credencial IMAP/SMTP respecto al acceso al sistema.
+     Usar transporte de correo de prueba para campaña, informe y perfil.
+  Entrega. Modal de informes y campañas con destinatarios del origen correcto,
+  auditoría y trabajos reproducibles en ambos modos.
+
+F6-07 | Integración, degradación y regresión | 3 a 4 días
+  Repositorios. Backend, frontend, servicios y documentación.
+  Depende de F6-02 y F6-04 a F6-06.
+  1. Ejecutar dos Laravel del mismo código con caches, colas, almacenamiento,
+     sesiones y bases de prueba separados. En local detener los cuatro
+     servicios y comprobar ausencia de llamadas .NET, incluidos clientes
+     Guzzle. En remoto usar Seguridad, Propiedades, Comercial y Finanzas.
+  2. Probar caída y timeout de cada servicio, permisos revocados, datos
+     incompletos, caché vencida si aplica y consultas de volumen.
+  3. Ejecutar regresión F5 de venta contado/crédito, 202 y recuperación por
+     UUID, cobros y reversión, documentos, cuenta predeterminada y callback
+     simulado de Bs 0,20. Conservar separación de saldos y estado de prueba.
+  4. Verificar en Playwright que el frontend use Laravel en login, catálogo,
+     reportes, perfil, correo y portal. Compilar y revisar el paquete en
+     busca de URLs internas o clientes directos.
+  Entrega. Matriz F6 ejecutada con respuestas, métricas de prueba y
+  resultados de PHPUnit, xUnit, pruebas frontend y Playwright.
+
+F6-08 | Cierre local y recuperación | 3 a 5 días
+  Repositorios. Documentación y repositorios intervenidos.
+  Depende de F6-07.
+  1. Revisar paridad contra el inventario y resolver regresiones. Registrar
+     las revisiones exactas de frontend, backend y servicios verificados.
+  2. Ensayar volver a la versión anterior de frontend y lectores sobre una
+     copia aislada. Probar deshabilitar la ruta remota afectada y aislar sus
+     colas durante una recuperación. Revisar entregas de correo confirmadas
+     e inciertas antes de reanudar los trabajos. Mantener el origen de las
+     escrituras.
+  3. Documentar comandos, rutas, fuentes, permisos, correlación, errores y
+     procedimiento de recuperación. Publicar resultados en la documentación
+     local y vincular las pruebas y artefactos sintéticos.
+  4. Mantener F5-P10 como pendiente externo. Registrar lo comprobado con
+     simulación y los requisitos de la prueba del comercio por separado.
+  Entrega. Evidencia de cierre local F6, guía operativa y lista de entrada a F7/F8.
+
+5. MATRIZ DE ACEPTACIÓN PROPUESTA
+============================================================
+ID           Caso verificable
+-----------  ----------------------------------------------------------------
+F6-A01       Un mismo frontend opera en Laravel local y Laravel remoto.
+F6-A02       Con los cuatro servicios apagados, local permite sesión, catálogo,
+             empresa, dashboard, reportes, portal y campañas sintéticas.
+F6-A03       El navegador solo usa la API pública Laravel para datos de negocio,
+             administración de identidad, catálogo y medios privados.
+F6-A04       Login, expiración, revocación, logout y errores de campos conservan
+             sus contratos. La validación de propiedades y los adjuntos pasan.
+F6-A05       Dashboard admin y asesor concilian conteos y totales por moneda.
+             El asesor solo accede a su alcance.
+F6-A06       Ventas y cobros concilian anulaciones, reversión y fechas de ambos
+             hechos, con moneda y precisión conservadas.
+F6-A07       Cartera en mora concilia cuotas, saldos parciales y reprogramaciones
+             en la fecha de corte aprobada.
+F6-A08       Comisiones y desempeño coinciden con sus movimientos y ventas,
+             por estado, período, asesor y moneda.
+F6-A09       Inventario coincide con Propiedades en sus filtros, estados,
+             totales y disponibilidad, incluida una reserva vigente.
+F6-A10       Para cada uno de los cinco reportes, JSON, PDF, Excel y adjunto
+             concilian columnas, filas y totales sobre el mismo conjunto.
+F6-A11       Reporte y exportación deniegan acceso sin permiso, incluso por
+             URL directa. Un timeout produce error y conserva la fuente.
+F6-A12       El portal muestra solo la cartera y documentos del cliente
+             autenticado, incluso con IDs coincidentes en orígenes distintos.
+F6-A13       Portada muestra empresa, catálogo y perfiles públicos correctos.
+             Las rutas de empresa, perfil y gestor de correo conservan su flujo.
+F6-A14       Destinatarios e informes se resuelven contra el origen vigente.
+             Se rechazan correos inválidos, bajas e IDs ajenos al alcance.
+F6-A15       Conteo, previsualización y envío simulado de campañas coinciden.
+             Se prueban duplicados, reintentos, cambios de segmento y fallos.
+F6-A16       Un trabajo de otra arquitectura o dataset queda aislado. Los
+             contadores e historial se conservan tras reiniciar el trabajador.
+F6-A17       Caída de cada autoridad mantiene local disponible y devuelve un
+             error acotado en las lecturas remotas que dependen de ella.
+F6-A18       Venta 202, recuperación por UUID, cobro y callback simulado
+             conservan los resultados de F5. Se verifica ausencia de cobros
+             reales en la ejecución local. F5-P10 queda externo.
+F6-A19       Se ensaya restaurar frontend y lectores compatibles, aislar colas
+             y repetir consultas con datos de prueba consistentes.
+
+6. ESTIMACIÓN, DEPENDENCIAS Y CIERRE
+============================================================
+Esfuerzo orientativo para una persona. 22 a 36 días de trabajo. Es la suma de
+las ocho entregas, sin contar el sandbox externo ni el corte productivo.
+El rango inicial del plan general era preliminar. Revisar este esfuerzo al
+cerrar F6-01 según las brechas de contrato, permisos y portabilidad de reportes.
+
+Camino principal
+  F6-01 -> F6-03 -> F6-04/F6-05/F6-06 -> F6-07 -> F6-08
+  F6-02 avanza en paralelo con los lectores una vez inventariadas las rutas.
+  El envío de informes requiere el lector y el exportador probados en F6-04.
+
+Los puntos de mayor incertidumbre son las fórmulas por moneda y fecha, los
+vínculos históricos del portal, la audiencia de campañas por ciudad y la
+autorización de exportaciones. Resolver cada uno con fixtures y registrar
+el criterio aplicado antes de habilitar su ruta remota.
+
+F6 cierra localmente cuando la matriz de aceptación acredita ambos modos,
+los cinco reportes concilian, la cartera y los destinatarios respetan sus
+fuentes y permisos, y el frontend común pasa las regresiones F5. La versión
+directa queda como referencia durante la revisión de paridad. La prueba
+externa F5-P10 conserva su estado pendiente.
+
+Referencias del proyecto
+  PLAN_INTEGRACION_MICROSERVICIOS.txt, apartado de fase 6
+  PLAN_FASE_5.txt
+  contratos/COMERCIAL_FINANZAS_F5_V1.txt
+  operacion/SEGUIMIENTO_F5.txt
+  pruebas/RESULTADOS_F5.txt y pruebas/MATRIZ_PRUEBAS_F5.csv

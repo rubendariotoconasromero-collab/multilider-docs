@@ -1,0 +1,21 @@
+id,escenario,modo,evidencia
+F6-A01,Una compilación Vue opera mediante Laravel,local y microservices,Playwright usa el mismo dist y cambia el origen de Laravel en tiempo de ejecución
+F6-A02,Laravel operativo con las autoridades detenidas,local,Login sesión empresa catálogo dashboard inventario PDF Excel cartera vacía y campaña sintética con los cuatro servicios apagados
+F6-A03,El navegador usa el origen público Laravel,local y microservices,Playwright observa 12 rutas Laravel por modo y bloquea solicitudes a otros orígenes de API
+F6-A04,Sesión y validaciones de F5,local y microservices,Suite de Laravel y aceptación F5 de expiración revocación campos adjuntos y repetición segura
+F6-A05,Dashboard y aislamiento del asesor,local y microservices,Totales de ventas y cobros conciliados y asesor independiente sin acceso a ventas ajenas
+F6-A06,Ventas y cobros por moneda y fecha,local y microservices,Prueba Laravel de venta de octubre cobrada en noviembre y reversión excluida más conciliación remota de venta y cobro
+F6-A07,Mora con saldos parciales y revisiones,local y microservices,Cuota local de Bs 110 con Bs 15 aplicados al interés y al capital más plan histórico remoto con una sola cuota de reemplazo vigente
+F6-A08,Comisiones y desempeño por origen,local y microservices,Comisión BOB confirmada de Bs 600 en Finanzas y rendimiento conciliado con las ventas confirmadas
+F6-A09,Inventario y disponibilidad de Propiedades,microservices,Filtros de tipo estado moneda precio y sector más reserva Retenida comprobada mientras el proceso estaba pausado
+F6-A10,JSON PDF Excel y adjuntos de cinco reportes,microservices,Totales y detalle de Excel frente al JSON y texto del PDF descargado frente al adjunto capturado del transporte en memoria
+F6-A11,Permisos de reporte y degradación,microservices,403 directo en JSON PDF Excel y envío sin permiso más 503 al detener la autoridad requerida
+F6-A12,Cartera y comprobantes por sesión,local y microservices,Cartera propia con pago válido y segunda identidad con cartera vacía y 404 al pedir el pago ajeno
+F6-A13,Portada empresa perfil y correo,local y microservices,Portada usa catálogo público y ficha mínima de asesor con perfil y empresa accesibles desde Laravel
+F6-A14,Destinatarios del origen vigente,local y microservices,Usuarios activos de cada origen y vínculo explícito para asesor_ids con 422 ante destinatario inexistente
+F6-A15,Previsualización y campaña repetible,local y microservices,Conteo y previsualización coinciden y selección manual y ciudad se validan con rechazo de confirmación obsoleta
+F6-A16,Trabajador y aislamiento por modo y dataset,local y microservices,Reintento y recuperación de estado incierto en Laravel más procesos de cola contra la misma base aislada
+F6-A17,Caídas de autoridades,microservices,Las cuatro autoridades se detienen por separado y sus rutas devuelven 503 mientras Laravel local sigue atendiendo
+F6-A18,Regresión de operación UUID y pago simulado,local y microservices,Aceptación F5 con callback y confirmación simultáneos y simulador de pagos sin pasarela externa
+F6-A19,Recuperación del artefacto y lectores,microservices,Compilación F5 de referencia con F6 deshabilitada conserva login y catálogo y se recupera el frontend F6 sobre la misma base
+F5-P10,Prueba externa de Libélula,Pendiente,Registro retorno y callback con el sandbox del comercio quedan fuera del cierre local

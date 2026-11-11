@@ -1,0 +1,62 @@
+FASE 6 | VERIFICACIÓN LOCAL
+
+Revisiones
+
+Backend       d04052870921ad018879d7f00e381ce3352797ed
+Frontend      b5c07c0c8956e0af68b4d519bcf3212aa6f53159
+Comercial     6cc8e8a5a7fed1a2f5b92e2f95020b45953b7b12
+Finanzas      aaa49adc3dc1c6a51a7d177bfb16dada0a7bb6a6
+Propiedades   63d660d0ea8dc74414344ad74f812b834d9347cc
+Seguridad     b204a446c801444c1ab991920f6162cbb229ca4e
+
+Pruebas
+
+- PHPUnit. 112 pruebas y 673 aserciones, todas aprobadas.
+- xUnit. Comercial 37 aprobadas y 1 omitida, Finanzas 29 y 1,
+  Propiedades 6 y 19, Seguridad 18 y 0. Las pruebas HTTP complementarias
+  iniciaron las cuatro autoridades con bases y certificados aislados.
+- Frontend. 11 pruebas Node y compilación Vite aprobadas. Playwright
+  verificó 12 rutas Laravel por modo con un solo artefacto compilado.
+- API F6. 125 aserciones en la ejecución sin el conjunto histórico de
+  F5. Abarcan reportes, permisos, destinatarios, cartera, comprobantes,
+  recuperación y campaña simulada. Se conciliaron los totales y los
+  importes del detalle en las hojas de los cinco reportes.
+- PDF y correo. Los cinco PDF descargados coincidieron en el texto con
+  los cinco adjuntos capturados del transporte de prueba. Los documentos
+  son sintéticos y se guardaron fuera del índice Git.
+- Ejecución con -AcceptanceTests. Se repitió la integración de F5 y
+  se comparó el saldo BOB 447,89 y el vencido BOB 452,28 de la única
+  cuota de reemplazo vigente del plan histórico. El inventario reflejó
+  una reserva Retenida mientras el trabajador estaba pausado.
+- Degradación. Se detuvieron individualmente Finanzas, Propiedades,
+  Comercial y Seguridad. Las rutas dependientes devolvieron 503.
+  Laravel local conservó sus lecturas y aceptó una campaña sintética
+  con los cuatro servicios apagados.
+- Recuperación. Se compiló el frontend F5 b78e2e7 y se probó contra
+  una instancia de Laravel con los agregados F6 deshabilitados y las
+  mismas bases aisladas. El login y el catálogo siguieron disponibles.
+  Tres ejecuciones de queue:work verificaron aislamiento de campañas
+  entre modos, entrega confirmada y repetición sin duplicar el progreso.
+- Regresión de negocio. La integración F5 pasó sus 54 comprobaciones
+  base. La aceptación adicional incluyó ventas 202, revocación, planes,
+  cobros, comprobantes y callbacks del simulador en ambos modos.
+
+Reproducción
+
+Desde backend, usar PowerShell 7.
+
+  pwsh -NoProfile -File scripts/test-isolated.ps1 -Integration -Phase5 -AggregateTests
+  pwsh -NoProfile -File scripts/test-isolated.ps1 -Integration -Phase5 -AggregateTests -AcceptanceTests
+
+El segundo comando incluye la cuota histórica y la reserva vigente.
+Los resultados y documentos sintéticos quedan en storage/framework/testing
+dentro de backend. El conjunto de la última comprobación de formatos está
+en storage/framework/testing/f6-reports-aa983c4d920743b1bfad0dc487101a69.
+
+Alcance
+
+El cierre usa datos de ensayo y mide la coherencia del conjunto probado.
+La comparación y migración de datos reales corresponden a F7. El ensayo
+integral previo a producción corresponde a F8 y el despliegue al VPS a F9.
+F5-P10 sigue pendiente de la prueba externa con el comercio Libélula.
+La ejecución usó correo en memoria y el simulador de pagos.

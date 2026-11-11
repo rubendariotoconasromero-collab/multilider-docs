@@ -1,0 +1,144 @@
+FASE 6 | LECTURAS DE LARAVEL Y FRONTEND COMÚN
+
+Entornos
+
+El frontend compilado en feature/fase-6-frontend-unificado utiliza Laravel
+para sesión, identidad, catálogo, negocio y archivos privados. El servidor
+que publica la compilación puede suministrar /runtime-config.js con
+
+  window.MULTILIDER_CONFIG = { apiOrigin: "https://api.tecnoweb.space" }
+
+Si no se define apiOrigin, se usa VITE_API_URL de la compilación. Un valor
+vacío explícito usa el mismo origen que el frontend. En desarrollo se puede
+seguir usando VITE_API_URL. La configuración contiene únicamente el origen
+web de Laravel. Configura en CORS_ALLOWED_ORIGINS los orígenes web permitidos
+cuando la API y el frontend se publican en orígenes distintos.
+
+Configuración de Laravel
+
+  APP_ARCHITECTURE=local
+
+Local utiliza Sanctum, MySQL y los archivos de Laravel. Conserva las rutas y
+exportaciones anteriores. Los nuevos selectores solicitan moneda=BOB o USD.
+Para las notas locales sin moneda histórica almacenada, el selector utiliza
+la moneda de la propiedad relacionada. Un asiento financiero en el libro
+conserva la moneda registrada en el asiento.
+
+  APP_ARCHITECTURE=microservices
+  BUSINESS_MICROSERVICES_ENABLED=true
+  AGGREGATE_MICROSERVICES_ENABLED=true
+  AGGREGATE_DATASET=<identificador estable del conjunto de datos>
+
+Conserva la configuración de Seguridad, Propiedades, Comercial, Finanzas y
+del canal interno TLS de la fase 5. AGGREGATE_MICROSERVICES_ENABLED se
+habilita de forma explícita. En modo microservices, las rutas de F6
+responden 503 con la opción deshabilitada. El cambio de modo requiere
+configuración de servidor, caché de Laravel y reinicio de trabajadores.
+La opción de F6 gobierna lecturas agregadas, informes y campañas. Las
+escrituras de negocio siguen usando el enrutamiento de la fase 5.
+
+Rutas, contratos y permisos
+
+GET /api/dashboard/admin
+  Rol Administrador. Para consultar en remoto requiere acceso a ventas
+  históricas, pagos y egresos. Recibe desde, hasta y moneda. Devuelve kpis,
+  graficos y listados. Comercial aporta ventas confirmadas y Finanzas
+  aporta cobros confirmados, cuotas, saldos y comisiones.
+
+GET /api/dashboard/asesor
+  Usa el vínculo de la sesión con el asesor activo. Finanzas confirma ese
+  vínculo con Comercial mediante TLS autenticado y el token de la sesión.
+  Los listados y KPI se acotan al asesor. Los filtros del navegador carecen
+  de autoridad para cambiar el alcance.
+
+GET /api/reportes/{reporte}[/pdf|/excel]
+POST /api/reportes/enviar-informe
+  ventas-cobros y desempeno-asesores requieren acceso_historial_ventas y
+  acceso_pagos. cartera-mora requiere acceso_pagos. comisiones requiere
+  acceso_egresos. inventario-propiedades requiere acceso_propiedades.
+  Los exportadores y adjuntos se generan en Laravel con la empresa local.
+  En la ruta agregada, todos los formatos comparten filtros y cálculo.
+  page y per_page paginan el detalle JSON. Los documentos usan todas las
+  filas del filtro. Los lectores remotos acotan páginas y lotes, y devuelven
+  un error si el conjunto supera el límite o cambia el conteo en la lectura.
+  Un resultado posterior puede reflejar cambios posteriores de las fuentes.
+
+  Ventas y desempeño filtran por fecha de venta. Cobros del período filtran
+  por fecha de pago confirmado. La columna cobrado por venta consulta sus
+  pagos confirmados acumulados. Las ventas anuladas pueden verse en el
+  listado de ventas y se excluyen de sus totales. Finanzas usa saldos
+  pendientes y los planes vigentes. Mora filtra por fecha de vencimiento y
+  calcula los días con la fecha de consulta en America/La_Paz. Comisiones
+  usa la fecha del movimiento y su estado. Inventario filtra propiedades
+  activas por tipo, estado, moneda, precio y ubicación.
+
+GET /api/reportes/destinatarios
+  Requiere acceso a un reporte. Usa usuarios activos de Laravel local o
+  Seguridad. Se comprueba vigencia y correo válido al enviar. Se admite
+  usuario_ids y también asesor_ids mediante el vínculo explícito.
+
+GET /api/mi-cartera
+GET /api/mi-cartera/pagos/{id}/comprobante
+  Devuelve cliente y ventas de la sesión. Un pago debe estar confirmado y
+  corresponder a una venta vigente del cliente. Laravel renderiza el PDF.
+  El servicio de Finanzas verifica la pertenencia antes de devolver datos.
+
+GET /api/landing
+GET /api/landing/asesores/{id}/foto
+  Combina empresa Laravel, catálogo público activo y asesores activos.
+  La ficha remota expone nombre, teléfono de contacto y foto publicada.
+  Las rutas públicas de catálogo de la fase 4 siguen disponibles.
+
+GET /api/correo-masivo/{grupos|destinatarios|historial|estado/{id}}
+POST /api/correo-masivo/{preview-destinatarios|enviar}
+  Requiere acceso_correo_masivo. Usa clientes de Laravel o Comercial. El
+  grupo ciudad se forma con ventas confirmadas de propiedades de esa
+  ciudad. Propiedades valida la ciudad en modo microservices.
+  El preview_token vincula el conjunto aprobado de correos con el actor,
+  arquitectura y dataset. Enviar con request_key UUID permite reintentar
+  una respuesta perdida. Un conjunto cambiado devuelve 409 y pide repetir
+  la previsualización. Para clientes antiguos de Laravel local se conserva
+  el envío sin esos campos.
+
+Empresa, perfil, buzón y pago de prueba
+
+La empresa, documentos, campañas, historial, cola y gestor IMAP/SMTP están
+en Laravel. El perfil conserva el origen de identidad que define el modo.
+El buzón usa sus propias credenciales. El pago simulado de Bs 0,20 conserva
+la regla de F5 y no liquida deuda real. F5-P10 sigue pendiente de la prueba
+externa de Libélula.
+
+Operación y recuperación
+
+1. Aplica las migraciones aditivas de Laravel antes de habilitar F6 y
+   reinicia el trabajador de la cola correos con la configuración activa.
+   Usa un backend de cola separado por entorno. En los trabajos de campaña
+   se comprueban modo y dataset, y el contenido queda en MySQL de Laravel.
+2. Si falla una fuente, conserva la arquitectura y el conjunto de datos
+   activos. Consulta el servicio y sus logs por identificador de correlación.
+   401 indica sesión inválida, 403 falta de permiso, 404 vínculo o recurso
+   ausente, 409 conjunto cambiado, 422 filtro inválido y 503 indisponibilidad.
+3. Si necesitas desactivar F6, cambia AGGREGATE_MICROSERVICES_ENABLED=false,
+   vuelve a generar caché de Laravel y reinicia sus procesos. Si se
+   restaura un frontend previo, usa el artefacto compatible de F5. Conserva
+   el esquema aditivo, modo, dataset, bases y colas de los dueños de datos.
+4. Para una campaña interrumpida, revisa su estado y ejecuta
+   php artisan correo:reanudar ID en su entorno original. Reencola solo los
+   destinatarios pendientes. Después de diez minutos, un intento
+   interrumpido que seguía en estado enviando queda incierto. Concilia ese
+   destinatario en SMTP antes de decidir un nuevo envío. Se conserva el
+   trabajo anterior de F5 para el modo local y dataset default.
+5. Verifica sesión, catálogo, PDF y estado de campaña antes de reanudar el
+   tráfico. La migración hacia atrás se protege cuando existen campañas F6.
+
+Pruebas aisladas en Windows
+
+  cd C:\laragon\www\MultiliderNew\backend
+  pwsh -NoProfile -File scripts/test-isolated.ps1 -Integration -Phase5 -AggregateTests -AcceptanceTests
+
+El runner usa MySQL y SQL Server aislados, bases de prueba, frontend compilado
+una vez para Playwright, certificados temporales y correo array. Comprueba
+las caídas y el retorno de procesos propios. Las pruebas de Libélula usan
+un simulador. El runner elimina las bases temporales de SQL Server al salir.
+La comparación de texto del PDF y el adjunto utiliza Python con pypdf.
+Consulta pruebas/MATRIZ_PRUEBAS_F6.csv y pruebas/RESULTADOS_F6.txt.
