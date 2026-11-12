@@ -87,6 +87,8 @@ INCIDENTES Y RECUPERACIÓN
 - Conservar el mismo UUID y comando al perder respuesta. Reenviar el formulario
   original tras una reautorización o para aportar la contraseña requerida.
   No restaurar una contraseña desde logs, outbox o almacenamiento del navegador.
+  El coordinador consulta el recibo de Propiedades, el estado durable de Finanzas
+  o la decisión de Seguridad antes de reenviar un paso de venta o anulación.
 - Antes del punto de confirmación, verificar reserva propia, generación y precio;
   una compensación aborta Finanzas y libera solo esa retención. Después de la
   decisión de confirmar, resolver hacia delante o llevar a revisión; no liberar
@@ -107,6 +109,11 @@ INCIDENTES Y RECUPERACIÓN
 - Registrar conteos por estado, edad del pendiente más antiguo, reintentos y
   orden externa incierta por dataset. Correlacionar UUID con ruta y status del
   servicio. Mantener logs sin cuerpo de solicitud, bearer, clave ni contraseña.
+  GET /internal/comercial/v1/metricas-operaciones requiere el certificado
+  cliente de Comercial. Devuelve conteos por estado, la edad de la venta
+  pendiente más antigua y la antigüedad de actualización de los perfiles
+  pendientes, en segundos. Para rastrear una operación, usar el UUID de su
+  recibo en los cuatro servicios.
 
 RESPALDO Y RESTAURACIÓN
 1. Detener admisión de escrituras y llevar cada operación a un punto durable

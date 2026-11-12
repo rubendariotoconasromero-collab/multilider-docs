@@ -1,0 +1,81 @@
+FASE 8 | RESULTADOS DEL ENSAYO AISLADO
+
+Estado | 25 escenarios locales verificados. F5-P10 pendiente externo.
+
+La base son las revisiones F7 registradas en RESULTADOS_F7.txt. Se
+reconstruyó el respaldo de 32 tablas con datos de Multilider y se volvió a
+conciliar con las cuatro autoridades. Se verificaron las 227 equivalencias
+y los tres archivos de F7. La repetición de la carga mantuvo las filas.
+
+Regresión y módulos Laravel
+
+- Laravel pasó 112 pruebas y 679 aserciones, incluidas las rutas de perfil
+  y del gestor de correo en los dos modos. La prueba del gestor usó un
+  buzón simulado para conexión, listado, lectura y envío. El transporte
+  de campañas y reportes de la prueba fue en memoria.
+- F5 pasó 54 comprobaciones de integración real y las pruebas extendidas
+  de permisos, concurrencia, contabilidad, documentos y recuperación.
+  Finanzas pasó tres pruebas dirigidas de interés primero y callbacks.
+- F6 pasó 127 comprobaciones de API, cotejó los cinco PDF con los adjuntos
+  de prueba y usó una sola compilación de Vue en ambos modos. Verificó
+  exportaciones, dashboard, empresa, correo y portal, y comprobó que
+  los workers respetan el modo y el conjunto de datos de cada campaña.
+- La rotación real mTLS reemplazó cuatro certificados de servidor y
+  cuatro identidades de cliente. Las credenciales retiradas y vencidas
+  fueron rechazadas y las operaciones continuaron durante el relevo.
+- El ensayo de caídas recuperó 43 operaciones con 199 aserciones. SQL
+  confirmó una cuenta y una comisión por operación cuando correspondían,
+  la liberación de reservas compensadas y el relevo de un worker cuyo
+  plazo había vencido. Se verificó la reanudación auditada después de
+  agotar los reintentos durante una caída de Finanzas.
+
+Cobros USD y recuperación
+
+- La cuenta ficticia activa empezó con saldo cero. Las dos cuentas BOB
+  se conservaron. Finanzas rechazó una cuenta BOB y una USD inactiva.
+  El esquema local de Laravel conserva la moneda de la propiedad y del
+  ingreso. La cuenta del catálogo local se identifica por su nombre.
+- El selector de destino permite elegir una cuenta compatible cuando
+  el método tiene otra cuenta predeterminada. La pantalla y los listados
+  de Laravel conservan la moneda de la venta. Chromium comprobó el
+  selector y el importe USD con un solo frontend en ambos modos.
+- Se confirmaron los dos cobros históricos en cada modo mediante Laravel.
+  Se verificó un ingreso por pago pese a repetir la solicitud, el PDF
+  de cada comprobante y los totales del informe separados por moneda.
+  Después se revirtió un cobro en cada entorno desechable. Su ingreso
+  se anuló, el saldo quedó pendiente y el segundo cobro siguió confirmado.
+- Se restauraron dos MySQL y tres SQL Server tras aceptar nuevas
+  escrituras. La comparación abarcó el perfil, la empresa, la nueva
+  venta de contado, la reserva confirmada, la deuda pendiente, la
+  comisión cuando aplicaba, el contrato por SHA-256 y los cobros USD.
+- El ensayo de retorno a Laravel rechazó una colisión de cuenta,
+  volvió a abrir el modo remoto y luego aplicó el corte a la copia
+  local. Probó el rollback de una aplicación interrumpida y la
+  reejecución sin duplicar filas. La verificación local se hizo con
+  las autoridades apagadas.
+- El ejecutor F8 pasó 325 comprobaciones además de las dos pruebas en
+  Chromium. La recuperación remota tardó 13,74 s y el retorno local
+  tardó 4,71 s en la ejecución registrada. Se recuperaron todas las
+  escrituras confirmadas de la muestra.
+- La reversión implementada cubre las operaciones de este ensayo. La
+  cobertura requerida para una vuelta desde el VPS se determina con
+  el inventario de escrituras autorizado para la ventana de F9.
+
+Alcance externo
+
+Libélula se mantuvo en simulación, con Bs 0,20 por concepto en la orden de
+prueba y sin liquidar deuda real. F5-P10 sigue pendiente externo para
+registro y callback en el sandbox del comercio.
+
+Evidencia privada de la ejecución
+
+  backend/storage/framework/testing/f7-36f7aa0a52cb46b3b6dc83aae42ede3f
+
+- checkpoint-f8.json registra el corte y las huellas de respaldos,
+  documentos y frontend. f8-result.json contiene las mediciones.
+- f8-usd-local.json y f8-usd-remote.json documentan los cobros y las
+  huellas de los PDF antes de la reversión de prueba. f8-delta.json
+  contiene la evidencia conciliada de las operaciones posteriores
+  al cambio de modo.
+- Las bases temporales se retiraron al terminar. Los respaldos y la
+  evidencia quedan disponibles localmente fuera de Git.

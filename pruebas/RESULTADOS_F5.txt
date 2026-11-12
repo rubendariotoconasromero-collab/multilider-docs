@@ -1,11 +1,33 @@
-RESULTADOS F5 — 05-11-2026
+RESULTADOS F5 — 11-11-2026
 
-Implementación y aceptación en ramas locales con datos sintéticos. El cierre
-formal E5-E sigue pendiente según el resultado por escenario en la matriz.
-No se cambió APP_ARCHITECTURE en las instalaciones existentes ni se migraron
-bases reales; no hubo despliegue, cambios en el VPS, merge ni push.
+Aceptación local E5-E cerrada con datos sintéticos. La matriz registra 105
+escenarios verificados de 106. F5-P10 requiere el sandbox externo de Libélula.
+Los ensayos usaron bases privadas, servicios en loopback y un proveedor simulado.
 
-EVIDENCIA REPRODUCIBLE
+CIERRE DEL 11 DE NOVIEMBRE
+- Laravel pasó 109 pruebas y 645 aserciones. Comercial pasó 38 pruebas y
+  Finanzas 30, con sus fixtures de SQL Server. Se compilaron ambos frontends.
+- Playwright verificó 22 recorridos entre las variantes local, remota y directa.
+  Los siete recorridos locales se ejecutaron con los cuatro microservicios
+  detenidos. Se comprobó el reingreso tras cerrar Chromium, la protección de
+  ventas pendientes, permisos, formularios y cuentas predeterminadas BOB y USD.
+  Se incorporó a la variante directa el gestor de correo del perfil de Laravel.
+- Se comprobaron 123 aserciones HTTP sobre documentos y se inspeccionaron
+  18 páginas de ocho contratos y dos comprobantes. El contrato remoto conservó
+  el texto y el renderizado tras editar catálogo y empresa. Comercial recuperó
+  el PDF original después de un corte antes del commit y limpió el huérfano.
+- Se confirmaron los 11 reintentos tras pérdida del acuse remoto sin reenviar
+  los comandos ya aplicados. Un corte de Finanzas después de confirmar un
+  pago conservó su recibo. La edición simultánea de movimientos y la carrera
+  entre callback simulado y cobro manual preservaron un único efecto en ambos modos.
+- Los ensayos de migración preservaron las intenciones y recibos F4 y el plan
+  histórico con revisión. La restauración recuperó cinco bases y los archivos
+  de prueba. El control de admisión rechazó el manifiesto del binario F4 sobre
+  el esquema F5 restaurado. La consulta de métricas por mTLS reflejó la edad
+  de los pendientes y permitió rastrear un UUID entre los cuatro servicios.
+  Se auditaron los registros y los recibos con credenciales sintéticas.
+
+EVIDENCIA DE LAS RONDAS ANTERIORES
 - Laravel: 108 pruebas y 640 aserciones en MySQL temporal privado. En Finanzas
   pasaron 29 pruebas, incluida la persistencia fallida y el reenvío de callback
   y la edición de movimientos manuales. Comercial y Seguridad pasaron 38 y 18.
@@ -98,14 +120,9 @@ REGLAS APROBADAS Y COMPROBADAS
 4. Una anulación rechazada queda registrada; pagar/revertir después no habilita
    el UUID rechazado. Un cierre exitoso precede a la liberación del inmueble.
 
-LÍMITES DEL CIERRE
-De los 106 escenarios, 77 quedaron verificados, 28 tienen cobertura parcial
-y uno requiere sandbox externo. Los ocho originalmente PENDIENTE se probaron.
-La rotación y las caídas de los pasos del coordinador tienen evidencia local.
-Entre las coberturas parciales, algunos reintentos recuperan el acuse con un
-POST idempotente y no consultan primero un endpoint independiente de recibos.
-En Libélula se verificaron autenticación, lectura y forma de respuesta. Falta
-verificar registro, retorno y callbacks con un sandbox autorizado del comercio.
+PRUEBA EXTERNA
+F5-P10 conserva la evidencia de autenticación, lectura y forma de respuesta.
+Falta verificar registro, retorno y callbacks con un sandbox autorizado del comercio.
 
 Las agregaciones remotas de dashboard/reportes/portal y lectores de correo
 masivo siguen F6. La conciliación de datos reales, aceptación integral y corte
@@ -122,12 +139,12 @@ Desde backend con PowerShell 7:
 Los artefactos se guardan en storage/framework/testing/ y frontend/.phase3/,
 fuera de Git. Ver operacion/COMERCIAL_FINANZAS_F5.txt para recuperación.
 
-RAMAS
-backend: feature/fase-5-comercial-finanzas-dual (7d2dae9)
-Comercial: feature/fase-5-ventas-coordinadas (279f42d)
-Finanzas: feature/fase-5-obligaciones (3fa2d57)
-Propiedades: feature/fase-5-reversion-confirmada (968d38c)
+RAMAS LOCALES DE FASE 5
+backend: feature/fase-5-comercial-finanzas-dual
+Comercial: feature/fase-5-ventas-coordinadas
+Finanzas: feature/fase-5-obligaciones
+Propiedades: feature/fase-5-reversion-confirmada
 Seguridad: feature/fase-5-autorizacion-operaciones (9319709)
-frontend: feature/fase-5-operaciones (9b07898)
-frontend directo: feature/fase-5-operaciones-directo (c5244a1)
+frontend: feature/fase-5-operaciones
+frontend directo: feature/fase-5-operaciones-directo
 documentación: docs/implementacion-fase-5

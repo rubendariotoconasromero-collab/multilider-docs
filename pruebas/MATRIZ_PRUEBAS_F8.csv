@@ -1,0 +1,27 @@
+id,modo,escenario,estado,evidencia
+F8-A01,Ambos,Mismo frontend y misma API pública Laravel,Verificado,F6 y Chromium F8 ejercitan ambos modos con un artefacto por ensayo
+F8-A02,Ambos,Inicio cierre expiración y perfil,Verificado,PHPUnit de identidad y pruebas F5 de JWT expirado y revocación antes y después del commit
+F8-A03,Ambos,Bajas permisos y archivos de terceros,Verificado,F5 autorizaciones de documentos y F6 restricciones de portal y reportes
+F8-A04,Ambos,Catálogo inventario y reserva concurrente,Verificado,F5-S04 confirma una sola venta y F6-A09 coteja la reserva con el inventario
+F8-A05,Ambos,Contado crédito contrato y anulación,Verificado,F5 integración y ocho formatos de contrato verificados por HTTP
+F8-A06,Ambos,Cuota parcial aplica primero interés y luego capital,Verificado,PhaseFiveBusinessTest en Laravel y PartialInstallmentsPayInterestFirstAndAmortizationPreservesPaidHistory en Finanzas
+F8-A07,Ambos,Mora amortización reprogramación egresos y comisiones,Verificado,F5 pruebas financieras y concurrencia sobre MySQL y SQL Server aislados
+F8-A08,Ambos,Selección USD y conservación de cuentas BOB,Verificado,Chromium seleccionó la cuenta ficticia y mostró USD en ambos modos. Las dos cuentas BOB se conservaron
+F8-A09,Ambos,Dos cobros históricos USD con un ingreso por pago,Verificado,F8 confirmó los dos cobros originales en cada modo y cotejó comprobantes PDF e importes con el reporte USD
+F8-A10,Microservicios,Rechazo de cuenta BOB o inactiva para USD,Verificado,F8 API y contabilidad de Finanzas sobre la copia restaurada
+F8-A11,Ambos,Reintento y reversión con saldos e historial,Verificado,F8 repitió la confirmación y revirtió un cobro USD por modo. Verificó un ingreso anulado y el saldo pendiente restituido
+F8-A12,Ambos,Dashboard cinco reportes PDF Excel y adjuntos,Verificado,API F6 reconcilió resultados y PDF adjuntos. F8 contrastó el total USD contra los ingresos
+F8-A13,Ambos,Empresa campañas historial y correo en perfil,Verificado,API F6 con transporte de memoria y DualIdentityTest con buzón simulado para conectar listar leer enviar y cerrar
+F8-A14,Ambos,Portal y documentos por titular,Verificado,F6 aceptación por rol y F5 autorización de descarga de contratos y comprobantes
+F8-A15,Ambos,Libélula simulada y deuda real intacta,Verificado,F5-P09 y pruebas PHP y .NET del proveedor simulado con Bs 0.20 por concepto
+F8-A16,Ambos,Caché colas tareas y archivos,Verificado,Configuración cacheada F8 y PHPUnit. F6-A16 valida tres workers y el aislamiento de campañas
+F8-A17,Microservicios,Caída individual y rutas independientes,Verificado,F6 interrumpió cada autoridad y F5 recuperó el mismo UUID tras cada reinicio
+F8-A18,Ambos,Respuesta perdida con consulta de estado,Verificado,F5-F08 verificó el cobro confirmado y un solo ingreso. F8 consultó el UUID de la venta después de admitirla
+F8-A19,Microservicios,Reinicio en coordinaciones pendientes,Verificado,43 interrupciones de procesos y 199 aserciones. Relevo del worker y reanudación auditada tras agotar reintentos
+F8-A20,Microservicios,Rotación y retiro de confianza,Verificado,Rotación local F5-A10 de cuatro certificados de servidor y cuatro clientes. Rechazo de credenciales retiradas y expiradas
+F8-A21,Cambio,Regreso a local antes de escrituras remotas,Verificado,Inicio de sesión y catálogo de cuentas en Laravel con cuatro autoridades apagadas
+F8-A22,Recuperación,Restaurar tras aceptar nuevas escrituras,Verificado,F8 restauró cinco bases y verificó UUID venta cobros saldos y archivo por SHA-256
+F8-A23,Recuperación,Retorno a Laravel con delta repetible,Verificado,F8 aplicó el corte tras simular interrupción y repitió sin cambios. Laravel verificado con autoridades apagadas
+F8-A24,Recuperación,Colisión del delta y recuperación remota,Verificado,F8 rechazó la colisión en cuenta USD y volvió a verificar el modo remoto
+F8-A25,Cambio,Renovación de sesiones y workers,Verificado,F8 rechazó tokens de otro modo y reinició procesos. F6-A16 verificó la protección de la cola por modo
+F5-P10,Externo,Registro y callback en sandbox Libélula,Pendiente externo,La aceptación local se ejecuta con el simulador

@@ -1,0 +1,310 @@
+PLAN DE DESARROLLO DE LA FASE 8
+Validación integral y recuperación
+Estado del documento | Propuesta de desarrollo
+
+1. OBJETIVO Y ALCANCE
+============================================================
+Demostrar que la misma compilación de Vue funciona con Laravel en modo
+local y en modo microservices. Verificar los flujos autenticados sobre
+datos migrados, ensayar cobros internos en USD y recuperar operaciones
+creadas después de cambiar a microservicios.
+
+La base de trabajo son las revisiones y los respaldos de
+pruebas/RESULTADOS_F7.txt. F7 concilió 32 tablas del origen, 227 filas o
+vínculos de destino y tres archivos. Sobre la copia real se verificaron
+rutas públicas. Las pruebas autenticadas de negocio de F7 usaron datos
+sintéticos. F8 amplía esa cobertura con operaciones controladas sobre
+copias de trabajo del respaldo real.
+
+  local          Vue -> Laravel -> MySQL y archivos de Laravel
+  microservices  Vue -> Laravel -> Seguridad, Propiedades, Comercial y Finanzas
+
+En local, los cuatro procesos .NET permanecen apagados durante la
+aceptación. En microservices se utilizan las cuatro API y sus bases
+aisladas, MySQL para Seguridad y SQL Server para Propiedades, Comercial
+y Finanzas. Laravel sigue siendo la API del navegador. Cada modo usa la
+autoridad de escritura definida para el dominio. Una caída remota se
+refleja en las rutas dependientes y conserva esa autoridad.
+
+Laravel conserva la portada pública, los dashboards, los cinco reportes
+y sus exportaciones, la configuración y el branding de empresa, el
+correo masivo con su historial y colas, el gestor de correo IMAP/SMTP,
+el perfil y el portal del cliente. En modo remoto, perfil delega las
+operaciones de identidad a Seguridad y los módulos consultan las fuentes
+correspondientes. En local, utilizan MySQL y el almacenamiento de Laravel.
+
+Todo el ensayo se realiza en local con bases, archivos, colas y buzones
+aislados. Libélula se prueba con el simulador. Se conserva Bs 0,20 por
+concepto seleccionado como importe de prueba, separado del saldo real
+de la obligación. F5-P10, registro y callback en el sandbox del comercio,
+queda pendiente externo. La publicación y el corte del VPS pertenecen a F9.
+
+2. F8.1 | PREPARAR ENTORNO Y DATOS DE ENSAYO
+============================================================
+1. Fijar las revisiones de backend, frontend y los cuatro servicios.
+   Registrar motores, versiones de esquema, puertos, configuración
+   efectiva y SHA-256 del frontend. Ejecutar ambos modos con ese mismo
+   artefacto y con la misma forma de acceder a la API de Laravel. Fijar
+   APP_ARCHITECTURE para cada ejecución y comprobar los indicadores de
+   negocio y agregados en la configuración efectiva de cada modo.
+2. Restaurar el checkpoint privado de F7 y verificar sus hashes. Mantener
+   una base de referencia y copias descartables por modo. Reservar una
+   ejecución con datos sintéticos para concurrencia, fallos y mensajes, y
+   otra con la copia real para flujos autenticados y conciliación histórica.
+3. Configurar bases, prefijos de caché y cola, almacenamiento y puertos
+   exclusivos del ensayo. Hacer coincidir AGGREGATE_DATASET de Laravel
+   con Operations:Dataset de los servicios aplicables. Comprobar identidad
+   de servidor, base y directorio antes de ejecutar cualquier escritura.
+4. Preparar actores de ensayo con permisos de administrador, asesor,
+   cliente y usuario restringido. Comprobar sus equivalencias y la
+   propiedad de los documentos. Usar accesos temporales de las copias y
+   guardar la evidencia sin contraseñas, tokens ni datos personales.
+5. Configurar SMTP e IMAP de prueba, almacenamiento temporal y pasarela
+   simulada. Apuntar LIBELULA_API_URL en Laravel y Libelula__BaseUrl en
+   Finanzas al simulador con credenciales ficticias. Habilitar el flujo
+   remoto de prueba solo en su entorno aislado con
+   LIBELULA_REMOTE_TEST_PAYMENTS_ENABLED y PaymentTests__Enabled.
+   Bloquear el tráfico saliente a Libélula y al correo real. Comprobar
+   que los workers toman solo trabajos del entorno y modo que corresponden.
+6. Ejecutar las regresiones existentes de F5, F6 y F7 con test-isolated.ps1
+   desde backend. Correr -Integration -Phase5 -MigrationTests por separado.
+   Reutilizar -AggregateTests, -AcceptanceTests y -BrowserTests para la
+   línea base. Repetir recuperación, restauración, rotación y caídas con
+   -RecoveryTests, -RestoreTests, -RotationTests y -CrashTests conforme a
+   las combinaciones del ejecutor. Registrar resultados antes de ampliar
+   la matriz para F8.
+
+Salida | Dos modos reproducibles, respaldo restaurable, configuración
+registrada y línea base de regresión identificada.
+
+3. F8.2 | CUENTA USD Y COBROS MIGRADOS
+============================================================
+1. Conservar las dos cuentas BOB del respaldo de F7. En la copia de
+   trabajo, dar de alta una cuenta ficticia activa en USD, con saldo inicial
+   cero. Registrarla en Finanzas mediante su catálogo con moneda explícita.
+   En local, crear la cuenta equivalente con el esquema vigente y registrar
+   su asociación a USD en la evidencia del ensayo. El catálogo local de
+   F7 carece del campo moneda y la moneda del ingreso se deriva de la venta.
+2. Comprobar que la cuenta USD aparece y puede seleccionarse desde la
+   interfaz y la API Laravel. Usar un método activo y asignar explícitamente
+   la cuenta. Ejercitar el mapeo método-cuenta si interviene en ese flujo,
+   y verificar que los cobros BOB siguen usando una cuenta apropiada.
+3. Localizar los dos cobros históricos en USD mediante las equivalencias
+   de F7. Registrar el ID de cada obligación, su venta, importe, moneda y
+   estado. En copias separadas por modo, confirmar esas mismas obligaciones
+   por POST /api/pagos/{id}/procesar. Mantener su vínculo con la venta y
+   comprobar que la obligación se procesa una sola vez.
+4. Comparar el estado anterior y posterior del pago, el saldo de la venta,
+   el único ingreso confirmado asociado, la cuenta y el método, y el PDF
+   del comprobante. Cotejar los importes en centavos por moneda, incluidos
+   los datos visibles en el portal y los reportes aplicables.
+5. Simular doble clic, solicitudes concurrentes y pérdida de la respuesta
+   posterior al commit. Repetir con la misma clave donde el contrato la
+   admita. Comprobar que el resultado puede recuperarse o reconciliarse
+   mediante el estado del pago y que sigue existiendo un solo ingreso.
+   Verificar el rechazo en Finanzas con una cuenta BOB o inactiva y
+   registrar qué validaciones permite el catálogo local vigente. Evitar
+   conversiones de moneda implícitas.
+6. Ensayar reversión interna de un cobro en una copia descartable. Validar
+   la restitución del saldo, la trazabilidad del ingreso y el historial.
+   Conservar una copia separada con nuevas escrituras para el ensayo de
+   recuperación. Documentar el alta USD como configuración de prueba.
+
+Salida | Evidencia de cobros históricos en USD por ambos modos, saldos
+conciliados por moneda y cobertura de las cuentas BOB existentes. La cuenta
+ficticia pertenece al ensayo. F9 verificará la configuración operativa USD
+antes de habilitar cobros en esa moneda.
+
+4. F8.3 | ACEPTACIÓN DE NEGOCIO CON LOS DOS MODOS
+============================================================
+Ejecutar la matriz por API Laravel y automatizar las rutas críticas de
+interfaz con Playwright. Comparar reglas, estados, permisos, importes y
+contratos públicos. Usar las equivalencias de F7 para comparar referencias
+cuyos identificadores sean distintos entre las bases.
+
+- Seguridad y perfil. Inicio, renovación o vencimiento según el contrato,
+  cierre de sesión, cambios de perfil y correo, baja de usuario, cambios
+  de rol, revocación y renovación de sesión al cambiar el modo. Verificar
+  autorización por rol y por titular para datos y archivos en cada modo.
+- Propiedades. Catálogos, inventario, filtros, imágenes, publicación,
+  disponibilidad y reserva. Verificar que dos solicitudes concurrentes
+  sobre la misma propiedad mantienen una sola reserva válida.
+- Comercial. Clientes y asesores, cotizaciones, venta al contado y a
+  crédito, anulaciones, contratos y su descarga. Conciliar la venta con
+  disponibilidad de Propiedades y cuenta y plan de Finanzas.
+- Finanzas. Cuentas y métodos, pagos pendientes y parciales, ingresos,
+  egresos, comisiones, mora, amortización y reprogramación. Confirmar que
+  el pago parcial de cuota cubre primero el interés pendiente y después
+  capital. Conciliar saldos, movimientos y reversión por moneda.
+- Dashboard, reportes y empresa. Verificar indicadores por rol y los
+  reportes de ventas y cobros, cartera y mora, comisiones, desempeño e
+  inventario. Abrir PDF y Excel, comparar filtros, filas y totales con
+  consultas independientes y verificar adjuntos y branding.
+- Correo y portal. Probar destinatarios de la base que corresponda,
+  campañas, historial, reintentos y adjuntos en buzones de ensayo. Probar
+  listado, lectura y envío del gestor IMAP/SMTP. Validar que cada cliente
+  solo puede ver sus ventas, cuotas, saldos, contratos y comprobantes.
+- Pagos públicos simulados. Ejercitar selección, retorno y callback
+  válido, repetido y rechazado. Verificar que la confirmación queda como
+  PAGADO_PRUEBA. Comparar pagos, cuotas, ingresos y saldos de la obligación
+  antes y después, y comprobar que los Bs 0,20 por concepto se registran
+  solo en la orden de prueba. Verificar que el proveedor externo queda
+  aislado y que únicamente el modo activo ejecuta su conciliación.
+
+Salida | Matriz por modo con evidencia de API, interfaz, archivos, correo
+de prueba y comparación de estados e importes. Las diferencias tienen
+reproducción, corrección y nueva ejecución cuando corresponda.
+
+5. F8.4 | FALLOS, SEGURIDAD Y OPERACIÓN
+============================================================
+1. Interrumpir cada servicio por separado. Verificar las rutas afectadas,
+   el mensaje de error en Laravel y Vue y las rutas independientes. Apagar
+   los cuatro servicios y comprobar que el modo local sigue completando
+   sus operaciones sin tráfico hacia ellos.
+2. Inyectar timeout antes del commit y pérdida de respuesta después del
+   commit en venta, reserva y cobro. Usar el identificador de operación
+   existente para consultar su estado y verificar reanudación, compensación
+   o diagnóstico según el punto del fallo. Una segunda carga incompatible
+   con la misma clave debe rechazarse en flujos con idempotencia.
+3. Reiniciar Laravel, los servicios y los workers entre pasos de
+   coordinación. Comprobar recuperación de operaciones pendientes y
+   ausencia de duplicados en reserva, deuda, ingreso, contrato o envío.
+   Verificar la programación de tareas, los fallos visibles y los
+   reintentos de trabajos en el modo y el conjunto de datos correctos.
+4. Probar expiración de sesiones, baja de cuentas, acceso cruzado a
+   clientes y archivos, y permisos insuficientes. Repetir con la caché
+   de configuración regenerada y los workers reiniciados tras el cambio.
+5. Repetir la rotación y recuperación de los certificados internos
+   usados por los servicios. Probar el cambio de confianza, el rechazo
+   de un certificado anterior retirado y el efecto en la disponibilidad.
+   Registrar tiempos, estado de procesos y los identificadores necesarios
+   para rastrear operaciones, con secretos y datos personales excluidos.
+
+Salida | Fallos reproducibles, coordinaciones recuperadas o con diagnóstico
+y evidencia de que la autoridad y los permisos se conservan bajo fallo.
+
+6. F8.5 | RESTAURAR Y RECUPERAR ESCRITURAS POSTERIORES AL CAMBIO
+============================================================
+1. Preparar un punto inicial con MySQL de Laravel, MySQL de Seguridad,
+   las tres bases SQL Server, archivos, mapeos de F7 y estado de colas y
+   coordinaciones. Registrar versiones, conjunto de datos, estados,
+   conteos, saldos y SHA-256. Ensayar retorno a local desde este punto
+   cuando todavía no hubo escrituras remotas.
+2. Habilitar el modo microservices en la copia y crear operaciones por la
+   API pública. Incluir cambio de perfil, alta o cambio de propiedad con
+   documento, venta, cobro USD e ingreso, y un trabajo propio de Laravel.
+   Dejar una confirmación remota con respuesta perdida y una coordinación
+   pendiente. Registrar identificadores, eventos y archivos. Preparar un
+   segundo punto coherente con las escrituras ya realizadas.
+3. Simular indisponibilidad, suspender entradas de escritura y detener
+   los consumidores cuando corresponda. Identificar el último punto
+   coherente y resolver el estado de los comandos en sus autoridades.
+   Restaurar las bases y archivos de ese punto en otro entorno aislado.
+   Si hacen falta cambios posteriores, reconstruirlos con los registros
+   persistidos y las claves originales y reconciliar su resultado.
+4. Reanudar o compensar coordinaciones en el orden de dependencias.
+   Cotejar conteos, vínculos y permisos, cobros e ingresos, saldos por
+   moneda, estado de ventas y reservas, SHA-256 de documentos y trazas
+   de correo. Volver a servir microservices al completar esos controles.
+5. Medir el tiempo desde la interrupción hasta la reapertura verificada
+   (RTO) y el último punto de datos recuperable (RPO). La muestra debe
+   conservar todas las escrituras confirmadas. Documentar el destino
+   final de cada operación pendiente y los límites observados del método.
+
+Salida | Restauración multibase ejecutada, conciliación con escrituras
+posteriores al cambio y tiempos de recuperación medidos.
+
+7. F8.6 | ENSAYAR REVERSIÓN A LARAVEL DESPUÉS DE ESCRITURAS REMOTAS
+============================================================
+1. Conservar las autoridades remotas como origen durante la preparación.
+   Pausar nuevas escrituras, estabilizar trabajos pendientes y fijar el
+   corte. Exportar cambios desde el punto inicial de F7 hasta ese corte,
+   incluidos los cambios de archivos y las operaciones revertidas.
+2. Aprovechar los manifiestos y equivalencias de F7 para vincular los
+   cambios. F7 implementó la carga hacia los servicios. Diseñar y probar
+   el traslado de vuelta en F8 para las operaciones del ensayo, con una
+   revisión previa de campos sin equivalencia y de conflictos de IDs.
+   Registrar la representación en Laravel de usuarios, permisos,
+   propiedades y archivos, clientes, ventas, planes, cuotas, cobros,
+   ingresos y demás movimientos incluidos en el corte.
+3. Aplicar el delta a una restauración de Laravel tomada al corte, con
+   sus escritores detenidos. Así se incluyen los cambios de empresa,
+   campañas y demás datos propios de Laravel hechos en modo microservices.
+   Mantener referencias válidas e historial contable, especialmente el
+   vínculo pago-ingreso, importes USD y documentos. Conservar el estado
+   de los trabajos propios de Laravel y evitar la repetición de correos.
+   Registrar las equivalencias nuevas y probar reejecución sin duplicados
+   y reanudación tras una interrupción durante la aplicación.
+4. Conciliar contra las autoridades congeladas y contra el manifiesto de
+   archivos. Verificar todas las escrituras confirmadas, totales por
+   moneda, estados, accesos y tareas. Si el traslado es íntegro, seleccionar
+   local, renovar sesiones, regenerar caché, iniciar sus workers y repetir
+   la aceptación con los cuatro servicios apagados.
+5. Simular una diferencia bloqueante en el delta. Comprobar que se mantiene
+   el entorno candidato sin escrituras y que se puede recuperar el modo
+   microservices desde el origen del corte. Documentar qué operaciones
+   admite la reversión. Cualquier pérdida, conflicto pendiente o dato
+   confirmado sin representación bloquea el retorno a Laravel para ese
+   conjunto de operaciones y debe resolverse antes de aprobar ese corte.
+
+Salida | Procedimiento ejecutado de retorno a local para los cambios del
+ensayo, evidencia de repetición y procedimiento de recuperación remota si
+falla la conciliación del retorno.
+
+8. MATRIZ DE ACEPTACIÓN PROPUESTA
+============================================================
+L | Modo local con los cuatro servicios detenidos.
+M | Modo microservices con las cuatro API y bases aisladas.
+T | Prueba del cambio de modo o recuperación en otro entorno.
+
+ID      Modo  Comprobación
+F8-A01  L/M   Misma compilación de Vue y misma API pública Laravel.
+F8-A02  L/M   Login, perfil, correo de cuenta, logout y expiración.
+F8-A03  L/M   Baja, revocación y permisos sobre datos y archivos ajenos.
+F8-A04  L/M   Catálogos, inventario, imágenes y reserva concurrente.
+F8-A05  L/M   Venta contado/crédito, contrato y anulación conciliados.
+F8-A06  L/M   Cuota parcial aplica primero interés y luego capital.
+F8-A07  L/M   Mora, amortización, reprogramación, egresos y comisiones.
+F8-A08  L/M   Cuenta USD de prueba visible y dos cuentas BOB conservadas.
+F8-A09  L/M   Dos obligaciones USD confirmadas en cada copia, con un ingreso
+              por pago y comprobantes y totales conciliados.
+F8-A10  M     Cuenta BOB o inactiva rechazada en cobro USD.
+F8-A11  L/M   Duplicado de cobro y reversión con saldo e historial coherentes.
+F8-A12  L/M   Dashboards y cinco reportes, PDF, Excel y adjuntos.
+F8-A13  L/M   Branding, campañas, destinatarios, historial y buzones de ensayo.
+F8-A14  L/M   Portal y comprobantes visibles solo para el titular autorizado.
+F8-A15  L/M   Libélula simulada, Bs 0,20 por concepto y deuda intacta.
+F8-A16  L/M   Configuración cacheada, colas, tareas y archivos consistentes.
+F8-A17  M     Caída por servicio y continuidad de rutas independientes.
+F8-A18  L/M   Respuesta perdida y consulta de estado sin duplicar efectos.
+F8-A19  M     Reinicio de procesos y workers con coordinaciones pendientes.
+F8-A20  M     Rotación de certificados y rechazo de confianza retirada.
+F8-A21  T     Retorno a local antes de aceptar escrituras remotas.
+F8-A22  T     Restauración tras nuevas escrituras, con saldos y archivos íntegros.
+F8-A23  T     Delta a Laravel repetible y verificado con las autoridades apagadas.
+F8-A24  T     Delta fallido, retorno detenido y recuperación remota verificada.
+F8-A25  T     Cambio de modo con renovación de sesiones y de workers.
+F5-P10  Ext.  Sandbox de Libélula, pendiente externo.
+
+9. F8.7 | ENTREGABLES Y CRITERIOS DE CIERRE
+============================================================
+- Actualizar pruebas/MATRIZ_PRUEBAS_F8.csv y pruebas/RESULTADOS_F8.txt con
+  revisiones, dataset, modo, ejecución, resultado y referencia a evidencia.
+  Guardar artefactos sensibles en almacenamiento privado fuera de Git.
+- Documentar en operacion/RECUPERACION_F8.txt los pasos ejecutados para
+  recuperar el modo remoto, regresar a Laravel y abortar una reversión.
+  Incluir orden de arranque, verificaciones, última escritura conciliada,
+  tiempos observados y criterio para volver a abrir escrituras.
+- Cerrar F8 cuando la matriz local y remota esté aprobada, las escrituras
+  confirmadas y los archivos de la muestra se conserven, los importes y
+  relaciones concilien, las coordinaciones se recuperen y los dos ensayos
+  de recuperación estén documentados. Confirmar que el modo local funciona
+  con las cuatro API apagadas.
+- Tratar como bloqueantes las pérdidas o duplicados de escrituras, los
+  descuadres de saldos, las filtraciones de permisos y cualquier fallo
+  crítico sin corregir en un flujo previsto. Repetir el caso corregido
+  y los flujos que comparten la regla o los datos afectados.
+- Mantener F5-P10 pendiente externo y separado de la aceptación local.
+  Pasar a la preparación de F9 con las versiones verificadas, el punto de
+  recuperación probado y la comprobación de cuenta operativa USD incluida
+  en el inventario previo al corte.

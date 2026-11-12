@@ -1,0 +1,77 @@
+FASE 8 | ENSAYO AISLADO DE RECUPERACIÓN
+
+El procedimiento se ejecuta en Windows desde el repositorio backend. Usa
+la instancia local de SQL Server con bases desechables, una instancia
+MySQL de prueba en loopback con un puerto nuevo y los cuatro servicios
+en puertos temporales. Requiere las dependencias usadas en F7 y Chromium
+de Playwright en frontend/.phase3/browsers.
+
+  pwsh -NoProfile -File scripts/test-isolated.ps1 -Integration -Phase5 -MigrationTests -ApplyMigrationSource -Phase8Tests -MigrationSource storage/framework/testing/f7-8784319101294b038f61bdc62ac03106
+
+El ejecutor valida las huellas del checkpoint de F7, crea una copia privada
+f7-UUID y registra sus resultados en esa carpeta. Las bases originales,
+los buzones y el VPS quedan fuera del ensayo. Para los cobros internos se
+usan cuentas ficticias y se excluyen las rutas de la pasarela. F5-P10 queda
+pendiente externo. Los ensayos de Libélula de la regresión utilizan el
+simulador y credenciales ficticias.
+
+1. Restaurar y verificar el punto de partida
+   Comparar el manifiesto y restaurar MySQL de Laravel. Preparar Seguridad,
+   Propiedades, Comercial y Finanzas con las equivalencias de F7. Verificar
+   la conciliación y la repetición sin nuevas escrituras. Crear el usuario
+   de ensayo en ambas autoridades y verificar Laravel con .NET apagado.
+
+2. Aceptar escrituras en la copia con microservicios
+   Usar Laravel para confirmar los dos cobros USD pendientes en la cuenta
+   de ensayo. Verificar una fila de ingreso por cobro, los importes y las
+   referencias originales. Registrar después un cambio de perfil, una
+   edición de empresa que permanece en Laravel y una nueva venta de contado
+   con reserva de la propiedad, obligación pendiente y contrato adjunto.
+   Recuperar el estado de la venta por su UUID.
+
+3. Recuperar el modo microservices
+   Detener la entrada y los procesos de ensayo. Capturar la conciliación
+   del corte en f8-delta.json. Respaldar y restaurar las cinco bases con
+   destinos nuevos y copiar archivos con verificación de SHA-256. Guardar
+   sus huellas y las del frontend usado en checkpoint-f8.json. Arrancar
+   Seguridad, Propiedades, Finanzas y Comercial con sus bases restauradas.
+   Regenerar la caché de Laravel con las conexiones del ensayo y arrancar
+   la API. Comparar el estado restaurado con el manifiesto. Consultar el
+   UUID de la venta, los cobros, sus comprobantes y el contrato adjunto.
+   Tomar como tiempo de recuperación el intervalo desde el cierre de
+   escritores hasta que pasan las comprobaciones de la API.
+
+4. Ensayar el retorno a Laravel
+   Con Laravel detenido, probar una colisión en la cuenta USD y verificar
+   que se puede reabrir el entorno remoto. Congelar las autoridades antes
+   de aplicar el delta válido. Usar la restauración MySQL de Laravel
+   tomada al corte para conservar los cambios propios de Laravel.
+
+   El ejecutor aplica las equivalencias de F7 en una transacción. Conserva
+   los IDs locales de los cobros históricos, crea sus ingresos, vincula la
+   nueva venta con las entidades locales y guarda el contrato por SHA-256.
+   Verifica el rollback de una transacción interrumpida, registra la huella
+   del manifiesto y prueba que volver a aplicar el mismo corte no duplica
+   filas. Un conflicto mantiene el candidato cerrado.
+
+   Regenerar la caché de Laravel en modo local, iniciar la API con las
+   autoridades apagadas e iniciar una sesión local nueva. Verificar perfil,
+   empresa, propiedad, venta, obligación pendiente, PDF del contrato,
+   cobros e ingresos. Medir el intervalo del retorno hasta pasar estos
+   controles.
+
+   Una vez conservado el checkpoint, revertir un cobro USD en cada
+   entorno desechable. Comprobar que el ingreso se anula, que reaparece
+   el saldo pendiente y que el segundo cobro sigue confirmado.
+
+5. Alcance del retorno
+   El ejecutor es una prueba de recuperación para el conjunto de cambios
+   ensayado. Antes de F9, cotejar las operaciones que se permitirán durante
+   el corte con las que pueden recuperarse. Para cambios fuera de ese
+   alcance, usar las autoridades remotas y su respaldo coherente hasta
+   disponer de una equivalencia validada. Validar una cuenta USD operativa
+   antes de aceptar cobros USD en el VPS.
+
+Los volcados y documentos del ensayo contienen datos privados. Consultar
+pruebas/RESULTADOS_F8.txt para las rutas de evidencia y el resultado de
+cada ejecución. Conservar esos archivos fuera de Git.
